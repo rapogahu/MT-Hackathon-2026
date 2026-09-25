@@ -61,6 +61,92 @@ def create_routes_router(
         return routes[0]
 
     # =========================================================
+    # GET /api/routes/number/{route_number}/stops
+    # =========================================================
+
+    @router.get("/number/{route_number}/stops")
+    def get_route_stops(
+        route_number: str,
+    ):
+        """
+        Получить остановки маршрута
+        с координатами.
+
+        Например:
+
+        /api/routes/number/1/stops
+        """
+
+        # -----------------------------------------------------
+        # 1. Находим маршрут по его номеру
+        # -----------------------------------------------------
+
+        routes = repository.get_route_by_number(
+            route_number
+        )
+
+        if not routes:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Маршрут №{route_number} "
+                    "не найден"
+                ),
+            )
+
+        route = routes[0]
+
+        # -----------------------------------------------------
+        # 2. Получаем route_id
+        # -----------------------------------------------------
+
+        route_id = route["route_id"]
+
+        # -----------------------------------------------------
+        # 3. Получаем все остановки маршрута
+        # -----------------------------------------------------
+
+        stops = repository.get_trip_stops(
+            route_id=route_id
+        )
+
+        if not stops:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Для маршрута №{route_number} "
+                    "не найдены остановки"
+                ),
+            )
+
+        # -----------------------------------------------------
+        # 4. Разделяем остановки по направлениям
+        # -----------------------------------------------------
+
+        directions = {}
+
+        for stop in stops:
+            direction_id = str(
+                stop["direction_id"]
+            )
+
+            if direction_id not in directions:
+                directions[direction_id] = []
+
+            directions[direction_id].append(
+                stop
+            )
+
+        # -----------------------------------------------------
+        # 5. Возвращаем маршрут и остановки
+        # -----------------------------------------------------
+
+        return {
+            "route": route,
+            "directions": directions,
+        }
+
+    # =========================================================
     # GET /api/routes/{route_id}
     # =========================================================
 
