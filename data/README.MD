@@ -4,9 +4,9 @@
 
 Главная идея очень простая:
 
-```text
+
 raw → interim → processed
-```
+
 
 То есть:
 
@@ -18,7 +18,7 @@ raw → interim → processed
 
 Структура:
 
-```text
+
 data/
 ├── README.md
 ├── raw/
@@ -27,7 +27,7 @@ data/
 │   └── .gitkeep
 └── processed/
     └── .gitkeep
-```
+
 
 ## `raw/` — исходные данные
 
@@ -35,13 +35,13 @@ data/
 
 Например:
 
-```text
+
 data/raw/
 ├── train.csv
 ├── test.csv
 ├── stops.csv
 └── routes.csv
-```
+
 
 Конкретные названия файлов зависят от структуры датасета.
 
@@ -53,25 +53,25 @@ data/raw/
 
 Нельзя делать так:
 
-```text
+
 Открыли train.csv
 ↓
 что-то исправили руками
 ↓
 сохранили train.csv
-```
+
 
 Иначе другой участник команды не сможет воспроизвести эти изменения.
 
 Правильно:
 
-```text
+
 data/raw/train.csv
         ↓
 код preprocessing
         ↓
 data/interim/train_cleaned.parquet
-```
+
 
 Таким образом, `raw/` всегда остаётся исходной точкой, из которой можно заново построить весь датасет.
 
@@ -81,15 +81,15 @@ data/interim/train_cleaned.parquet
 
 Допустим, организаторы дали несколько таблиц:
 
-```text
+
 validations.csv
 stops.csv
 routes.csv
-```
+
 
 Мы объединили их:
 
-```text
+
 validations
      +
 stops
@@ -97,33 +97,33 @@ stops
 routes
      ↓
 merged_validations.parquet
-```
+
 
 Такой файл можно сохранить:
 
-```text
+
 data/interim/merged_validations.parquet
-```
+
 
 Другой пример.
 
 Было:
 
-```text
+
 data/raw/train.csv
-```
+
 
 После очистки:
 
-```text
+
 data/interim/train_cleaned.parquet
-```
+
 
 После добавления географической информации:
 
-```text
+
 data/interim/train_with_geo.parquet
-```
+
 
 ### Когда использовать `interim/`
 
@@ -141,9 +141,9 @@ data/interim/train_with_geo.parquet
 
 То есть удаление всей папки:
 
-```text
+
 data/interim/
-```
+
 
 не должно уничтожить уникальную информацию.
 
@@ -153,12 +153,12 @@ data/interim/
 
 Например:
 
-```text
+
 data/processed/
 ├── train.parquet
 ├── validation.parquet
 └── test.parquet
-```
+
 
 К этому моменту мы уже могли:
 
@@ -177,13 +177,13 @@ data/processed/
 
 Условно:
 
-```text
+
 data/processed/train.parquet
              ↓
           train.py
              ↓
            model
-```
+
 
 ### Чем `processed/` отличается от `interim/`
 
@@ -197,7 +197,7 @@ data/processed/train.parquet
 
 Например:
 
-```text
+
 raw/
     validations.csv
     stops.csv
@@ -212,13 +212,13 @@ interim/
 processed/
     train.parquet
     validation.parquet
-```
+
 
 ## Полный жизненный цикл данных
 
 Пример полного pipeline:
 
-```text
+
 dataset.zip
      ↓
 распаковка
@@ -234,13 +234,13 @@ feature engineering
 data/processed/
      ↓
 обучение модели
-```
+
 
 Код, выполняющий эти преобразования, находится в:
 
-```text
+
 ml/src/
-```
+
 
 ## Что хранится в Git
 
@@ -248,7 +248,7 @@ ml/src/
 
 В `.gitignore` находятся правила:
 
-```gitignore
+gitignore
 data/raw/*
 data/interim/*
 data/processed/*
@@ -256,16 +256,16 @@ data/processed/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
-```
+
 
 Поэтому файлы данных:
 
-```text
+
 .csv
 .parquet
 .xlsx
 ...
-```
+
 
 внутри этих директорий не попадут в репозиторий.
 
@@ -275,7 +275,7 @@ data/processed/*
 
 После клонирования репозитория структура будет выглядеть примерно так:
 
-```text
+
 data/
 ├── README.md
 ├── raw/
@@ -284,25 +284,25 @@ data/
 │   └── .gitkeep
 └── processed/
     └── .gitkeep
-```
+
 
 Дальше необходимо самостоятельно получить датасет организаторов и поместить исходные файлы в:
 
-```text
+
 data/raw/
-```
+
 
 После этого preprocessing должен создавать содержимое:
 
-```text
+
 data/interim/
-```
+
 
 и:
 
-```text
+
 data/processed/
-```
+
 
 ## Коротко
 
@@ -322,8 +322,7 @@ data/processed/
 
 И самое важное:
 
-```text
+
 raw не изменяем вручную
 interim можно удалить и пересоздать
 processed можно удалить и пересоздать
-```
