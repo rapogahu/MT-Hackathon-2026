@@ -10,6 +10,7 @@ H20_NAME = "route_weekday_hour_historical_mean"
 H21_NAME = "median_last_4_same_weekday_hour"
 H22_NAME = "mean_last_4_same_weekday_hour"
 H23_NAME = "route_recent_4w_mean"
+H24_NAME = "route_previous_4w_mean"
 
 
 class RouteWeekdayHourHistoricalMedian:
@@ -267,6 +268,81 @@ class RouteRecent4WeekMean:
             }
             for route in sorted(history["route"].unique())
         }
+
+
+class RoutePrevious4WeekMean(RouteRecent4WeekMean):
+    """H24: mean hourly target in the 28 days preceding the recent 28 days."""
+
+    @classmethod
+    def build_train(cls, train_rows: pd.DataFrame, history: pd.DataFrame) -> pd.Series:
+        if not train_rows[["route", "date", "hour"]].equals(history[["route", "date", "hour"]]):
+            raise ValueError("Train history must align with train keys")
+        if history["date"].max() > pd.Timestamp("2025-08-31"):
+            raise ValueError("Train history extends beyond forecast origin")
+        daily = cls._daily(history)
+        # At day i, shifted index i-29 ends the interval [i-56, i-28).
+        daily["feature"] = daily.groupby("route")["total"].transform(
+            lambda group: group.shift(29).rolling(window=28, min_periods=1).mean() / 24
+        )
+        values = cls._query(train_rows, daily.set_index(["route", "date"])["feature"])
+        values.loc[train_rows["route"].eq(5)] = float("nan")
+        return values.rename(H24_NAME).astype("float64")
+
+    @classmethod
+    def build_validation(cls, validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        if "boardings" in validation_keys:
+            raise ValueError("Validation feature builder accepts keys only")
+        if frozen_history.empty or frozen_history["date"].max() != pd.Timestamp("2025-08-31"):
+            raise ValueError("Validation history must end at 2025-08-31")
+        if validation_keys["date"].min() <= frozen_history["date"].max():
+            raise ValueError("Validation keys overlap target history")
+        previous = frozen_history.loc[
+            frozen_history["date"].between(pd.Timestamp("2025-07-07"), pd.Timestamp("2025-08-03"))
+            & frozen_history["route"].ne(5)
+        ]
+        cls._daily(previous)
+        levels = previous.groupby("route")["boardings"].mean()
+        return pd.Series(validation_keys["route"].map(levels).to_numpy(),
+                         index=validation_keys.index, name=H24_NAME, dtype="float64")
+
+    @classmethod
+    def history_days(
+        cls, train_keys: pd.DataFrame, validation_keys: pd.DataFrame, history: pd.DataFrame
+    ) -> dict[str, pd.Series]:
+        daily = cls._daily(history)
+        daily["days"] = daily.groupby("route").cumcount().sub(28).clip(lower=0, upper=28)
+        train_days = cls._query(train_keys, daily.set_index(["route", "date"])["days"])
+        train_days.loc[train_keys["route"].eq(5)] = 0
+        valid_days = pd.Series(28, index=validation_keys.index, dtype="int64")
+        valid_days.loc[validation_keys["route"].eq(5)] = 0
+        return {"train": train_days.astype("int64"), "validation": valid_days}
+
+    @classmethod
+    def frozen_route_levels(cls, history: pd.DataFrame) -> dict[str, dict[str, float | None]]:
+        past = history.loc[history["route"].ne(5)]
+        previous = past.loc[past["date"].between(pd.Timestamp("2025-07-07"), pd.Timestamp("2025-08-03"))]
+        recent = past.loc[past["date"].between(pd.Timestamp("2025-08-04"), pd.Timestamp("2025-08-31"))]
+        previous_level = previous.groupby("route")["boardings"].mean()
+        recent_level = recent.groupby("route")["boardings"].mean()
+        levels = {}
+        for route in sorted(history["route"].unique()):
+            if route not in previous_level or route not in recent_level:
+                levels[str(route)] = {
+                    "previous_4w_mean": None, "recent_4w_mean": None,
+                    "signed_difference_recent_minus_previous": None,
+                    "absolute_difference": None, "recent_over_previous": None,
+                }
+                continue
+            before = float(previous_level.loc[route])
+            after = float(recent_level.loc[route])
+            levels[str(route)] = {
+                "previous_4w_mean": before,
+                "recent_4w_mean": after,
+                "signed_difference_recent_minus_previous": after - before,
+                "absolute_difference": abs(after - before),
+                "recent_over_previous": after / before if before > 0 else None,
+            }
+        return levels
 
 
 def build_train_lag(
