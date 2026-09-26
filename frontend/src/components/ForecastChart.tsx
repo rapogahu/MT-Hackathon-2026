@@ -1,121 +1,26 @@
 import { LineChart } from "echarts/charts";
-import { GridComponent, TooltipComponent } from "echarts/components";
+import { GridComponent, LegendComponent, TooltipComponent } from "echarts/components";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { useEffect, useRef } from "react";
-import type { ForecastPoint } from "../api/types";
+import { useEffect, useMemo, useRef } from "react";
+import type { AggregatePoint, ForecastPoint } from "../api/types";
 
-interface ForecastChartProps {
-  points: ForecastPoint[];
-  selectedHour: number;
-  onHourSelect: (hour: number) => void;
-}
+interface Props { forecastPoints: ForecastPoint[]; aggregatePoints: AggregatePoint[]; selectedHour: number; showHourRail: boolean; onPointSelect: (date: string, hour?: number) => void }
+echarts.use([LineChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer]);
+const colors = ["#b9f45d", "#59d6c7", "#f7bf64", "#ef7f96", "#91a7ff", "#c79cff", "#65c7ff", "#d9e36e", "#ff9671", "#82db88"];
 
-echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
-
-const categoryLabels: Record<ForecastPoint["load_category"], string> = {
-  very_low: "Очень низкая",
-  low: "Низкая",
-  medium: "Средняя",
-  high: "Высокая",
-  very_high: "Очень высокая",
-};
-
-export function ForecastChart({ points, selectedHour, onHourSelect }: ForecastChartProps) {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const onSelectRef = useRef(onHourSelect);
-  onSelectRef.current = onHourSelect;
-
+export function ForecastChart({ forecastPoints, aggregatePoints, selectedHour, showHourRail, onPointSelect }: Props) {
+  const chartRef = useRef<HTMLDivElement>(null); const onSelectRef = useRef(onPointSelect); onSelectRef.current = onPointSelect;
+  const points = useMemo(() => forecastPoints.length ? forecastPoints : aggregatePoints, [forecastPoints, aggregatePoints]);
+  const routes = useMemo(() => [...new Set(points.map((point) => point.route))], [points]);
+  const axis = useMemo(() => [...new Set(points.map((point) => "hour" in point ? `${point.date} ${String(point.hour).padStart(2, "0")}:00` : point.date))].sort(), [points]);
   useEffect(() => {
     if (!chartRef.current || navigator.userAgent.includes("jsdom")) return;
     const chart = echarts.init(chartRef.current, undefined, { renderer: "canvas" });
-    chart.setOption({
-      animationDuration: 350,
-      grid: { top: 24, right: 18, bottom: 44, left: 56 },
-      tooltip: {
-        trigger: "axis",
-        backgroundColor: "#10242e",
-        borderColor: "#27434f",
-        textStyle: { color: "#f5fbf8" },
-        formatter: (items: unknown) => {
-          const item = Array.isArray(items) ? items[0] : items;
-          const index = (item as { dataIndex?: number } | undefined)?.dataIndex ?? 0;
-          const point = points[index];
-          if (!point) return "";
-          return [
-            `<strong>${String(point.hour).padStart(2, "0")}:00–${String(point.hour).padStart(2, "0")}:59</strong>`,
-            `Прогноз посадок: ${Math.floor(point.prediction + 0.5).toLocaleString("ru-RU")}`,
-            `Относительная загрузка: ${point.relative_load_pct}%`,
-            `Индекс: ${point.load_index}/10 — ${categoryLabels[point.load_category]}`,
-          ].join("<br/>");
-        },
-      },
-      xAxis: {
-        type: "category",
-        data: points.map((point) => `${String(point.hour).padStart(2, "0")}:00`),
-        axisLine: { lineStyle: { color: "#49626d" } },
-        axisLabel: { color: "#9eb0b7", interval: 2 },
-      },
-      yAxis: {
-        type: "value",
-        name: "посадки",
-        nameTextStyle: { color: "#9eb0b7" },
-        splitLine: { lineStyle: { color: "rgba(158, 176, 183, .13)" } },
-        axisLabel: { color: "#9eb0b7" },
-      },
-      series: [
-        {
-          type: "line",
-          smooth: 0.28,
-          symbolSize: (value: unknown, params: { dataIndex: number }) =>
-            points[params.dataIndex]?.hour === selectedHour ? 11 : 5,
-          data: points.map((point) => point.prediction),
-          lineStyle: { color: "#b9f45d", width: 3 },
-          itemStyle: { color: "#d9ff98", borderColor: "#0b1820", borderWidth: 2 },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: "rgba(185, 244, 93, .30)" },
-              { offset: 1, color: "rgba(185, 244, 93, 0)" },
-            ]),
-          },
-        },
-      ],
-    });
-    chart.on("click", (params: { dataIndex?: number }) => {
-      const point = params.dataIndex === undefined ? undefined : points[params.dataIndex];
-      if (point) onSelectRef.current(point.hour);
-    });
-    const observer = new ResizeObserver(() => chart.resize());
-    observer.observe(chartRef.current);
-    return () => {
-      observer.disconnect();
-      chart.dispose();
-    };
-  }, [points, selectedHour]);
-
-  return (
-    <div className="chart-wrap">
-      <div
-        ref={chartRef}
-        className="chart-canvas"
-        role="img"
-        aria-label={`Почасовой график из ${points.length} точек. Выбран ${selectedHour}:00.`}
-        data-testid="forecast-chart"
-      />
-      <div className="hour-rail" aria-label="Выбор часа по графику">
-        {points.map((point) => (
-          <button
-            type="button"
-            key={point.hour}
-            className={point.hour === selectedHour ? "hour-dot is-active" : "hour-dot"}
-            aria-label={`${String(point.hour).padStart(2, "0")}:00, ${Math.floor(point.prediction + 0.5)} посадок`}
-            aria-pressed={point.hour === selectedHour}
-            onClick={() => onHourSelect(point.hour)}
-          >
-            <span>{String(point.hour).padStart(2, "0")}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+    chart.setOption({ animationDuration: 250, color: colors, grid: { top: routes.length > 1 ? 54 : 24, right: 18, bottom: 62, left: 68 }, legend: { show: routes.length > 1, textStyle: { color: "#9eb0b7" }, data: routes.map((route) => `Маршрут ${route}`) }, tooltip: { trigger: "axis", backgroundColor: "#10242e", borderColor: "#27434f", textStyle: { color: "#f5fbf8" } }, xAxis: { type: "category", data: axis.map((value) => value.slice(5)), axisLabel: { color: "#9eb0b7", hideOverlap: true }, axisLine: { lineStyle: { color: "#49626d" } } }, yAxis: { type: "value", name: "посадки", nameTextStyle: { color: "#9eb0b7" }, axisLabel: { color: "#9eb0b7" }, splitLine: { lineStyle: { color: "rgba(158,176,183,.13)" } } }, series: routes.map((route) => ({ name: `Маршрут ${route}`, type: "line", showSymbol: axis.length <= 62, symbolSize: 6, smooth: axis.length <= 62 ? .2 : 0, data: axis.map((key) => { const found = points.find((point) => point.route === route && ("hour" in point ? `${point.date} ${String(point.hour).padStart(2, "0")}:00` : point.date) === key); return found?.prediction ?? null; }), lineStyle: { width: routes.length > 1 ? 1.5 : 3 } })) });
+    chart.on("click", (params: { dataIndex?: number }) => { const key = params.dataIndex === undefined ? undefined : axis[params.dataIndex]; if (!key) return; const [date, time] = key.split(" "); onSelectRef.current(date, time ? Number(time.slice(0, 2)) : undefined); });
+    const observer = new ResizeObserver(() => chart.resize()); observer.observe(chartRef.current); return () => { observer.disconnect(); chart.dispose(); };
+  }, [axis, points, routes]);
+  const dayPoints = forecastPoints.filter((point) => point.route === forecastPoints[0]?.route);
+  return <div className="chart-wrap"><div ref={chartRef} className="chart-canvas" role="img" aria-label={`График прогноза: ${points.length} точек, ${routes.length} маршрутов.`} data-testid="forecast-chart" />{showHourRail && <div className="hour-rail" aria-label="Выбор часа по графику">{dayPoints.map((point) => <button type="button" key={point.hour} className={point.hour === selectedHour ? "hour-dot is-active" : "hour-dot"} aria-label={`${String(point.hour).padStart(2, "0")}:00, ${Math.round(point.prediction)} посадок`} aria-pressed={point.hour === selectedHour} onClick={() => onPointSelect(point.date, point.hour)}><span>{String(point.hour).padStart(2, "0")}</span></button>)}</div>}</div>;
 }

@@ -4,6 +4,9 @@ export type CompetitionRoute = (typeof COMPETITION_ROUTES)[number];
 export type Horizon = "day" | "month" | "year";
 export type ForecastKind = "forecast" | "scenario";
 export type LoadCategory = "very_low" | "low" | "medium" | "high" | "very_high";
+export type RouteFilter = number | null;
+export type ViewMode = "DAY" | "MONTH" | "PERIOD";
+export type Granularity = "hour" | "day" | "week" | "month";
 
 export interface RunSummary {
   run_id: string;
@@ -93,6 +96,41 @@ export interface PointResponse {
   points: ForecastPoint[];
 }
 
+export interface TimeseriesResponse {
+  run_id: string;
+  route: RouteFilter;
+  from: string;
+  to: string;
+  count: number;
+  points: ForecastPoint[];
+}
+
+export interface AggregatePoint {
+  route: number;
+  date: string;
+  period_start: string;
+  period_end: string;
+  prediction: number;
+  hours_count: number;
+  expected_hours: number;
+  is_partial: boolean;
+}
+
+export interface AggregateResponse {
+  run_id: string;
+  route: RouteFilter;
+  from: string;
+  to: string;
+  granularity: Exclude<Granularity, "hour">;
+  count: number;
+  points: AggregatePoint[];
+}
+
+export interface ExportResult {
+  blob: Blob;
+  filename: string;
+}
+
 export interface DataRequest {
   signal?: AbortSignal;
 }
@@ -102,11 +140,29 @@ export interface ForecastDataClient {
   getRun(runId: string, options?: DataRequest): Promise<RunMetadata>;
   getRoutes(runId: string, options?: DataRequest): Promise<ProductRoutesResponse>;
   getDay(
-    input: { runId: string; route: number; date: string },
+    input: { runId: string; route: RouteFilter; date: string },
     options?: DataRequest,
   ): Promise<DayResponse>;
   getPoint(
-    input: { runId: string; route: number; date: string; hour: number },
+    input: { runId: string; route: RouteFilter; date: string; hour: number },
     options?: DataRequest,
   ): Promise<PointResponse>;
+  getTimeseries(
+    input: { runId: string; route: RouteFilter; from: string; to: string },
+    options?: DataRequest,
+  ): Promise<TimeseriesResponse>;
+  getAggregate(
+    input: {
+      runId: string;
+      route: RouteFilter;
+      from: string;
+      to: string;
+      granularity: Exclude<Granularity, "hour">;
+    },
+    options?: DataRequest,
+  ): Promise<AggregateResponse>;
+  exportCsv(
+    input: { runId: string; route: RouteFilter; from: string; to: string; hour?: number },
+    options?: DataRequest,
+  ): Promise<ExportResult>;
 }

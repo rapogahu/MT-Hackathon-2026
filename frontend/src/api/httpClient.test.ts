@@ -38,4 +38,16 @@ describe("HttpForecastClient", () => {
     await expect(client.getRuns()).rejects.toMatchObject({ status: 503, code: "FORECAST_NOT_LOADED" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("omits route for ALL and downloads the backend CSV filename", async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ run_id: "run", count: 0, points: [] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response("route;date\n1;2025-11-15", { status: 200, headers: { "Content-Type": "text/csv", "Content-Disposition": "attachment; filename=selection.csv" } }));
+    const client = new HttpForecastClient({ baseUrl: "http://api.test", fetchImpl: fetchMock });
+    await client.getTimeseries({ runId: "run", route: null, from: "2025-11-15", to: "2025-12-05" });
+    const exported = await client.exportCsv({ runId: "run", route: null, from: "2025-11-15", to: "2025-12-05" });
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/api/timeseries?run_id=run&from=2025-11-15&to=2025-12-05");
+    expect(fetchMock.mock.calls[1][0]).not.toContain("route=");
+    expect(exported.filename).toBe("selection.csv");
+  });
 });

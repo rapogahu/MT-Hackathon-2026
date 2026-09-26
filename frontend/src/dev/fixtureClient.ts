@@ -1,6 +1,8 @@
 import { ApiError } from "../api/errors";
 import {
   COMPETITION_ROUTES,
+  type AggregatePoint,
+  type AggregateResponse,
   type DataRequest,
   type DayResponse,
   type ForecastDataClient,
@@ -12,7 +14,11 @@ import {
   type RunMetadata,
   type RunsResponse,
   type RunSummary,
+  type RouteFilter,
+  type TimeseriesResponse,
+  type ExportResult,
 } from "../api/types";
+import { addDays, enumerateDates, parseIsoDate } from "../api/dateUtils";
 
 export type FixtureScenario = "default" | "empty-runs" | "error" | "degenerate";
 
@@ -177,16 +183,18 @@ export class FixtureForecastClient implements ForecastDataClient {
   }
 
   async getDay(
-    input: { runId: string; route: number; date: string },
+    input: { runId: string; route: RouteFilter; date: string },
     options?: DataRequest,
   ): Promise<DayResponse> {
     await this.pause(options?.signal);
     this.assertHealthy();
     this.assertRun(input.runId);
-    this.assertRoute(input.route);
+    this.assertRouteFilter(input.route);
     assertDate(input.date);
-    const points = Array.from({ length: 24 }, (_, hour) =>
-      makeFixturePoint(input.route, input.date, hour, this.scenario === "degenerate"),
+    const points = this.routesFor(input.route).flatMap((route) =>
+      Array.from({ length: 24 }, (_, hour) =>
+        makeFixturePoint(route, input.date, hour, this.scenario === "degenerate"),
+      ),
     );
     return {
       run_id: input.runId,
@@ -198,31 +206,88 @@ export class FixtureForecastClient implements ForecastDataClient {
   }
 
   async getPoint(
-    input: { runId: string; route: number; date: string; hour: number },
+    input: { runId: string; route: RouteFilter; date: string; hour: number },
     options?: DataRequest,
   ): Promise<PointResponse> {
     await this.pause(options?.signal);
     this.assertHealthy();
     this.assertRun(input.runId);
-    this.assertRoute(input.route);
+    this.assertRouteFilter(input.route);
     assertDate(input.date);
     if (!Number.isInteger(input.hour) || input.hour < 0 || input.hour > 23) {
       throw new ApiError(422, { code: "INVALID_REQUEST", message: "Час должен быть от 0 до 23" });
     }
-    const point = makeFixturePoint(
-      input.route,
-      input.date,
-      input.hour,
-      this.scenario === "degenerate",
+    const points = this.routesFor(input.route).map((route) =>
+      makeFixturePoint(route, input.date, input.hour, this.scenario === "degenerate"),
     );
     return {
       run_id: input.runId,
       route: input.route,
       date: input.date,
       hour: input.hour,
-      count: 1,
-      points: [point],
+      count: points.length,
+      points,
     };
+  }
+
+  async getTimeseries(
+    input: { runId: string; route: RouteFilter; from: string; to: string },
+    options?: DataRequest,
+  ): Promise<TimeseriesResponse> {
+    await this.pause(options?.signal);
+    this.assertHealthy();
+    this.assertRun(input.runId);
+    this.assertRouteFilter(input.route);
+    this.assertRange(input.from, input.to);
+    const points = enumerateDates(input.from, input.to).flatMap((date) =>
+      this.routesFor(input.route).flatMap((route) =>
+        Array.from({ length: 24 }, (_, hour) =>
+          makeFixturePoint(route, date, hour, this.scenario === "degenerate"),
+        ),
+      ),
+    );
+    return { run_id: input.runId, route: input.route, from: input.from, to: input.to, count: points.length, points };
+  }
+
+  async getAggregate(
+    input: { runId: string; route: RouteFilter; from: string; to: string; granularity: "day" | "week" | "month" },
+    options?: DataRequest,
+  ): Promise<AggregateResponse> {
+    const series = await this.getTimeseries(input, options);
+    const groups = new Map<string, { route: number; date: string; start: string; end: string; fullStart: string; fullEnd: string; prediction: number; hours: number }>();
+    for (const point of series.points) {
+      const bucket = bucketFor(point.date, input.granularity);
+      const key = `${point.route}:${bucket.date}`;
+      const current = groups.get(key) ?? { route: point.route, date: bucket.date, start: point.date, end: point.date, fullStart: bucket.start, fullEnd: bucket.end, prediction: 0, hours: 0 };
+      current.start = current.start < point.date ? current.start : point.date;
+      current.end = current.end > point.date ? current.end : point.date;
+      current.prediction += point.prediction;
+      current.hours += 1;
+      groups.set(key, current);
+    }
+    const points: AggregatePoint[] = [...groups.values()].map((item) => ({
+      route: item.route,
+      date: item.date,
+      period_start: item.start,
+      period_end: item.end,
+      prediction: item.prediction,
+      hours_count: item.hours,
+      expected_hours: enumerateDates(item.start, item.end).length * 24,
+      is_partial: item.start !== item.fullStart || item.end !== item.fullEnd,
+    })).sort((a, b) => a.route - b.route || a.date.localeCompare(b.date));
+    return { run_id: input.runId, route: input.route, from: input.from, to: input.to, granularity: input.granularity, count: points.length, points };
+  }
+
+  async exportCsv(
+    input: { runId: string; route: RouteFilter; from: string; to: string; hour?: number },
+    options?: DataRequest,
+  ): Promise<ExportResult> {
+    const series = await this.getTimeseries(input, options);
+    const points = input.hour === undefined ? series.points : series.points.filter((point) => point.hour === input.hour);
+    const rows = ["route;date;hour;prediction;relative_load_pct;load_index;load_category", ...points.map((point) =>
+      [point.route, point.date, point.hour, point.prediction, point.relative_load_pct, point.load_index, point.load_category].join(";"),
+    )];
+    return { blob: new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" }), filename: `forecast_${input.from}_${input.to}.csv` };
   }
 
   private assertHealthy(): void {
@@ -246,6 +311,20 @@ export class FixtureForecastClient implements ForecastDataClient {
     }
   }
 
+  private assertRouteFilter(route: RouteFilter): void {
+    if (route !== null) this.assertRoute(route);
+  }
+
+  private routesFor(route: RouteFilter): readonly number[] {
+    return route === null ? COMPETITION_ROUTES : [route];
+  }
+
+  private assertRange(from: string, to: string): void {
+    assertDate(from);
+    assertDate(to);
+    if (from > to) throw new ApiError(422, { code: "INVALID_REQUEST", message: "Начало периода позже окончания" });
+  }
+
   private pause(signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
       if (signal?.aborted) {
@@ -263,4 +342,17 @@ export class FixtureForecastClient implements ForecastDataClient {
       );
     });
   }
+}
+
+function bucketFor(date: string, granularity: "day" | "week" | "month") {
+  if (granularity === "day") return { date, start: date, end: date };
+  if (granularity === "month") {
+    const month = date.slice(0, 7);
+    const [year, number] = month.split("-").map(Number);
+    const end = new Date(Date.UTC(year, number, 0, 12)).toISOString().slice(0, 10);
+    return { date: `${month}-01`, start: `${month}-01`, end };
+  }
+  const weekday = parseIsoDate(date).getUTCDay() || 7;
+  const start = addDays(date, 1 - weekday);
+  return { date: start, start, end: addDays(start, 6) };
 }

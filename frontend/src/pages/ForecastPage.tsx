@@ -1,316 +1,47 @@
+import { useState } from "react";
 import type { DataSource } from "../api/createDataClient";
 import type { ForecastDataClient, ForecastPoint } from "../api/types";
 import { ForecastChart } from "../components/ForecastChart";
 import type { FixtureScenario } from "../dev/fixtureClient";
 import { useForecastDashboard } from "../hooks/useForecastDashboard";
 
-interface ForecastPageProps {
-  client: ForecastDataClient;
-  dataSource: DataSource;
-  fixtureScenario?: FixtureScenario;
+interface Props { client: ForecastDataClient; dataSource: DataSource; fixtureScenario?: FixtureScenario }
+const categoryLabels: Record<ForecastPoint["load_category"], string> = { very_low: "Очень низкая", low: "Низкая", medium: "Средняя", high: "Высокая", very_high: "Очень высокая" };
+const formatNumber = (value: number) => Math.round(value).toLocaleString("ru-RU");
+const formatDate = (value: string) => new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Moscow" }).format(new Date(`${value}T12:00:00Z`));
+
+export function ForecastPage({ client, dataSource, fixtureScenario }: Props) {
+  const dashboard = useForecastDashboard(client); const selection = dashboard.selection; const [onlyHour, setOnlyHour] = useState(false);
+  if (dashboard.phase === "loading") return <main className="app-shell"><State title="Загружаем доступные выпуски прогноза" /></main>;
+  if (dashboard.phase === "empty") return <main className="app-shell"><State title="Прогноз ещё не загружен" action={dashboard.retry} /></main>;
+  if (dashboard.phase === "error" || !selection || !dashboard.metadata) return <main className="app-shell"><State title="Не удалось открыть прогноз" message={dashboard.error ?? undefined} action={dashboard.retry} /></main>;
+  const point = dashboard.selectedPoint; const all = selection.route === null; const allComplete = all && dashboard.pointRows.length === dashboard.supportedRoutes.filter((route) => route.forecast_available).length; const chartCount = dashboard.forecastPoints.length + dashboard.aggregatePoints.length;
+  const chartTitle = selection.view === "DAY" ? "Динамика посадок за сутки" : selection.view === "MONTH" ? "Динамика посадок за месяц" : "Динамика посадок за период";
+  return <main className="app-shell">
+    {dataSource === "fixtures" && <div className="fixture-banner" role="status"><span className="fixture-pulse" /><strong>Тестовые данные — не прогноз модели</strong>{fixtureScenario && fixtureScenario !== "default" && <span>Сценарий: {fixtureScenario}</span>}</div>}
+    <header className="topbar"><div className="brand-block"><div className="brand-mark">M</div><div><p className="eyebrow">MTTECH · транспортная аналитика</p><h1>Прогноз пассажиропотока</h1></div></div><div className="run-chip"><span className="run-chip-label">Выпуск</span><strong>{dashboard.metadata.model_version ?? "без версии"}</strong><span>{selection.runId.slice(0, 8)}…</span></div></header>
+    {dashboard.notice && <div className="notice">{dashboard.notice}</div>}
+    <section className="context-bar"><div><span>Покрытие выпуска</span><strong>{formatDate(dashboard.metadata.forecast_start)} — {formatDate(dashboard.metadata.forecast_end)}</strong></div><div><span>История до</span><strong>{dashboard.metadata.training_end ? formatDate(dashboard.metadata.training_end) : "не указано"}</strong></div><div><span>Часовой пояс</span><strong>{dashboard.metadata.timezone}</strong></div></section>
+    <section className="workspace"><aside className="control-panel" aria-label="Параметры прогноза"><div className="panel-heading"><span className="section-number">01</span><div><p className="eyebrow">Параметры</p><h2>Срез прогноза</h2></div></div>
+      <label className="field"><span>Маршрут</span><select aria-label="Маршрут" value={selection.route === null ? "ALL" : selection.route} onChange={(event) => dashboard.updateSelection({ route: event.target.value === "ALL" ? null : Number(event.target.value) })}><option value="ALL">Все маршруты</option>{dashboard.supportedRoutes.map((route) => <option key={route.route} value={route.route}>Маршрут {route.route}{route.geometry_available ? "" : " · без схемы"}</option>)}</select></label>
+      <div className="segmented" aria-label="Режим просмотра">{(["DAY", "MONTH", "PERIOD"] as const).map((view) => <button key={view} type="button" className={selection.view === view ? "is-selected" : ""} aria-pressed={selection.view === view} onClick={() => dashboard.updateSelection({ view })}>{view === "DAY" ? "День" : view === "MONTH" ? "Месяц" : "Период"}</button>)}</div>
+      {selection.view === "DAY" && <label className="field"><span>Дата</span><input aria-label="Дата" type="date" min={dashboard.metadata.forecast_start} max={dashboard.metadata.forecast_end} value={selection.date} onChange={(event) => dashboard.updateSelection({ date: event.target.value })} /></label>}
+      {selection.view === "MONTH" && <label className="field"><span>Месяц</span><input aria-label="Месяц" type="month" min={dashboard.metadata.forecast_start.slice(0, 7)} max={dashboard.metadata.forecast_end.slice(0, 7)} value={selection.month} onChange={(event) => dashboard.updateSelection({ month: event.target.value, date: `${event.target.value}-01` })} /></label>}
+      {selection.view === "PERIOD" && <><div className="date-pair"><label className="field"><span>С даты</span><input aria-label="С даты" type="date" min={dashboard.metadata.forecast_start} max={dashboard.metadata.forecast_end} value={dashboard.draftFrom} onChange={(event) => dashboard.setDraftFrom(event.target.value)} /></label><label className="field"><span>По дату</span><input aria-label="По дату" type="date" min={dashboard.metadata.forecast_start} max={dashboard.metadata.forecast_end} value={dashboard.draftTo} onChange={(event) => dashboard.setDraftTo(event.target.value)} /></label></div><button className="primary-action" type="button" onClick={dashboard.applyRange}>Применить период</button><div className="quick-range"><button type="button" onClick={() => dashboard.setQuickRange("NOV")}>Ноябрь</button><button type="button" onClick={() => dashboard.setQuickRange("DEC")}>Декабрь</button><button type="button" onClick={() => dashboard.setQuickRange("ALL")}>Весь прогноз</button></div><label className="field"><span>Детализация</span><select aria-label="Детализация" value={selection.granularity} onChange={(event) => dashboard.updateSelection({ granularity: event.target.value as typeof selection.granularity })}><option value="hour">Час</option><option value="day">День</option><option value="week">Неделя</option><option value="month">Месяц</option></select></label></>}
+      <label className="field"><span>Час снимка</span><select aria-label="Час снимка" value={selection.hour} onChange={(event) => dashboard.updateSelection({ hour: Number(event.target.value) })}>{Array.from({ length: 24 }, (_, hour) => <option key={hour} value={hour}>{String(hour).padStart(2, "0")}:00</option>)}</select></label>
+      <div className="scope-note"><span>i</span>Прогноз относится к маршруту целиком, а не к заполненности вагона.</div>
+    </aside><div className="dashboard-content">
+      {dashboard.error && <div className="inline-error" role="alert"><div><strong>Данные не получены</strong><span>{dashboard.error}</span></div><button onClick={dashboard.retry}>Повторить</button></div>}
+      <section className="kpi-grid"><Kpi index="A" label="Прогноз посадок за час" value={dashboard.pointRows.length && (!all || allComplete) ? formatNumber(all ? dashboard.totalPrediction : point?.prediction ?? 0) : "—"} suffix="посадок" context={`${formatDate(selection.date)}, ${String(selection.hour).padStart(2, "0")}:00`} loading={dashboard.dataLoading} /><Kpi index="B" label="Относительная загрузка" value={all ? "См. по маршрутам" : point ? `${point.relative_load_pct}%` : "—"} context={all ? "Показатель не суммируется" : "Внутри распределения маршрута"} loading={dashboard.dataLoading} /><Kpi index="C" label="Индекс загрузки" value={all ? "См. по маршрутам" : point ? String(point.load_index) : "—"} suffix={all ? undefined : "/ 10"} context={all ? "Сравните строки ниже" : point ? categoryLabels[point.load_category] : "—"} loading={dashboard.dataLoading} accent /></section>
+      {!all && point?.normalization_degenerate && <div className="warning-note" role="note">Недостаточная вариативность данных; использовано условное среднее значение 50% и индекс 5.</div>}
+      {selection.view !== "DAY" && <section className="period-summary"><span>Итого за выбранный период</span><strong>{formatNumber(dashboard.periodTotal)}</strong><small>посадок · {chartCount.toLocaleString("ru-RU")} точек</small></section>}
+      {all && <section className="route-table-card"><div className="card-heading"><div><p className="eyebrow">Снимок по маршрутам</p><h2>Все маршруты в {String(selection.hour).padStart(2, "0")}:00</h2></div></div><div className="table-scroll"><table><thead><tr><th>Маршрут</th><th>Посадки</th><th>Загрузка</th><th>Индекс</th><th>Схема</th></tr></thead><tbody>{dashboard.pointRows.map((row) => { const route = dashboard.routes.find((item) => item.route === row.route); return <tr key={row.route}><td>{row.route}</td><td>{formatNumber(row.prediction)}</td><td>{row.relative_load_pct}%</td><td>{row.load_index}/10</td><td>{route?.geometry_available ? "Есть" : "Нет"}</td></tr>; })}</tbody></table></div></section>}
+      <section className="chart-card"><div className="card-heading"><div><p className="eyebrow">{selection.view === "DAY" && !all ? `24 часа · маршрут ${selection.route}` : `${all ? "все маршруты" : `маршрут ${selection.route}`} · ${chartCount.toLocaleString("ru-RU")} точек`}</p><h2>{chartTitle}</h2></div><div className="chart-date">{selection.view === "DAY" ? formatDate(selection.date) : selection.view === "MONTH" ? selection.month : `${selection.from} — ${selection.to}`}</div></div>{dashboard.dataLoading && !chartCount ? <div className="chart-loading">Загружаем данные…</div> : chartCount ? <ForecastChart forecastPoints={dashboard.forecastPoints} aggregatePoints={dashboard.aggregatePoints} selectedHour={selection.hour} showHourRail={selection.view === "DAY" && !all} onPointSelect={(date, hour) => dashboard.updateSelection({ date, ...(hour === undefined ? {} : { hour }) })} /> : <div className="chart-loading">Нет данных для графика</div>}</section>
+      <section className="export-card"><div><p className="eyebrow">CSV</p><h2>Экспорт выбранного среза</h2><p>Файл формируется через API с текущим выпуском, маршрутом и диапазоном.</p></div><label className="check-field"><input type="checkbox" checked={onlyHour} onChange={(event) => setOnlyHour(event.target.checked)} />Только выбранный час</label><button className="primary-action" disabled={dashboard.exporting} onClick={() => void dashboard.exportCsv(onlyHour)}>{dashboard.exporting ? "Готовим…" : "Скачать CSV"}</button>{dashboard.exportMessage && <span role="status">{dashboard.exportMessage}</span>}</section>
+      <section className="map-placeholder"><div className="map-grid" /><div className="map-message"><span className="section-number">02</span><p className="eyebrow">Следующий этап · FE-03</p><h2>{all ? "Карта доступна после выбора маршрута" : dashboard.route?.geometry_available ? "Карта будет доступна на следующем этапе" : "Геометрия маршрута отсутствует"}</h2><p>Прогноз и аналитика работают независимо от справочной схемы.</p></div></section>
+    </div></section><footer className="page-footer"><p>Прогноз на ноябрь–декабрь 2025 построен по истории до конца октября.</p><span>{selection.view} · FE-02</span></footer>
+  </main>;
 }
 
-const categoryLabels: Record<ForecastPoint["load_category"], string> = {
-  very_low: "Очень низкая",
-  low: "Низкая",
-  medium: "Средняя",
-  high: "Высокая",
-  very_high: "Очень высокая",
-};
-
-function formatDate(date: string): string {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Europe/Moscow",
-  }).format(new Date(Date.UTC(year, month - 1, day, 12)));
-}
-
-function formatPrediction(value: number): string {
-  return Math.floor(value + 0.5).toLocaleString("ru-RU");
-}
-
-function shortRun(id: string): string {
-  return `${id.slice(0, 8)}…${id.slice(-4)}`;
-}
-
-export function ForecastPage({ client, dataSource, fixtureScenario }: ForecastPageProps) {
-  const dashboard = useForecastDashboard(client);
-  const selection = dashboard.selection;
-  const point = dashboard.selectedPoint;
-
-  return (
-    <main className="app-shell">
-      {dataSource === "fixtures" && (
-        <div className="fixture-banner" role="status">
-          <span className="fixture-pulse" aria-hidden="true" />
-          <strong>Тестовые данные — не прогноз модели</strong>
-          {fixtureScenario && fixtureScenario !== "default" && (
-            <span>Сценарий: {fixtureScenario}</span>
-          )}
-        </div>
-      )}
-
-      <header className="topbar">
-        <div className="brand-block">
-          <div className="brand-mark" aria-hidden="true">M</div>
-          <div>
-            <p className="eyebrow">MTTECH · транспортная аналитика</p>
-            <h1>Прогноз пассажиропотока</h1>
-          </div>
-        </div>
-        {dashboard.metadata && selection && (
-          <div className="run-chip" title={selection.runId}>
-            <span className="run-chip-label">Выпуск</span>
-            <strong>{dashboard.metadata.model_version ?? "версия не указана"}</strong>
-            <span>{shortRun(selection.runId)}</span>
-          </div>
-        )}
-      </header>
-
-      {dashboard.notice && <div className="notice" role="status">{dashboard.notice}</div>}
-
-      {dashboard.phase === "loading" && <LoadingState />}
-      {dashboard.phase === "empty" && <EmptyState onRetry={dashboard.retry} />}
-      {dashboard.phase === "error" && (
-        <ErrorState message={dashboard.error ?? "Не удалось загрузить прогноз."} onRetry={dashboard.retry} />
-      )}
-
-      {dashboard.phase === "ready" && selection && dashboard.metadata && (
-        <>
-          <section className="context-bar" aria-label="Контекст прогноза">
-            <div>
-              <span>Покрытие выпуска</span>
-              <strong>
-                {formatDate(dashboard.metadata.forecast_start)} — {formatDate(dashboard.metadata.forecast_end)}
-              </strong>
-            </div>
-            <div>
-              <span>История до</span>
-              <strong>{dashboard.metadata.training_end ? formatDate(dashboard.metadata.training_end) : "не указано"}</strong>
-            </div>
-            <div>
-              <span>Часовой пояс</span>
-              <strong>{dashboard.metadata.timezone}</strong>
-            </div>
-          </section>
-
-          <section className="workspace">
-            <aside className="control-panel" aria-label="Параметры прогноза">
-              <div className="panel-heading">
-                <span className="section-number">01</span>
-                <div>
-                  <p className="eyebrow">Параметры</p>
-                  <h2>Срез прогноза</h2>
-                </div>
-              </div>
-
-              <label className="field">
-                <span>Маршрут</span>
-                <select
-                  aria-label="Маршрут"
-                  value={selection.route}
-                  onChange={(event) => dashboard.updateSelection({ route: Number(event.target.value) })}
-                >
-                  {dashboard.supportedRoutes.map((route) => (
-                    <option key={route.route} value={route.route}>
-                      Маршрут {route.route}{route.geometry_available ? "" : " · без схемы"}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="segmented" aria-label="Детализация">
-                <button type="button" className="is-selected" aria-pressed="true">День</button>
-                <button type="button" disabled title="Будет доступно на этапе FE-02">Месяц</button>
-                <button type="button" disabled title="Будет доступно на этапе FE-02">Период</button>
-              </div>
-
-              <label className="field">
-                <span>Дата</span>
-                <input
-                  aria-label="Дата"
-                  type="date"
-                  min={dashboard.metadata.forecast_start}
-                  max={dashboard.metadata.forecast_end}
-                  value={selection.date}
-                  onChange={(event) => dashboard.updateSelection({ date: event.target.value })}
-                />
-              </label>
-
-              <label className="field">
-                <span>Час снимка</span>
-                <select
-                  aria-label="Час снимка"
-                  value={selection.hour}
-                  onChange={(event) => dashboard.updateSelection({ hour: Number(event.target.value) })}
-                >
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <option key={hour} value={hour}>{String(hour).padStart(2, "0")}:00</option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="scope-note">
-                <span aria-hidden="true">i</span>
-                Прогноз относится к маршруту целиком, а не к заполненности вагона.
-              </div>
-            </aside>
-
-            <div className="dashboard-content">
-              {dashboard.error && (
-                <div className="inline-error" role="alert">
-                  <div>
-                    <strong>Данные не получены</strong>
-                    <span>{dashboard.error}</span>
-                  </div>
-                  <button type="button" onClick={dashboard.retry}>Повторить</button>
-                </div>
-              )}
-
-              <section className="kpi-grid" aria-label="Ключевые показатели">
-                <KpiCard
-                  index="A"
-                  label="Прогноз посадок за час"
-                  value={point ? formatPrediction(point.prediction) : "—"}
-                  suffix="посадок"
-                  context={`${formatDate(selection.date)}, ${String(selection.hour).padStart(2, "0")}:00`}
-                  loading={dashboard.dataLoading}
-                />
-                <KpiCard
-                  index="B"
-                  label="Относительная загрузка"
-                  value={point ? `${point.relative_load_pct}%` : "—"}
-                  context="Внутри распределения маршрута"
-                  loading={dashboard.dataLoading}
-                />
-                <KpiCard
-                  index="C"
-                  label="Индекс загрузки"
-                  value={point ? `${point.load_index}` : "—"}
-                  suffix="/ 10"
-                  context={point ? categoryLabels[point.load_category] : "Категория недоступна"}
-                  loading={dashboard.dataLoading}
-                  accent
-                />
-              </section>
-
-              {point?.normalization_degenerate && (
-                <div className="warning-note" role="note">
-                  Недостаточная вариативность данных; использовано условное среднее значение 50% и индекс 5.
-                </div>
-              )}
-
-              <section className="chart-card">
-                <div className="card-heading">
-                  <div>
-                    <p className="eyebrow">24 часа · маршрут {selection.route}</p>
-                    <h2>Динамика посадок</h2>
-                  </div>
-                  <div className="chart-date">{formatDate(selection.date)}</div>
-                </div>
-                {dashboard.dataLoading && !dashboard.dayPoints.length ? (
-                  <div className="chart-loading" role="status">Загружаем 24 часовые точки…</div>
-                ) : dashboard.dayPoints.length ? (
-                  <ForecastChart
-                    points={dashboard.dayPoints}
-                    selectedHour={selection.hour}
-                    onHourSelect={(hour) => dashboard.updateSelection({ hour })}
-                  />
-                ) : (
-                  <div className="chart-loading">Нет данных для графика</div>
-                )}
-              </section>
-
-              <section className="map-placeholder" aria-label="Карта маршрута">
-                <div className="map-grid" aria-hidden="true">
-                  <span className="route-line route-line-a" />
-                  <span className="route-line route-line-b" />
-                  <span className="map-node node-a" />
-                  <span className="map-node node-b" />
-                  <span className="map-node node-c" />
-                </div>
-                <div className="map-message">
-                  <span className="section-number">02</span>
-                  <p className="eyebrow">Следующий этап · FE-03</p>
-                  <h2>{dashboard.route?.geometry_available ? "Карта будет доступна на следующем этапе" : "Геометрия маршрута отсутствует в справочнике"}</h2>
-                  <p>Прогноз, показатели и график доступны независимо от справочной схемы маршрута.</p>
-                </div>
-              </section>
-            </div>
-          </section>
-
-          <footer className="page-footer">
-            <p>Прогноз на ноябрь–декабрь 2025 построен по истории до конца октября. Фактические данные за прогнозируемый период недоступны.</p>
-            <span>DAY · первый этап интерфейса</span>
-          </footer>
-        </>
-      )}
-    </main>
-  );
-}
-
-function KpiCard({
-  index,
-  label,
-  value,
-  suffix,
-  context,
-  loading,
-  accent = false,
-}: {
-  index: string;
-  label: string;
-  value: string;
-  suffix?: string;
-  context: string;
-  loading: boolean;
-  accent?: boolean;
-}) {
-  return (
-    <article className={accent ? "kpi-card is-accent" : "kpi-card"} aria-busy={loading}>
-      <div className="kpi-top"><span>{index}</span><p>{label}</p></div>
-      <div className={loading ? "kpi-value is-loading" : "kpi-value"}>
-        <strong>{loading ? "···" : value}</strong>
-        {suffix && <span>{suffix}</span>}
-      </div>
-      <p className="kpi-context">{context}</p>
-    </article>
-  );
-}
-
-function LoadingState() {
-  return (
-    <section className="state-card" role="status">
-      <span className="spinner" aria-hidden="true" />
-      <p className="eyebrow">Подключение к данным</p>
-      <h2>Загружаем доступные выпуски прогноза</h2>
-    </section>
-  );
-}
-
-function EmptyState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <section className="state-card">
-      <span className="state-symbol" aria-hidden="true">∅</span>
-      <p className="eyebrow">Нет активного выпуска</p>
-      <h2>Прогноз ещё не загружен</h2>
-      <p>Как только backend опубликует модельный run, он появится здесь без подмены демо-данными.</p>
-      <button type="button" onClick={onRetry}>Проверить снова</button>
-    </section>
-  );
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <section className="state-card" role="alert">
-      <span className="state-symbol" aria-hidden="true">!</span>
-      <p className="eyebrow">Связь прервана</p>
-      <h2>Не удалось открыть прогноз</h2>
-      <p>{message}</p>
-      <button type="button" onClick={onRetry}>Повторить</button>
-    </section>
-  );
-}
+function Kpi({ index, label, value, suffix, context, loading, accent }: { index: string; label: string; value: string; suffix?: string; context: string; loading: boolean; accent?: boolean }) { return <article className={accent ? "kpi-card is-accent" : "kpi-card"} aria-busy={loading}><div className="kpi-top"><span>{index}</span><p>{label}</p></div><div className={loading ? "kpi-value is-loading" : "kpi-value"}><strong>{loading ? "···" : value}</strong>{suffix && <span>{suffix}</span>}</div><p className="kpi-context">{context}</p></article>; }
+function State({ title, message, action }: { title: string; message?: string; action?: () => void }) { return <section className="state-card" role={message ? "alert" : "status"}><span className="state-symbol">{message ? "!" : "M"}</span><h2>{title}</h2>{message && <p>{message}</p>}{action && <button onClick={action}>{message ? "Повторить" : "Проверить снова"}</button>}</section>; }

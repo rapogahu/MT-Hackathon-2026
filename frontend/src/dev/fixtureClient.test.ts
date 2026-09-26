@@ -24,4 +24,21 @@ describe("FixtureForecastClient", () => {
       load_index: 5,
     });
   });
+
+  it("builds exact PERIOD counts, ALL rows, aggregates and CSV from one dataset", async () => {
+    const client = new FixtureForecastClient({ latencyMs: 0 });
+    const single = await client.getTimeseries({ runId: FIXTURE_RUN_ID, route: 1, from: "2025-11-15", to: "2025-12-05" });
+    const all = await client.getTimeseries({ runId: FIXTURE_RUN_ID, route: null, from: "2025-11-15", to: "2025-12-05" });
+    const point = await client.getPoint({ runId: FIXTURE_RUN_ID, route: null, date: "2025-11-15", hour: 8 });
+    const aggregate = await client.getAggregate({ runId: FIXTURE_RUN_ID, route: 1, from: "2025-11-15", to: "2025-12-05", granularity: "day" });
+    const exported = await client.exportCsv({ runId: FIXTURE_RUN_ID, route: 1, from: "2025-11-15", to: "2025-12-05", hour: 8 });
+
+    expect(single.count).toBe(504);
+    expect(all.count).toBe(5040);
+    expect(point.points).toHaveLength(10);
+    expect(aggregate.points).toHaveLength(21);
+    expect(aggregate.points.reduce((sum, item) => sum + item.prediction, 0)).toBe(single.points.reduce((sum, item) => sum + item.prediction, 0));
+    expect(exported.blob.size).toBeGreaterThan(21 * 20);
+    expect(exported.filename).toBe("forecast_2025-11-15_2025-12-05.csv");
+  });
 });

@@ -1,210 +1,70 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { clampRange, monthBounds } from "../api/dateUtils";
 import { presentError } from "../api/errors";
-import { COMPETITION_ROUTES, type ForecastDataClient, type ForecastPoint, type ProductRoute, type RunMetadata } from "../api/types";
+import { COMPETITION_ROUTES, type AggregatePoint, type ForecastDataClient, type ForecastPoint, type Granularity, type ProductRoute, type RouteFilter, type RunMetadata, type ViewMode } from "../api/types";
 
-interface Selection {
-  runId: string;
-  route: number;
-  date: string;
-  hour: number;
-}
-
-interface DashboardState {
-  phase: "loading" | "empty" | "ready" | "error";
-  selection: Selection | null;
-  metadata: RunMetadata | null;
-  routes: ProductRoute[];
-  dayPoints: ForecastPoint[];
-  selectedPoint: ForecastPoint | null;
-  dataLoading: boolean;
-  error: string | null;
-  notice: string | null;
-}
-
-const initialState: DashboardState = {
-  phase: "loading",
-  selection: null,
-  metadata: null,
-  routes: [],
-  dayPoints: [],
-  selectedPoint: null,
-  dataLoading: false,
-  error: null,
-  notice: null,
-};
-
-function readUrlState() {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    runId: params.get("run"),
-    route: params.has("route") ? Number(params.get("route")) : Number.NaN,
-    date: params.get("date"),
-    hour: params.has("hour") ? Number(params.get("hour")) : Number.NaN,
-  };
-}
-
-function isValidHour(value: number): boolean {
-  return Number.isInteger(value) && value >= 0 && value <= 23;
-}
+export interface Selection { runId: string; route: RouteFilter; view: ViewMode; date: string; hour: number; month: string; from: string; to: string; granularity: Granularity }
+const validHour = (value: number) => Number.isInteger(value) && value >= 0 && value <= 23;
+const validView = (value: string | null): value is ViewMode => value === "DAY" || value === "MONTH" || value === "PERIOD";
+const validGranularity = (value: string | null): value is Granularity => value === "hour" || value === "day" || value === "week" || value === "month";
 
 export function useForecastDashboard(client: ForecastDataClient) {
-  const [state, setState] = useState(initialState);
-  const [bootstrapAttempt, setBootstrapAttempt] = useState(0);
-  const [dataAttempt, setDataAttempt] = useState(0);
-  const requestSequence = useRef(0);
+  const [phase, setPhase] = useState<"loading" | "empty" | "ready" | "error">("loading");
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [metadata, setMetadata] = useState<RunMetadata | null>(null);
+  const [routes, setRoutes] = useState<ProductRoute[]>([]);
+  const [forecastPoints, setForecastPoints] = useState<ForecastPoint[]>([]);
+  const [aggregatePoints, setAggregatePoints] = useState<AggregatePoint[]>([]);
+  const [pointRows, setPointRows] = useState<ForecastPoint[]>([]);
+  const [draftFrom, setDraftFrom] = useState(""); const [draftTo, setDraftTo] = useState("");
+  const [dataLoading, setDataLoading] = useState(false); const [error, setError] = useState<string | null>(null); const [notice, setNotice] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false); const [exportMessage, setExportMessage] = useState<string | null>(null); const [attempt, setAttempt] = useState(0); const sequence = useRef(0);
 
   useEffect(() => {
-    const controller = new AbortController();
-    setState((current) => ({ ...current, phase: "loading", error: null }));
-
+    const controller = new AbortController(); setPhase("loading"); setError(null);
     void (async () => {
       try {
         const runs = await client.getRuns({ signal: controller.signal });
-        if (!runs.active_run_id) {
-          setState((current) => ({ ...current, phase: "empty", error: null }));
-          return;
-        }
-
-        const url = readUrlState();
-        const requestedRunExists = url.runId && runs.runs.some((run) => run.run_id === url.runId);
-        const runId = requestedRunExists ? url.runId! : runs.active_run_id;
-        const notice = url.runId && !requestedRunExists
-          ? "Указанный выпуск недоступен — открыт активный прогноз."
-          : null;
-        const [metadata, catalog] = await Promise.all([
-          client.getRun(runId, { signal: controller.signal }),
-          client.getRoutes(runId, { signal: controller.signal }),
-        ]);
-        const availableRoutes = catalog.routes.filter((route) => route.forecast_available);
-        const requestedRoute = availableRoutes.some((route) => route.route === url.route)
-          ? url.route
-          : 1;
-        const route = availableRoutes.some((item) => item.route === requestedRoute)
-          ? requestedRoute
-          : availableRoutes[0]?.route ?? 1;
-        const date = url.date && url.date >= metadata.forecast_start && url.date <= metadata.forecast_end
-          ? url.date
-          : metadata.forecast_start;
-        const hour = isValidHour(url.hour) ? url.hour : 8;
-
-        setState((current) => ({
-          ...current,
-          phase: "ready",
-          selection: { runId, route, date, hour },
-          metadata,
-          routes: catalog.routes,
-          error: null,
-          notice,
-        }));
-      } catch (error) {
-        if (error instanceof Error && error.name === "AbortError") return;
-        setState((current) => ({
-          ...current,
-          phase: "error",
-          error: presentError(error),
-        }));
-      }
+        if (!runs.active_run_id) { setPhase("empty"); return; }
+        const params = new URLSearchParams(window.location.search); const askedRun = params.get("run");
+        const runId = askedRun && runs.runs.some((run) => run.run_id === askedRun) ? askedRun : runs.active_run_id;
+        const [meta, catalog] = await Promise.all([client.getRun(runId, { signal: controller.signal }), client.getRoutes(runId, { signal: controller.signal })]);
+        const routeParam = params.get("route"); const parsedRoute = routeParam === "ALL" ? null : routeParam ? Number(routeParam) : 1;
+        const route: RouteFilter = parsedRoute === null || catalog.routes.some((item) => item.forecast_available && item.route === parsedRoute) ? parsedRoute : (catalog.routes.find((item) => item.forecast_available)?.route ?? 1);
+        const dateParam = params.get("date"); const date = dateParam && dateParam >= meta.forecast_start && dateParam <= meta.forecast_end ? dateParam : meta.forecast_start;
+        const hourValue = params.get("hour"); const hourParam = hourValue === null ? Number.NaN : Number(hourValue); const hour = validHour(hourParam) ? hourParam : 8;
+        const viewValue = params.get("view"); const view = validView(viewValue) ? viewValue : "DAY";
+        const monthParam = params.get("month"); const month = monthParam && /^\d{4}-\d{2}$/.test(monthParam) && monthParam >= meta.forecast_start.slice(0, 7) && monthParam <= meta.forecast_end.slice(0, 7) ? monthParam : date.slice(0, 7);
+        const fromParam = params.get("from"); const toParam = params.get("to"); const from = fromParam && fromParam >= meta.forecast_start && fromParam <= meta.forecast_end ? fromParam : meta.forecast_start; const to = toParam && toParam >= from && toParam <= meta.forecast_end ? toParam : meta.forecast_end;
+        const granularityValue = params.get("granularity"); const granularity = validGranularity(granularityValue) ? granularityValue : "day";
+        setMetadata(meta); setRoutes(catalog.routes); setSelection({ runId, route, view, date, hour, month, from, to, granularity }); setDraftFrom(from); setDraftTo(to); setNotice(askedRun && askedRun !== runId ? "Указанный выпуск недоступен — открыт активный прогноз." : null); setPhase("ready");
+      } catch (cause) { if (cause instanceof Error && cause.name === "AbortError") return; setError(presentError(cause)); setPhase("error"); }
     })();
-
     return () => controller.abort();
-  }, [client, bootstrapAttempt]);
+  }, [client, attempt]);
 
   useEffect(() => {
-    if (!state.selection || state.phase !== "ready") return;
-    const controller = new AbortController();
-    const requested = state.selection;
-    const requestId = ++requestSequence.current;
-    setState((current) => ({ ...current, dataLoading: true, error: null, selectedPoint: null }));
-
-    void Promise.all([
-      client.getDay(
-        { runId: requested.runId, route: requested.route, date: requested.date },
-        { signal: controller.signal },
-      ),
-      client.getPoint(
-        {
-          runId: requested.runId,
-          route: requested.route,
-          date: requested.date,
-          hour: requested.hour,
-        },
-        { signal: controller.signal },
-      ),
-    ])
-      .then(([day, point]) => {
-        if (requestId !== requestSequence.current) return;
-        if (day.run_id !== requested.runId || point.run_id !== requested.runId) {
-          throw new Error("API вернул данные другого выпуска.");
-        }
-        if (day.count !== 24 || day.points.length !== 24) {
-          throw new Error("DAY-ответ должен содержать ровно 24 точки.");
-        }
-        const selectedPoint = point.points[0];
-        if (!selectedPoint) throw new Error("Точка выбранного часа отсутствует.");
-        setState((current) => ({
-          ...current,
-          dayPoints: [...day.points].sort((a, b) => a.hour - b.hour),
-          selectedPoint,
-          dataLoading: false,
-          error: null,
-        }));
-      })
-      .catch((error: unknown) => {
-        if (requestId !== requestSequence.current) return;
-        if (error instanceof Error && error.name === "AbortError") return;
-        setState((current) => ({
-          ...current,
-          dayPoints: [],
-          selectedPoint: null,
-          dataLoading: false,
-          error: presentError(error),
-        }));
-      });
-
+    if (!selection || !metadata || phase !== "ready") return;
+    const controller = new AbortController(); const id = ++sequence.current; setDataLoading(true); setError(null); setForecastPoints([]); setAggregatePoints([]);
+    const pointRequest = client.getPoint({ runId: selection.runId, route: selection.route, date: selection.date, hour: selection.hour }, { signal: controller.signal });
+    let dataRequest: Promise<{ forecast: ForecastPoint[]; aggregate: AggregatePoint[] }>;
+    if (selection.view === "DAY") dataRequest = client.getDay({ runId: selection.runId, route: selection.route, date: selection.date }, { signal: controller.signal }).then((value) => ({ forecast: value.points, aggregate: [] }));
+    else {
+      const month = monthBounds(selection.month); const range = selection.view === "MONTH" ? clampRange(month.from, month.to, metadata.forecast_start, metadata.forecast_end) : { from: selection.from, to: selection.to };
+      dataRequest = selection.view === "PERIOD" && selection.granularity === "hour" ? client.getTimeseries({ runId: selection.runId, route: selection.route, ...range }, { signal: controller.signal }).then((value) => ({ forecast: value.points, aggregate: [] })) : client.getAggregate({ runId: selection.runId, route: selection.route, ...range, granularity: selection.view === "MONTH" ? "day" : selection.granularity as "day" | "week" | "month" }, { signal: controller.signal }).then((value) => ({ forecast: [], aggregate: value.points }));
+    }
+    void Promise.all([pointRequest, dataRequest]).then(([point, data]) => { if (id !== sequence.current) return; setPointRows(point.points); setForecastPoints(data.forecast); setAggregatePoints(data.aggregate); setDataLoading(false); }).catch((cause) => { if (id !== sequence.current || (cause instanceof Error && cause.name === "AbortError")) return; setPointRows([]); setForecastPoints([]); setAggregatePoints([]); setDataLoading(false); setError(presentError(cause)); });
     return () => controller.abort();
-  }, [client, state.phase, state.selection, dataAttempt]);
+  }, [client, selection, metadata, phase, attempt]);
 
-  useEffect(() => {
-    if (!state.selection) return;
-    const params = new URLSearchParams(window.location.search);
-    params.set("run", state.selection.runId);
-    params.set("route", String(state.selection.route));
-    params.set("date", state.selection.date);
-    params.set("hour", String(state.selection.hour));
-    params.set("view", "DAY");
-    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
-  }, [state.selection]);
+  useEffect(() => { if (!selection) return; const params = new URLSearchParams({ run: selection.runId, route: selection.route === null ? "ALL" : String(selection.route), view: selection.view, date: selection.date, hour: String(selection.hour), month: selection.month, from: selection.from, to: selection.to, granularity: selection.granularity }); window.history.replaceState(null, "", `${window.location.pathname}?${params}`); }, [selection]);
 
-  const updateSelection = useCallback((patch: Partial<Omit<Selection, "runId">>) => {
-    setState((current) => ({
-      ...current,
-      selection: current.selection ? { ...current.selection, ...patch } : null,
-    }));
-  }, []);
+  const updateSelection = useCallback((patch: Partial<Omit<Selection, "runId">>) => setSelection((current) => current ? { ...current, ...patch } : null), []);
+  const applyRange = useCallback(() => { if (!metadata) return; if (!/^\d{4}-\d{2}-\d{2}$/.test(draftFrom) || !/^\d{4}-\d{2}-\d{2}$/.test(draftTo)) { setError("Заполните обе даты периода."); return; } if (draftFrom > draftTo) { setError("Начало периода не может быть позже окончания."); return; } const range = clampRange(draftFrom, draftTo, metadata.forecast_start, metadata.forecast_end); setDraftFrom(range.from); setDraftTo(range.to); updateSelection({ ...range, date: range.from }); }, [draftFrom, draftTo, metadata, updateSelection]);
+  const setQuickRange = useCallback((kind: "NOV" | "DEC" | "ALL") => { if (!metadata) return; const raw = kind === "NOV" ? { from: "2025-11-01", to: "2025-11-30" } : kind === "DEC" ? { from: "2025-12-01", to: "2025-12-31" } : { from: metadata.forecast_start, to: metadata.forecast_end }; const range = clampRange(raw.from, raw.to, metadata.forecast_start, metadata.forecast_end); setDraftFrom(range.from); setDraftTo(range.to); setSelection((current) => current ? { ...current, ...range, date: range.from } : null); }, [metadata]);
+  const exportCsv = useCallback(async (onlyHour: boolean) => { if (!selection || !metadata) return; setExporting(true); setExportMessage(null); try { const month = monthBounds(selection.month); const range = selection.view === "DAY" ? { from: selection.date, to: selection.date } : selection.view === "MONTH" ? clampRange(month.from, month.to, metadata.forecast_start, metadata.forecast_end) : { from: selection.from, to: selection.to }; const result = await client.exportCsv({ runId: selection.runId, route: selection.route, ...range, hour: onlyHour ? selection.hour : undefined }); const url = URL.createObjectURL(result.blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = result.filename; anchor.click(); URL.revokeObjectURL(url); setExportMessage(`Файл ${result.filename} подготовлен.`); } catch (cause) { setExportMessage(presentError(cause)); } finally { setExporting(false); } }, [client, metadata, selection]);
 
-  const retry = useCallback(() => {
-    if (state.phase === "error") setBootstrapAttempt((value) => value + 1);
-    else setDataAttempt((value) => value + 1);
-  }, [state.phase]);
-
-  const route = useMemo(
-    () => state.routes.find((item) => item.route === state.selection?.route) ?? null,
-    [state.routes, state.selection?.route],
-  );
-
-  return {
-    ...state,
-    route,
-    supportedRoutes: state.routes.length
-      ? state.routes
-      : COMPETITION_ROUTES.map((number) => ({
-          route: number,
-          name: `Трамвай ${number}`,
-          gtfs_route_ids: [],
-          geometry_available: false,
-          forecast_available: false,
-        })),
-    updateSelection,
-    retry,
-  };
+  const selectedPoint = pointRows.length === 1 ? pointRows[0] : null; const totalPrediction = pointRows.reduce((sum, item) => sum + item.prediction, 0); const periodTotal = [...forecastPoints, ...aggregatePoints].reduce((sum, item) => sum + item.prediction, 0);
+  const supportedRoutes = useMemo(() => routes.length ? routes : COMPETITION_ROUTES.map((route) => ({ route, name: `Трамвай ${route}`, gtfs_route_ids: [], geometry_available: false, forecast_available: false })), [routes]);
+  return { phase, selection, metadata, routes, supportedRoutes, forecastPoints, aggregatePoints, pointRows, selectedPoint, totalPrediction, periodTotal, dataLoading, error, notice, draftFrom, draftTo, setDraftFrom, setDraftTo, updateSelection, applyRange, setQuickRange, exporting, exportMessage, exportCsv, retry: () => setAttempt((value) => value + 1), route: routes.find((item) => item.route === selection?.route) ?? null };
 }

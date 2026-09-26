@@ -57,6 +57,9 @@ describe("ForecastPage", () => {
       getRoutes: async () => { throw new Error("unused"); },
       getDay: async () => { throw new Error("unused"); },
       getPoint: async () => { throw new Error("unused"); },
+      getTimeseries: async () => { throw new Error("unused"); },
+      getAggregate: async () => { throw new Error("unused"); },
+      exportCsv: async () => { throw new Error("unused"); },
     };
     render(<ForecastPage client={failingClient} dataSource="api" />);
 
@@ -81,6 +84,9 @@ describe("ForecastPage", () => {
         await new Promise((resolve) => window.setTimeout(resolve, input.route === 1 ? 80 : 5));
         return value;
       },
+      getTimeseries: (input, options) => base.getTimeseries(input, options),
+      getAggregate: (input, options) => base.getAggregate(input, options),
+      exportCsv: (input, options) => base.exportCsv(input, options),
     };
     const user = userEvent.setup();
     render(<ForecastPage client={racingClient} dataSource="fixtures" />);
@@ -91,5 +97,29 @@ describe("ForecastPage", () => {
     await new Promise((resolve) => window.setTimeout(resolve, 100));
     expect(screen.getByText("24 часа · маршрут 5")).toBeVisible();
     expect(screen.queryByText("24 часа · маршрут 1")).not.toBeInTheDocument();
+  });
+
+  it("supports MONTH, applied PERIOD drafts and ALL without invalid shared indexes", async () => {
+    const user = userEvent.setup();
+    render(<ForecastPage client={new FixtureForecastClient({ latencyMs: 0 })} dataSource="fixtures" />);
+    await screen.findByTestId("forecast-chart");
+
+    await user.click(screen.getByRole("button", { name: "Месяц" }));
+    await waitFor(() => expect(screen.getByTestId("forecast-chart")).toHaveAttribute("aria-label", expect.stringContaining("30 точек")));
+    expect(window.location.search).toContain("view=MONTH");
+
+    await user.click(screen.getByRole("button", { name: "Период" }));
+    await user.clear(screen.getByLabelText("С даты"));
+    await user.type(screen.getByLabelText("С даты"), "2025-11-15");
+    await user.clear(screen.getByLabelText("По дату"));
+    await user.type(screen.getByLabelText("По дату"), "2025-12-05");
+    expect(window.location.search).not.toContain("from=2025-11-15");
+    await user.click(screen.getByRole("button", { name: "Применить период" }));
+    await waitFor(() => expect(window.location.search).toContain("from=2025-11-15"));
+
+    await user.selectOptions(screen.getByLabelText("Маршрут"), "ALL");
+    await waitFor(() => expect(screen.getAllByRole("row")).toHaveLength(11));
+    expect(screen.getAllByText("См. по маршрутам")).toHaveLength(2);
+    expect(window.location.search).toContain("route=ALL");
   });
 });
