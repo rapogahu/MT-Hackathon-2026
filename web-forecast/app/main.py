@@ -3,16 +3,33 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.repositories.gtfs_repository import GTFSRepository
+from app.repositories.gtfs_repository import (
+    GTFSRepository,
+)
 
-from app.api.routes import create_routes_router
-from app.api.stops import create_stops_router
-from app.api.assignments import create_assignments_router
+from app.repositories.forecast_repository import (
+    ForecastRepository,
+)
+
+from app.api.routes import (
+    create_routes_router,
+)
+
+from app.api.stops import (
+    create_stops_router,
+)
+
+from app.api.assignments import (
+    create_assignments_router,
+)
+
+from app.api.forecast import (
+    create_forecast_router,
+)
 
 
-# =========================================================
-# Пути к файлам (справочник)
-# =========================================================
+# Путь до справочников
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -23,34 +40,39 @@ GTFS_FILE = (
     / "Хакатон_справочники_трамвай_10_маршрутов.xlsx"
 )
 
+FORECAST_FILE = (
+    PROJECT_ROOT
+    / "dataset"
+    / "test_submission.csv"
+)
 
-# =========================================================
-# Справочник
-# =========================================================
+
+# Репозитории
 
 gtfs_repository = GTFSRepository(
     GTFS_FILE
 )
 
+forecast_repository = ForecastRepository(
+    FORECAST_FILE
+)
 
-# =========================================================
-# FAST API
-# =========================================================
+
+# FASTAPI
+
 
 app = FastAPI(
     title="Tram Forecast API",
     description=(
-        "Backend веб-сервиса "
-        "прогнозирования пассажиропотока "
-        "трамвайных маршрутов."
+        "Backend веб-сервиса прогнозирования пассажиропотока трамвайных маршрутов."
     ),
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
-# =========================================================
-# Кор
-# =========================================================
+
+# Коры
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -61,9 +83,9 @@ app.add_middleware(
 )
 
 
-# =========================================================
+
 # Маршруты
-# =========================================================
+
 
 app.include_router(
     create_routes_router(
@@ -86,10 +108,15 @@ app.include_router(
     prefix="/api",
 )
 
+app.include_router(
+    create_forecast_router(
+        forecast_repository
+    ),
+)
 
-# =========================================================
-# health
-# =========================================================
+
+# Health
+
 
 @app.get("/health")
 def health():
@@ -98,12 +125,13 @@ def health():
         "service": "tram-forecast-backend",
     }
 
+
 @app.get("/")
 def root():
     return {
         "service": "tram-forecast-backend",
         "status": "ok",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "docs": "/docs",
         "health": "/health",
     }
