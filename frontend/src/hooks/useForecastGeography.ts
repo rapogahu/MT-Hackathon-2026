@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { presentError } from "../api/errors";
+import { isAbortError, presentError } from "../api/errors";
 import type { DirectionsResponse, ForecastDataClient, MapRoutesResponse, RouteStop } from "../api/types";
 import type { Selection } from "./useForecastDashboard";
 
@@ -20,7 +20,7 @@ export function useForecastGeography(client: ForecastDataClient, selection: Sele
       if (requestId !== mapSequence.current) return;
       if (knownReference.current && knownReference.current !== map.reference_version) { setGeometryId(null); setStopKey(null); setStops([]); }
       knownReference.current = map.reference_version; setMapData(map); setPhase(map.features.length ? "ready" : "empty");
-    }).catch((cause) => { if (requestId !== mapSequence.current || (cause instanceof Error && cause.name === "AbortError")) return; setPhase("error"); setError(presentError(cause)); });
+    }).catch((cause) => { if (requestId !== mapSequence.current || isAbortError(cause)) return; setPhase("error"); setError(presentError(cause)); });
     return () => controller.abort();
   }, [attempt, client, selection?.runId, selection?.route, selection?.date, selection?.hour]);
 
@@ -32,7 +32,7 @@ export function useForecastGeography(client: ForecastDataClient, selection: Sele
       if (knownReference.current && knownReference.current !== response.reference_version) { setMapData(null); }
       knownReference.current = response.reference_version; setDirections(response);
       setGeometryId(response.directions[0]?.geometry_id ?? null);
-    }).catch((cause) => { if (cause instanceof Error && cause.name === "AbortError") return; setError(presentError(cause)); });
+    }).catch((cause) => { if (isAbortError(cause)) return; setError(presentError(cause)); });
     return () => controller.abort();
   }, [attempt, client, selection?.route]);
 
@@ -47,7 +47,7 @@ export function useForecastGeography(client: ForecastDataClient, selection: Sele
       const nextStops = stopResponse.stops.filter((item) => item.geometry_id === selectedDirection.geometry_id); setStops(nextStops);
       const params = new URLSearchParams(window.location.search); const requestedStop = params.get("stop");
       if (nextStops.some((item) => `${item.geometry_id}:${item.stop_sequence}` === requestedStop)) setStopKey(requestedStop);
-    }).catch((cause) => { if (requestId !== navigationSequence.current || (cause instanceof Error && cause.name === "AbortError")) return; setError(presentError(cause)); });
+    }).catch((cause) => { if (requestId !== navigationSequence.current || isAbortError(cause)) return; setError(presentError(cause)); });
     return () => controller.abort();
   }, [client, directions, selectedDirection, selection?.route]);
 

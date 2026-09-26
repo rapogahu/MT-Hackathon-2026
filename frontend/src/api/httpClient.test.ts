@@ -39,6 +39,18 @@ describe("HttpForecastClient", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves a browser AbortError instead of reporting the API as unavailable", async () => {
+    const abort = new DOMException("The operation was aborted", "AbortError");
+    const fetchMock = vi.fn<typeof fetch>().mockRejectedValue(abort);
+    const client = new HttpForecastClient({ baseUrl: "", fetchImpl: fetchMock });
+
+    await expect(client.getRuns()).rejects.toBe(abort);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/forecast/runs",
+      expect.objectContaining({ headers: { Accept: "application/json" } }),
+    );
+  });
+
   it("omits route for ALL and downloads the backend CSV filename", async () => {
     const fetchMock = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response(JSON.stringify({ run_id: "run", count: 0, points: [] }), { status: 200 }))

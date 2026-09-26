@@ -23,7 +23,7 @@
 
 ## Критерии
 
-- [ ] Frontend с `VITE_DATA_SOURCE=api` открыт пользователем против FastAPI без fixture fallback.
+- [ ] Frontend с `VITE_DATA_SOURCE=api` открыт пользователем против FastAPI без fixture fallback; локальный API переведён на Vite proxy и фиксированный порт, ожидается повторная ручная проверка после остановки старых Vite-процессов.
 - [x] DAY/POINT/timeseries/aggregate/CSV используют один контрактный run.
 - [x] Map endpoint отдаёт реальную справочную GeoJSON-геометрию и индекс выбранного маршрута.
 - [x] Старые routes/stops/assignments и `/health` сохранены.

@@ -19,6 +19,10 @@ export class ApiError extends Error {
   }
 }
 
+export function isAbortError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "name" in error && error.name === "AbortError";
+}
+
 export function presentError(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.code === "FORECAST_NOT_LOADED" || error.status === 503) {
@@ -30,7 +34,7 @@ export function presentError(error: unknown): string {
     return error.message;
   }
 
-  if (error instanceof Error && error.name !== "AbortError") {
+  if (error instanceof Error && !isAbortError(error)) {
     return error.message;
   }
 

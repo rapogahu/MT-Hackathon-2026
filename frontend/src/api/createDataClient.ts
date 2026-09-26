@@ -28,7 +28,9 @@ export function createDataClient(): ConfiguredClient {
 
   return {
     client: new HttpForecastClient({
-      baseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000",
+      // Development always uses same-origin `/api`; Vite owns the backend target.
+      // This prevents a stale shell-level VITE_API_BASE_URL from reviving an old port.
+      baseUrl: import.meta.env.DEV ? "" : (import.meta.env.VITE_API_BASE_URL?.trim() ?? ""),
     }),
     source,
   };

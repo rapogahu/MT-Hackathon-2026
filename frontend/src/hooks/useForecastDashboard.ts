@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clampRange, monthBounds } from "../api/dateUtils";
-import { presentError } from "../api/errors";
+import { isAbortError, presentError } from "../api/errors";
 import { COMPETITION_ROUTES, type AggregatePoint, type ForecastDataClient, type ForecastPoint, type Granularity, type ProductRoute, type RouteFilter, type RunMetadata, type ViewMode } from "../api/types";
 
 export interface Selection { runId: string; route: RouteFilter; view: ViewMode; date: string; hour: number; month: string; from: string; to: string; granularity: Granularity }
@@ -39,7 +39,7 @@ export function useForecastDashboard(client: ForecastDataClient) {
         const fromParam = params.get("from"); const toParam = params.get("to"); const from = fromParam && fromParam >= meta.forecast_start && fromParam <= meta.forecast_end ? fromParam : meta.forecast_start; const to = toParam && toParam >= from && toParam <= meta.forecast_end ? toParam : meta.forecast_end;
         const granularityValue = params.get("granularity"); const granularity = validGranularity(granularityValue) ? granularityValue : "day";
         setMetadata(meta); setRoutes(catalog.routes); setSelection({ runId, route, view, date, hour, month, from, to, granularity }); setDraftFrom(from); setDraftTo(to); setNotice(askedRun && askedRun !== runId ? "Указанный выпуск недоступен — открыт активный прогноз." : null); setPhase("ready");
-      } catch (cause) { if (cause instanceof Error && cause.name === "AbortError") return; setError(presentError(cause)); setPhase("error"); }
+      } catch (cause) { if (isAbortError(cause)) return; setError(presentError(cause)); setPhase("error"); }
     })();
     return () => controller.abort();
   }, [client, attempt]);
@@ -57,7 +57,7 @@ export function useForecastDashboard(client: ForecastDataClient) {
         ? loadRequest.then((value) => ({ forecast: value.points, aggregate: [], load: value.points }))
         : Promise.all([client.getAggregate({ runId: selection.runId, route: selection.route, ...range, granularity: selection.view === "MONTH" ? "day" : selection.granularity as "day" | "week" | "month" }, { signal: controller.signal }), loadRequest]).then(([aggregate, load]) => ({ forecast: [], aggregate: aggregate.points, load: load.points }));
     }
-    void Promise.all([pointRequest, dataRequest]).then(([point, data]) => { if (id !== sequence.current) return; setPointRows(point.points); setForecastPoints(data.forecast); setAggregatePoints(data.aggregate); setPeriodLoadPoints(data.load); setDataLoading(false); }).catch((cause) => { if (id !== sequence.current || (cause instanceof Error && cause.name === "AbortError")) return; setPointRows([]); setForecastPoints([]); setAggregatePoints([]); setPeriodLoadPoints([]); setDataLoading(false); setError(presentError(cause)); });
+    void Promise.all([pointRequest, dataRequest]).then(([point, data]) => { if (id !== sequence.current) return; setPointRows(point.points); setForecastPoints(data.forecast); setAggregatePoints(data.aggregate); setPeriodLoadPoints(data.load); setDataLoading(false); }).catch((cause) => { if (id !== sequence.current || isAbortError(cause)) return; setPointRows([]); setForecastPoints([]); setAggregatePoints([]); setPeriodLoadPoints([]); setDataLoading(false); setError(presentError(cause)); });
     return () => controller.abort();
   }, [client, selection, metadata, phase, attempt]);
 

@@ -1,4 +1,4 @@
-import { ApiError, type ApiErrorDetail } from "./errors";
+import { ApiError, isAbortError, type ApiErrorDetail } from "./errors";
 import type {
   AggregateResponse,
   DataRequest,
@@ -28,9 +28,9 @@ export class HttpForecastClient implements ForecastDataClient {
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
 
-  constructor({ baseUrl, fetchImpl = fetch }: HttpClientOptions) {
+  constructor({ baseUrl, fetchImpl }: HttpClientOptions) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
-    this.fetchImpl = fetchImpl;
+    this.fetchImpl = fetchImpl ?? ((input, init) => globalThis.fetch(input, init));
   }
 
   getRuns(options?: DataRequest): Promise<RunsResponse> {
@@ -170,7 +170,7 @@ export class HttpForecastClient implements ForecastDataClient {
         signal: options?.signal,
       });
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
+      if (isAbortError(error)) {
         throw error;
       }
       throw new Error("API недоступен. Проверьте адрес сервиса и соединение.");
