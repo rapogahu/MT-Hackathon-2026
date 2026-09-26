@@ -15,6 +15,7 @@ export function useForecastDashboard(client: ForecastDataClient) {
   const [routes, setRoutes] = useState<ProductRoute[]>([]);
   const [forecastPoints, setForecastPoints] = useState<ForecastPoint[]>([]);
   const [aggregatePoints, setAggregatePoints] = useState<AggregatePoint[]>([]);
+  const [periodLoadPoints, setPeriodLoadPoints] = useState<ForecastPoint[]>([]);
   const [pointRows, setPointRows] = useState<ForecastPoint[]>([]);
   const [draftFrom, setDraftFrom] = useState(""); const [draftTo, setDraftTo] = useState("");
   const [dataLoading, setDataLoading] = useState(false); const [error, setError] = useState<string | null>(null); const [notice, setNotice] = useState<string | null>(null);
@@ -45,15 +46,18 @@ export function useForecastDashboard(client: ForecastDataClient) {
 
   useEffect(() => {
     if (!selection || !metadata || phase !== "ready") return;
-    const controller = new AbortController(); const id = ++sequence.current; setDataLoading(true); setError(null); setForecastPoints([]); setAggregatePoints([]);
+    const controller = new AbortController(); const id = ++sequence.current; setDataLoading(true); setError(null); setForecastPoints([]); setAggregatePoints([]); setPeriodLoadPoints([]);
     const pointRequest = client.getPoint({ runId: selection.runId, route: selection.route, date: selection.date, hour: selection.hour }, { signal: controller.signal });
-    let dataRequest: Promise<{ forecast: ForecastPoint[]; aggregate: AggregatePoint[] }>;
-    if (selection.view === "DAY") dataRequest = client.getDay({ runId: selection.runId, route: selection.route, date: selection.date }, { signal: controller.signal }).then((value) => ({ forecast: value.points, aggregate: [] }));
+    let dataRequest: Promise<{ forecast: ForecastPoint[]; aggregate: AggregatePoint[]; load: ForecastPoint[] }>;
+    if (selection.view === "DAY") dataRequest = client.getDay({ runId: selection.runId, route: selection.route, date: selection.date }, { signal: controller.signal }).then((value) => ({ forecast: value.points, aggregate: [], load: [] }));
     else {
       const month = monthBounds(selection.month); const range = selection.view === "MONTH" ? clampRange(month.from, month.to, metadata.forecast_start, metadata.forecast_end) : { from: selection.from, to: selection.to };
-      dataRequest = selection.view === "PERIOD" && selection.granularity === "hour" ? client.getTimeseries({ runId: selection.runId, route: selection.route, ...range }, { signal: controller.signal }).then((value) => ({ forecast: value.points, aggregate: [] })) : client.getAggregate({ runId: selection.runId, route: selection.route, ...range, granularity: selection.view === "MONTH" ? "day" : selection.granularity as "day" | "week" | "month" }, { signal: controller.signal }).then((value) => ({ forecast: [], aggregate: value.points }));
+      const loadRequest = client.getTimeseries({ runId: selection.runId, route: selection.route, ...range }, { signal: controller.signal });
+      dataRequest = selection.view === "PERIOD" && selection.granularity === "hour"
+        ? loadRequest.then((value) => ({ forecast: value.points, aggregate: [], load: value.points }))
+        : Promise.all([client.getAggregate({ runId: selection.runId, route: selection.route, ...range, granularity: selection.view === "MONTH" ? "day" : selection.granularity as "day" | "week" | "month" }, { signal: controller.signal }), loadRequest]).then(([aggregate, load]) => ({ forecast: [], aggregate: aggregate.points, load: load.points }));
     }
-    void Promise.all([pointRequest, dataRequest]).then(([point, data]) => { if (id !== sequence.current) return; setPointRows(point.points); setForecastPoints(data.forecast); setAggregatePoints(data.aggregate); setDataLoading(false); }).catch((cause) => { if (id !== sequence.current || (cause instanceof Error && cause.name === "AbortError")) return; setPointRows([]); setForecastPoints([]); setAggregatePoints([]); setDataLoading(false); setError(presentError(cause)); });
+    void Promise.all([pointRequest, dataRequest]).then(([point, data]) => { if (id !== sequence.current) return; setPointRows(point.points); setForecastPoints(data.forecast); setAggregatePoints(data.aggregate); setPeriodLoadPoints(data.load); setDataLoading(false); }).catch((cause) => { if (id !== sequence.current || (cause instanceof Error && cause.name === "AbortError")) return; setPointRows([]); setForecastPoints([]); setAggregatePoints([]); setPeriodLoadPoints([]); setDataLoading(false); setError(presentError(cause)); });
     return () => controller.abort();
   }, [client, selection, metadata, phase, attempt]);
 
@@ -65,6 +69,12 @@ export function useForecastDashboard(client: ForecastDataClient) {
   const exportCsv = useCallback(async (onlyHour: boolean) => { if (!selection || !metadata) return; setExporting(true); setExportMessage(null); try { const month = monthBounds(selection.month); const range = selection.view === "DAY" ? { from: selection.date, to: selection.date } : selection.view === "MONTH" ? clampRange(month.from, month.to, metadata.forecast_start, metadata.forecast_end) : { from: selection.from, to: selection.to }; const result = await client.exportCsv({ runId: selection.runId, route: selection.route, ...range, hour: onlyHour ? selection.hour : undefined }); const url = URL.createObjectURL(result.blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = result.filename; anchor.click(); URL.revokeObjectURL(url); setExportMessage(`Файл ${result.filename} подготовлен.`); } catch (cause) { setExportMessage(presentError(cause)); } finally { setExporting(false); } }, [client, metadata, selection]);
 
   const selectedPoint = pointRows.length === 1 ? pointRows[0] : null; const totalPrediction = pointRows.reduce((sum, item) => sum + item.prediction, 0); const periodTotal = [...forecastPoints, ...aggregatePoints].reduce((sum, item) => sum + item.prediction, 0);
+  const mapLoadIndexes = useMemo(() => {
+    const points = selection?.view === "DAY" ? pointRows : periodLoadPoints;
+    const totals = new Map<number, { sum: number; count: number }>();
+    for (const point of points) { const current = totals.get(point.route) ?? { sum: 0, count: 0 }; current.sum += point.load_index; current.count += 1; totals.set(point.route, current); }
+    return Object.fromEntries([...totals].map(([route, value]) => [route, Math.max(1, Math.min(10, Math.round(value.sum / value.count)))])) as Record<number, number>;
+  }, [periodLoadPoints, pointRows, selection?.view]);
   const supportedRoutes = useMemo(() => routes.length ? routes : COMPETITION_ROUTES.map((route) => ({ route, name: `Трамвай ${route}`, gtfs_route_ids: [], geometry_available: false, forecast_available: false })), [routes]);
-  return { phase, selection, metadata, routes, supportedRoutes, forecastPoints, aggregatePoints, pointRows, selectedPoint, totalPrediction, periodTotal, dataLoading, error, notice, draftFrom, draftTo, setDraftFrom, setDraftTo, updateSelection, applyRange, setQuickRange, exporting, exportMessage, exportCsv, retry: () => setAttempt((value) => value + 1), route: routes.find((item) => item.route === selection?.route) ?? null };
+  return { phase, selection, metadata, routes, supportedRoutes, forecastPoints, aggregatePoints, pointRows, selectedPoint, totalPrediction, periodTotal, mapLoadIndexes, dataLoading, error, notice, draftFrom, draftTo, setDraftFrom, setDraftTo, updateSelection, applyRange, setQuickRange, exporting, exportMessage, exportCsv, retry: () => setAttempt((value) => value + 1), route: routes.find((item) => item.route === selection?.route) ?? null };
 }

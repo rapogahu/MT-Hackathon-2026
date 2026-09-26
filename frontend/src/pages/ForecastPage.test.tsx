@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ApiError } from "../api/errors";
@@ -21,18 +21,22 @@ describe("ForecastPage", () => {
       />,
     );
 
-    expect(await screen.findByText("Тестовые данные — не прогноз модели")).toBeVisible();
+    expect(await screen.findByText("Прогноз пассажиропотока")).toBeVisible();
     await waitFor(() => expect(screen.getByTestId("forecast-chart")).toHaveAttribute("aria-label", expect.stringContaining("24 точек")));
     expect(screen.getByLabelText("Маршрут")).toHaveValue("1");
     expect(screen.getByLabelText("Дата")).toHaveValue("2025-11-01");
     expect(screen.getByLabelText("Час снимка")).toHaveValue("8");
     expect(window.location.search).toContain(`run=${FIXTURE_RUN_ID}`);
 
+    fireEvent.change(screen.getByLabelText("Дата"), { target: { value: "2025-11-12" } });
+    await waitFor(() => expect(screen.getByLabelText("Дата")).toHaveValue("2025-11-12"));
+    expect(window.location.search).toContain("date=2025-11-12");
+
     await user.selectOptions(screen.getByLabelText("Маршрут"), "17");
     await waitFor(() => expect(window.location.search).toContain("route=17"));
     expect(await screen.findByText(/Недостаточная вариативность данных/)).toBeVisible();
 
-    const noonPrediction = makeFixturePoint(17, "2025-11-01", 12).prediction;
+    const noonPrediction = makeFixturePoint(17, "2025-11-12", 12).prediction;
     await user.click(screen.getByRole("button", { name: `12:00, ${noonPrediction} посадок` }));
     await waitFor(() => expect(screen.getByLabelText("Час снимка")).toHaveValue("12"));
     expect(window.location.search).toContain("hour=12");
@@ -70,7 +74,7 @@ describe("ForecastPage", () => {
 
     expect(await screen.findByText("Не удалось открыть прогноз")).toBeVisible();
     expect(screen.getByRole("button", { name: "Повторить" })).toBeEnabled();
-    expect(screen.queryByText("Тестовые данные — не прогноз модели")).not.toBeInTheDocument();
+    expect(screen.queryByText("Выпуск")).not.toBeInTheDocument();
   });
 
   it("keeps the latest filter response when an older request resolves last", async () => {
@@ -117,6 +121,10 @@ describe("ForecastPage", () => {
     await user.click(screen.getByRole("button", { name: "Месяц" }));
     await waitFor(() => expect(screen.getByTestId("forecast-chart")).toHaveAttribute("aria-label", expect.stringContaining("30 точек")));
     expect(window.location.search).toContain("view=MONTH");
+    expect(screen.queryByLabelText("Час снимка")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Месяц"), { target: { value: "2025-12" } });
+    await waitFor(() => expect(window.location.search).toContain("month=2025-12"));
+    expect(screen.getByLabelText("Месяц")).toHaveValue("2025-12");
 
     await user.click(screen.getByRole("button", { name: "Период" }));
     await user.clear(screen.getByLabelText("С даты"));

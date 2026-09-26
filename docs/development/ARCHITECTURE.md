@@ -14,7 +14,7 @@ VITE_DATA_SOURCE=fixtures
     → FixtureForecastClient → React DAY / KPI / ECharts
 
 VITE_DATA_SOURCE=api (default/production)
-    → HttpForecastClient → будущие /api/forecast/... endpoint
+    → HttpForecastClient → FastAPI read-only forecast/map endpoint
 ```
 
 - Точка входа: `web-forecast/app/main.py`, объект `app`.
@@ -22,9 +22,9 @@ VITE_DATA_SOURCE=api (default/production)
 - `main.py` передаёт один экземпляр репозитория фабрикам роутеров через аргументы; `Depends` и отдельного сервисного слоя нет.
 - HTTP-обработчики синхронные. Методы репозитория фильтруют DataFrame и преобразуют значения для JSON.
 - Есть `/`, `/health`, справочники маршрутов/остановок и наряды. `/docs` генерируется FastAPI.
-- В корневом `frontend/` реализован FE-02: React 19/TypeScript/Vite, DAY/MONTH/PERIOD/ALL, KPI, CSV, ECharts и URL-состояние.
+- В корневом `frontend/` реализован FE-03: FE-02 плюс lazy MapLibre, цвет маршрута по часу или среднему индексу диапазона, выбор остановки и независимые состояния карты. Направление выбирается служебно; selector участка удалён.
 - Frontend имеет общий типизированный интерфейс и два явных адаптера. Fixtures включаются только development-командой и постоянно маркируются; production допускает только HTTP API.
-- HTTP-адаптер готов к runs/metadata/product routes/DAY/POINT, но соответствующие прогнозные endpoint backend ещё отсутствуют. Это проверенный клиентский контракт, не end-to-end интеграция.
+- HTTP-адаптер и совместимые FastAPI runs/metadata/routes/DAY/POINT/timeseries/aggregate/export/map endpoint реализованы. Backend пока использует настраиваемый read-only CSV-репозиторий; PostgreSQL-публикация ещё не реализована.
 
 ## Ключевые файлы
 
@@ -37,7 +37,7 @@ VITE_DATA_SOURCE=api (default/production)
 | `web-forecast/app/repositories/gtfs_repository.py` | Чтение/проверка Excel и методы доступа |
 | `web-forecast/app/api/forecast.py` | Неподключённая 15-минутная заглушка с константами |
 | `frontend/src/api/` | DTO, общий интерфейс и HTTP-клиент прогноза |
-| `frontend/src/dev/fixtureClient.ts` | Детерминированный development/test источник FE-02 |
+| `frontend/src/dev/fixtureClient.ts`, `referenceFixture.ts` | Числовые fixtures и справочная выборка из XLSX для FE-03 |
 | `frontend/src/pages/ForecastPage.tsx` | Экран DAY, фильтры, KPI и состояния |
 | `frontend/src/components/ForecastChart.tsx` | ECharts и клавиатурный выбор часа |
 | `experiments.ipynb` | Отдельные эксперименты на стороннем датасете Коломны |
@@ -47,11 +47,11 @@ VITE_DATA_SOURCE=api (default/production)
 
 Справочник содержит номера `1,2,3,4,5,6,7,10,11,12`; конкурс — `1,5,7,11,12,17,25,26,28,50`. Номер 1 соответствует GTFS route_id 4450, а не 1. `trip_short_name` во всех координатных строках равен 0, поэтому он не идентифицирует маршрутный путь.
 
-В Excel 489 остановок, 622 строки последовательностей с координатами, 15 нарядов за 08.02.2026 и 15 строк расписания маршрута 1. Нет полного исторического расписания или телематики для прогноза 2025 года. Методы координат/расписания имеются, но GeoJSON API ещё не реализован.
+В Excel 489 остановок, 622 строки последовательностей с координатами, 15 нарядов за 08.02.2026 и 15 строк расписания маршрута 1. Нет полного исторического расписания или телематики для прогноза 2025 года. GeoJSON API строит справочные линии только из этих координат.
 
 ## Ещё не реализовано
 
-PostgreSQL/Alembic, ForecastRepository и сервисы, внешний `POST /api/predict`, реальный ML-пайплайн, импорт прогнозов, backend-нормализация, карта, метрики, Docker Compose, backend/ML-тесты и benchmark. Frontend FE-02 имеет 11 тестов, но его API-интеграция не выполнена.
+PostgreSQL/Alembic и SQL-репозиторий, внешний `POST /api/predict`, реальный ML-пайплайн, атомарный импорт/публикация прогнозов, метрики, Docker Compose, полный backend test suite и benchmark. Read-only CSV/API-интеграция подготовлена, но ручной запуск frontend против неё ещё ожидается.
 
 Вложенный `MT-Hackathon-2026/` — другой Git-проект с ранним каркасом; не использовать как runtime основного приложения. Данные в `data/raw`, `interim`, `processed` и модели исключены из Git; XLSX справочника хранится отдельно и отслеживается.
 
