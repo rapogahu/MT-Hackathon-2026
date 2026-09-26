@@ -1,0 +1,329 @@
+{
+  "experiment": "H26",
+  "created_at_utc": "2026-09-26T22:14:18.017921+00:00",
+  "data_sources": [
+    "data/raw/labels/labels_day_train.csv",
+    "data/raw/labels/labels_day_test.csv"
+  ],
+  "grid_rows": {
+    "train": 58320,
+    "validation": 14640
+  },
+  "periods": {
+    "train": [
+      "2025-01-01",
+      "2025-08-31"
+    ],
+    "validation": [
+      "2025-09-01",
+      "2025-10-31"
+    ]
+  },
+  "temporal_boundary_passed": true,
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "candidate_parameters": {
+    "eps": 1e-06
+  },
+  "baseline_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "route_recent_vs_previous_rel_change"
+  ],
+  "metrics": {
+    "baseline_overall_wape": 0.12357994025785918,
+    "candidate_overall_wape": 0.12635598422232938,
+    "delta_wape": 0.002776043964470204,
+    "wape_score": 0.8736440157776706,
+    "baseline_per_route_wape": {
+      "1": 0.10940917688956801,
+      "5": null,
+      "7": 0.15733322078850975,
+      "11": 0.10545493825315498,
+      "12": 0.08806596477926038,
+      "17": 0.08589449971841562,
+      "25": 0.19959874025104565,
+      "26": 0.1253876274812746,
+      "28": 0.15373884855288591,
+      "50": 0.2406562645793375
+    },
+    "candidate_per_route_wape": {
+      "1": 0.09132879086483237,
+      "5": null,
+      "7": 0.16270723611385685,
+      "11": 0.10442036201254182,
+      "12": 0.08426732351820222,
+      "17": 0.07087862488879458,
+      "25": 0.1532773492746541,
+      "26": 0.1412872351747397,
+      "28": 0.13879441481058316,
+      "50": 0.34206711247040933
+    },
+    "candidate_coverage": 0.9,
+    "candidate_nan_rate": 0.09999999999999998
+  },
+  "candidate_diagnostics": {
+    "train": {
+      "non_null": 46224,
+      "nan_count": 12096,
+      "coverage_all_routes": 0.7925925925925926,
+      "coverage_excluding_route_5": 0.8806584362139918,
+      "route_5_nan_count": 5832,
+      "distribution": {
+        "min": -0.5233561307941679,
+        "p05": -0.17942489484105834,
+        "p25": -0.0806033201428015,
+        "median": -0.003240003060931607,
+        "p75": 0.09045474108338289,
+        "p95": 0.6418346218659045,
+        "max": 7.00320651485878,
+        "mean": 0.07130804114836597
+      }
+    },
+    "validation": {
+      "non_null": 13176,
+      "nan_count": 1464,
+      "coverage_all_routes": 0.9,
+      "coverage_excluding_route_5": 1.0,
+      "route_5_nan_count": 1464,
+      "distribution": {
+        "min": -0.25549650742768504,
+        "p05": -0.25549650742768504,
+        "p25": 0.03548447405096164,
+        "median": 0.04427723080936488,
+        "p75": 0.07604556531684356,
+        "p95": 0.44721393291781997,
+        "max": 0.44721393291781997,
+        "mean": 0.05954354539476674
+      }
+    }
+  },
+  "history_observation_counts": null,
+  "historical_day_diagnostics": {
+    "train": {
+      "rows_by_available_days": {
+        "0": 12096,
+        "1": 216,
+        "2": 216,
+        "3": 216,
+        "4": 216,
+        "5": 216,
+        "6": 216,
+        "7": 216,
+        "8": 216,
+        "9": 216,
+        "10": 216,
+        "11": 216,
+        "12": 216,
+        "13": 216,
+        "14": 216,
+        "15": 216,
+        "16": 216,
+        "17": 216,
+        "18": 216,
+        "19": 216,
+        "20": 216,
+        "21": 216,
+        "22": 216,
+        "23": 216,
+        "24": 216,
+        "25": 216,
+        "26": 216,
+        "27": 216,
+        "28": 40392
+      },
+      "zero_days": 12096,
+      "partial_1_to_27_days": 5832,
+      "full_28_days": 40392,
+      "mean_days_all_routes": 20.79259259259259,
+      "mean_days_excluding_route_5": 23.102880658436213
+    },
+    "validation": {
+      "rows_by_available_days": {
+        "0": 1464,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 13176
+      },
+      "zero_days": 1464,
+      "partial_1_to_27_days": 0,
+      "full_28_days": 13176,
+      "mean_days_all_routes": 25.2,
+      "mean_days_excluding_route_5": 28.0
+    }
+  },
+  "frozen_route_levels": {
+    "1": {
+      "previous_4w_mean": 596.6532738095239,
+      "recent_4w_mean": 623.0714285714286,
+      "signed_difference_recent_minus_previous": 26.418154761904702,
+      "absolute_difference": 26.418154761904702,
+      "recent_over_previous": 1.0442772308835742,
+      "route_recent_vs_previous_diff": 26.418154761904702,
+      "route_recent_vs_previous_rel_change": 0.04427723080936488
+    },
+    "5": {
+      "previous_4w_mean": null,
+      "recent_4w_mean": null,
+      "signed_difference_recent_minus_previous": null,
+      "absolute_difference": null,
+      "recent_over_previous": null,
+      "route_recent_vs_previous_diff": null,
+      "route_recent_vs_previous_rel_change": null
+    },
+    "7": {
+      "previous_4w_mean": 459.82440476190476,
+      "recent_4w_mean": 665.4642857142857,
+      "signed_difference_recent_minus_previous": 205.6398809523809,
+      "absolute_difference": 205.6398809523809,
+      "recent_over_previous": 1.4472139338903955,
+      "route_recent_vs_previous_diff": 205.6398809523809,
+      "route_recent_vs_previous_rel_change": 0.44721393291781997
+    },
+    "11": {
+      "previous_4w_mean": 1109.6354166666667,
+      "recent_4w_mean": 1127.611607142857,
+      "signed_difference_recent_minus_previous": 17.976190476190368,
+      "absolute_difference": 17.976190476190368,
+      "recent_over_previous": 1.016200087169343,
+      "route_recent_vs_previous_diff": 17.976190476190368,
+      "route_recent_vs_previous_rel_change": 0.016200087154743643
+    },
+    "12": {
+      "previous_4w_mean": 1146.125,
+      "recent_4w_mean": 1186.794642857143,
+      "signed_difference_recent_minus_previous": 40.66964285714289,
+      "absolute_difference": 40.66964285714289,
+      "recent_over_previous": 1.035484474081922,
+      "route_recent_vs_previous_diff": 40.66964285714289,
+      "route_recent_vs_previous_rel_change": 0.03548447405096164
+    },
+    "17": {
+      "previous_4w_mean": 1733.5119047619048,
+      "recent_4w_mean": 1865.3377976190477,
+      "signed_difference_recent_minus_previous": 131.8258928571429,
+      "absolute_difference": 131.8258928571429,
+      "recent_over_previous": 1.0760455653607115,
+      "route_recent_vs_previous_diff": 131.8258928571429,
+      "route_recent_vs_previous_rel_change": 0.07604556531684356
+    },
+    "25": {
+      "previous_4w_mean": 215.9077380952381,
+      "recent_4w_mean": 233.62053571428572,
+      "signed_difference_recent_minus_previous": 17.71279761904762,
+      "absolute_difference": 17.71279761904762,
+      "recent_over_previous": 1.0820387345785374,
+      "route_recent_vs_previous_diff": 17.71279761904762,
+      "route_recent_vs_previous_rel_change": 0.08203873419856621
+    },
+    "26": {
+      "previous_4w_mean": 526.9702380952381,
+      "recent_4w_mean": 546.985119047619,
+      "signed_difference_recent_minus_previous": 20.014880952380963,
+      "absolute_difference": 20.014880952380963,
+      "recent_over_previous": 1.0379810461872112,
+      "route_recent_vs_previous_diff": 20.014880952380963,
+      "route_recent_vs_previous_rel_change": 0.03798104611513692
+    },
+    "28": {
+      "previous_4w_mean": 300.51636904761904,
+      "recent_4w_mean": 316.1875,
+      "signed_difference_recent_minus_previous": 15.671130952380963,
+      "absolute_difference": 15.671130952380963,
+      "recent_over_previous": 1.052147345590675,
+      "route_recent_vs_previous_diff": 15.671130952380963,
+      "route_recent_vs_previous_rel_change": 0.052147345417149014
+    },
+    "50": {
+      "previous_4w_mean": 951.4970238095239,
+      "recent_4w_mean": 708.3928571428571,
+      "signed_difference_recent_minus_previous": -243.10416666666674,
+      "absolute_difference": 243.10416666666674,
+      "recent_over_previous": 0.7445034923037944,
+      "route_recent_vs_previous_diff": -243.10416666666674,
+      "route_recent_vs_previous_rel_change": -0.25549650742768504
+    }
+  },
+  "ratio_diagnostics": {
+    "train": {
+      "previous_min": 77.5,
+      "previous_p01": 166.125,
+      "previous_median": 792.7760416666666,
+      "previous_le_eps_rows": 0,
+      "previous_lt_1_rows": 0,
+      "previous_lt_10_rows": 0,
+      "abs_change_gt_1_rows": 1248,
+      "abs_change_gt_10_rows": 0,
+      "abs_change_gt_100_rows": 0,
+      "max_abs_change": 7.00320651485878,
+      "route_at_max_abs_change": 1,
+      "previous_at_max_abs_change": 77.5,
+      "previous_days_at_max_abs_change": 1,
+      "min_previous_when_abs_change_gt_1": 77.5
+    },
+    "validation": {
+      "previous_min": 215.9077380952381,
+      "previous_p01": 215.9077380952381,
+      "previous_median": 596.6532738095239,
+      "previous_le_eps_rows": 0,
+      "previous_lt_1_rows": 0,
+      "previous_lt_10_rows": 0,
+      "abs_change_gt_1_rows": 0,
+      "abs_change_gt_10_rows": 0,
+      "abs_change_gt_100_rows": 0,
+      "max_abs_change": 0.44721393291781997,
+      "route_at_max_abs_change": 7,
+      "previous_at_max_abs_change": 459.82440476190476,
+      "previous_days_at_max_abs_change": 28,
+      "min_previous_when_abs_change_gt_1": null
+    }
+  },
+  "missing_value_handling": "Native LightGBM missing value; no numeric fallback",
+  "decision": "REJECT",
+  "decision_rationale": "Overall WAPE increased by 0.002776 (2.25%) despite improvements on six of nine scored routes; route 50 worsened substantially. Fixed eps=1e-6, no clipping."
+}

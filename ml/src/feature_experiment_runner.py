@@ -15,10 +15,11 @@ from lightgbm import LGBMRegressor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from historical_features import (  # noqa: E402
-    H19_NAME, H20_NAME, H21_NAME, H22_NAME, H23_NAME, H24_NAME, H25_NAME,
+    H19_NAME, H20_NAME, H21_NAME, H22_NAME, H23_NAME, H24_NAME, H25_NAME, H26_NAME,
     RouteWeekdayHourHistoricalMedian,
     RouteWeekdayHourHistoricalMean, MedianLast4SameWeekdayHour, MeanLast4SameWeekdayHour,
     RouteRecent4WeekMean, RoutePrevious4WeekMean, RouteRecentVsPreviousDiff,
+    RouteRecentVsPreviousRelChange,
 )
 
 TRAIN_LABELS = ROOT / "data/raw/labels/labels_day_train.csv"
@@ -127,6 +128,7 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
     history_observation_counts = None
     historical_day_diagnostics = None
     frozen_route_levels = None
+    ratio_diagnostics = None
     if candidate_name:
         feature_diagnostics = {}
         for split_name, frame in (("train", train), ("validation", valid)):
@@ -189,6 +191,11 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
                     "mean_days_excluding_route_5": float(days.loc[frame["route"].ne(5)].mean()),
                 }
             frozen_route_levels = candidate_builder.frozen_route_levels(history)
+        if hasattr(candidate_builder, "ratio_diagnostics"):
+            ratio_diagnostics = candidate_builder.ratio_diagnostics(
+                train[["route", "date", "hour"]], valid[["route", "date", "hour"]],
+                history, train[candidate_name], valid[candidate_name]
+            )
     result = {
         "experiment": experiment,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -197,6 +204,7 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
         "periods": {"train": [TRAIN_START, TRAIN_END], "validation": [VALID_START, VALID_END]},
         "temporal_boundary_passed": bool(train["date"].max() < valid["date"].min()),
         "model_parameters": MODEL_PARAMETERS,
+        "candidate_parameters": getattr(candidate_builder, "PARAMETERS", None),
         "baseline_feature_names": baseline_features,
         "candidate_feature_names": candidate_features,
         "metrics": {
@@ -211,6 +219,7 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
         "history_observation_counts": history_observation_counts,
         "historical_day_diagnostics": historical_day_diagnostics,
         "frozen_route_levels": frozen_route_levels,
+        "ratio_diagnostics": ratio_diagnostics,
         "missing_value_handling": "Native LightGBM missing value; no numeric fallback" if candidate_name else None,
         "decision": None,
     }
@@ -242,6 +251,8 @@ def main() -> None:
         result = run_experiment(experiment, RoutePrevious4WeekMean, H24_NAME)
     elif experiment == "H25":
         result = run_experiment(experiment, RouteRecentVsPreviousDiff, H25_NAME)
+    elif experiment == "H26":
+        result = run_experiment(experiment, RouteRecentVsPreviousRelChange, H26_NAME)
     else:
         parser.error(f"No candidate builder registered for {experiment}")
     print(json.dumps(result, indent=2, allow_nan=False))

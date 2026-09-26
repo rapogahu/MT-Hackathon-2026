@@ -12,6 +12,8 @@ H22_NAME = "mean_last_4_same_weekday_hour"
 H23_NAME = "route_recent_4w_mean"
 H24_NAME = "route_previous_4w_mean"
 H25_NAME = "route_recent_vs_previous_diff"
+H26_NAME = "route_recent_vs_previous_rel_change"
+H26_EPS = 1e-6
 
 
 class RouteWeekdayHourHistoricalMedian:
@@ -367,6 +369,71 @@ class RouteRecentVsPreviousDiff(RoutePrevious4WeekMean):
         for route_levels in levels.values():
             route_levels[H25_NAME] = route_levels["signed_difference_recent_minus_previous"]
         return levels
+
+
+class RouteRecentVsPreviousRelChange(RouteRecentVsPreviousDiff):
+    """H26: scale-normalized change of the same two frozen route-level windows."""
+
+    PARAMETERS = {"eps": H26_EPS}
+
+    @staticmethod
+    def build_train(train_rows: pd.DataFrame, history: pd.DataFrame) -> pd.Series:
+        recent = RouteRecent4WeekMean.build_train(train_rows, history)
+        previous = RoutePrevious4WeekMean.build_train(train_rows, history)
+        return ((recent - previous) / (previous + H26_EPS)).rename(H26_NAME)
+
+    @staticmethod
+    def build_validation(validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        recent = RouteRecent4WeekMean.build_validation(validation_keys, frozen_history)
+        previous = RoutePrevious4WeekMean.build_validation(validation_keys, frozen_history)
+        return ((recent - previous) / (previous + H26_EPS)).rename(H26_NAME)
+
+    @classmethod
+    def frozen_route_levels(cls, history: pd.DataFrame) -> dict[str, dict[str, float | None]]:
+        levels = super().frozen_route_levels(history)
+        for route_levels in levels.values():
+            before = route_levels["previous_4w_mean"]
+            change = route_levels[H25_NAME]
+            route_levels[H26_NAME] = change / (before + H26_EPS) if before is not None else None
+        return levels
+
+    @classmethod
+    def ratio_diagnostics(
+        cls, train_keys: pd.DataFrame, validation_keys: pd.DataFrame, history: pd.DataFrame,
+        train_values: pd.Series, validation_values: pd.Series,
+    ) -> dict[str, dict[str, float | int]]:
+        previous_by_split = {
+            "train": RoutePrevious4WeekMean.build_train(train_keys, history),
+            "validation": RoutePrevious4WeekMean.build_validation(validation_keys, history),
+        }
+        days_by_split = cls.history_days(train_keys, validation_keys, history)
+        diagnostics = {}
+        for split, keys, values in (
+            ("train", train_keys, train_values),
+            ("validation", validation_keys, validation_values),
+        ):
+            denominator = previous_by_split[split].dropna()
+            observed = values.dropna()
+            extreme = observed.abs().gt(1)
+            max_index = observed.abs().idxmax()
+            diagnostics[split] = {
+                "previous_min": float(denominator.min()),
+                "previous_p01": float(denominator.quantile(0.01)),
+                "previous_median": float(denominator.median()),
+                "previous_le_eps_rows": int(denominator.le(H26_EPS).sum()),
+                "previous_lt_1_rows": int(denominator.lt(1).sum()),
+                "previous_lt_10_rows": int(denominator.lt(10).sum()),
+                "abs_change_gt_1_rows": int(extreme.sum()),
+                "abs_change_gt_10_rows": int(observed.abs().gt(10).sum()),
+                "abs_change_gt_100_rows": int(observed.abs().gt(100).sum()),
+                "max_abs_change": float(observed.abs().max()),
+                "route_at_max_abs_change": int(keys.loc[max_index, "route"]),
+                "previous_at_max_abs_change": float(denominator.loc[max_index]),
+                "previous_days_at_max_abs_change": int(days_by_split[split].loc[max_index]),
+                "min_previous_when_abs_change_gt_1": float(denominator.loc[extreme].min())
+                if extreme.any() else None,
+            }
+        return diagnostics
 
 
 def build_train_lag(
