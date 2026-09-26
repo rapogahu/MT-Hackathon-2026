@@ -1,0 +1,82 @@
+{
+  "experiment": "SMOKE",
+  "created_at_utc": "2026-09-26T21:21:15.725149+00:00",
+  "data_sources": [
+    "data/raw/labels/labels_day_train.csv",
+    "data/raw/labels/labels_day_test.csv"
+  ],
+  "grid_rows": {
+    "train": 58320,
+    "validation": 14640
+  },
+  "periods": {
+    "train": [
+      "2025-01-01",
+      "2025-08-31"
+    ],
+    "validation": [
+      "2025-09-01",
+      "2025-10-31"
+    ]
+  },
+  "temporal_boundary_passed": true,
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "baseline_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "metrics": {
+    "baseline_overall_wape": 0.12357994025785918,
+    "candidate_overall_wape": 0.12357994025785918,
+    "delta_wape": 0.0,
+    "wape_score": 0.8764200597421408,
+    "baseline_per_route_wape": {
+      "1": 0.10940917688956801,
+      "5": null,
+      "7": 0.15733322078850975,
+      "11": 0.10545493825315498,
+      "12": 0.08806596477926038,
+      "17": 0.08589449971841562,
+      "25": 0.19959874025104565,
+      "26": 0.1253876274812746,
+      "28": 0.15373884855288591,
+      "50": 0.2406562645793375
+    },
+    "candidate_per_route_wape": {
+      "1": 0.10940917688956801,
+      "5": null,
+      "7": 0.15733322078850975,
+      "11": 0.10545493825315498,
+      "12": 0.08806596477926038,
+      "17": 0.08589449971841562,
+      "25": 0.19959874025104565,
+      "26": 0.1253876274812746,
+      "28": 0.15373884855288591,
+      "50": 0.2406562645793375
+    },
+    "candidate_coverage": 1.0,
+    "candidate_nan_rate": 0.0
+  },
+  "decision": null
+}

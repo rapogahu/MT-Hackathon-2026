@@ -1,0 +1,121 @@
+{
+  "experiment": "H20",
+  "created_at_utc": "2026-09-26T21:30:45.059957+00:00",
+  "data_sources": [
+    "data/raw/labels/labels_day_train.csv",
+    "data/raw/labels/labels_day_test.csv"
+  ],
+  "grid_rows": {
+    "train": 58320,
+    "validation": 14640
+  },
+  "periods": {
+    "train": [
+      "2025-01-01",
+      "2025-08-31"
+    ],
+    "validation": [
+      "2025-09-01",
+      "2025-10-31"
+    ]
+  },
+  "temporal_boundary_passed": true,
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "baseline_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "route_weekday_hour_historical_mean"
+  ],
+  "metrics": {
+    "baseline_overall_wape": 0.12357994025785918,
+    "candidate_overall_wape": 0.1275184776236681,
+    "delta_wape": 0.003938537365808931,
+    "wape_score": 0.8724815223763319,
+    "baseline_per_route_wape": {
+      "1": 0.10940917688956801,
+      "5": null,
+      "7": 0.15733322078850975,
+      "11": 0.10545493825315498,
+      "12": 0.08806596477926038,
+      "17": 0.08589449971841562,
+      "25": 0.19959874025104565,
+      "26": 0.1253876274812746,
+      "28": 0.15373884855288591,
+      "50": 0.2406562645793375
+    },
+    "candidate_per_route_wape": {
+      "1": 0.1083652482675274,
+      "5": null,
+      "7": 0.14797052806475475,
+      "11": 0.10848053628069579,
+      "12": 0.09438779111153234,
+      "17": 0.09432929865084352,
+      "25": 0.19044769307934567,
+      "26": 0.12964648373707754,
+      "28": 0.16108734497578733,
+      "50": 0.25370466366008326
+    },
+    "candidate_coverage": 0.9,
+    "candidate_nan_rate": 0.09999999999999998
+  },
+  "candidate_diagnostics": {
+    "train": {
+      "non_null": 50976,
+      "nan_count": 7344,
+      "coverage_all_routes": 0.8740740740740741,
+      "coverage_excluding_route_5": 0.9711934156378601,
+      "route_5_nan_count": 5832,
+      "distribution": {
+        "min": 0.0,
+        "p05": 0.0,
+        "p25": 108.12316176470588,
+        "median": 593.2111111111111,
+        "p75": 1401.3515625,
+        "p95": 2804.080128205128,
+        "max": 5117.454545454545,
+        "mean": 886.5271579999668
+      }
+    },
+    "validation": {
+      "non_null": 13176,
+      "nan_count": 1464,
+      "coverage_all_routes": 0.9,
+      "coverage_excluding_route_5": 1.0,
+      "route_5_nan_count": 1464,
+      "distribution": {
+        "min": 0.0,
+        "p05": 0.0,
+        "p25": 122.4905462184874,
+        "median": 619.2,
+        "p75": 1416.314075630252,
+        "p95": 2757.6857142857143,
+        "max": 4897.294117647059,
+        "mean": 904.8644616772028
+      }
+    }
+  },
+  "missing_value_handling": "Native LightGBM missing value; no numeric fallback",
+  "decision": "REJECT",
+  "decision_rationale": "Overall WAPE increased by 0.003939 (3.19%); six of nine scored routes worsened on the frozen temporal holdout."
+}
