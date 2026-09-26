@@ -30,18 +30,11 @@ def create_forecast_router(
     @router.get("/runs")
     def get_runs():
         """
-        Получить активный прогнозный run.
+        Получить список доступных forecast runs.
         """
 
-        metadata = (
-            forecast_repository
-            .get_run_metadata()
-        )
-
-        run_id = (
-            forecast_repository
-            .get_run_id()
-        )
+        metadata = forecast_repository.get_run_metadata()
+        run_id = forecast_repository.get_run_id()
 
         return {
             "active_run_id": run_id,
@@ -51,42 +44,14 @@ def create_forecast_router(
                 "year": None,
             },
             "runs": [
-                metadata
+                metadata,
             ],
         }
 
     @router.get("/runs/{run_id}")
-    def get_run(
-        run_id: str,
-    ):
+    def get_run(run_id: str):
         """
-        Получить информацию о run.
-        """
-
-        if (
-            run_id
-            != forecast_repository.get_run_id()
-        ):
-            raise HTTPException(
-                status_code=404,
-                detail=f"Run '{run_id}' не найден.",
-            )
-
-        return (
-            forecast_repository
-            .get_run_metadata()
-        )
-
-    # =========================================================
-    # FORECAST ROUTES
-    # =========================================================
-
-    @router.get("/routes")
-    def get_forecast_routes(
-        run_id: str = Query(...),
-    ):
-        """
-        Маршруты, для которых существует прогноз.
+        Получить информацию о конкретном run.
         """
 
         _check_run(
@@ -94,12 +59,89 @@ def create_forecast_router(
             run_id,
         )
 
+        return forecast_repository.get_run_metadata()
+
+    # =========================================================
+    # ROUTES
+    # =========================================================
+
+    @router.get("/routes")
+    def get_forecast_routes(
+        run_id: str = Query(...),
+    ):
+        """
+        Получить маршруты, доступные в прогнозе,
+        с метаданными из GTFS.
+        """
+
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
+
+        forecast_routes = forecast_repository.get_routes()
+
+        routes = []
+
+        for route_number in forecast_routes:
+            route_info = (
+                gtfs_repository
+                .get_route_by_number(
+                    str(route_number)
+                )
+            )
+
+            if not route_info:
+                routes.append(
+                    {
+                        "route": int(route_number),
+                        "name": f"Маршрут {route_number}",
+                        "gtfs_route_ids": [],
+                        "geometry_available": False,
+                        "forecast_available": True,
+                    }
+                )
+                continue
+
+            gtfs_route_ids = [
+                str(item["route_id"])
+                for item in route_info
+                if item.get("route_id") is not None
+            ]
+
+            geometry_available = False
+
+            for route_id in gtfs_route_ids:
+                geometry = (
+                    gtfs_repository
+                    .get_route_geometry(
+                        route_id=route_id,
+                    )
+                )
+
+                if geometry:
+                    geometry_available = True
+                    break
+
+            route_name = (
+                route_info[0].get("route_long_name")
+                or route_info[0].get("route_short_name")
+                or f"Маршрут {route_number}"
+            )
+
+            routes.append(
+                {
+                    "route": int(route_number),
+                    "name": str(route_name),
+                    "gtfs_route_ids": gtfs_route_ids,
+                    "geometry_available": geometry_available,
+                    "forecast_available": True,
+                }
+            )
+
         return {
             "run_id": run_id,
-            "routes": (
-                forecast_repository
-                .get_routes()
-            ),
+            "routes": routes,
         }
 
     # =========================================================
@@ -116,7 +158,7 @@ def create_forecast_router(
         Прогноз за конкретную дату.
 
         Если route не указан —
-        возвращаются все маршруты.
+        возвращаются данные по всем маршрутам.
         """
 
         _check_run(
@@ -126,24 +168,21 @@ def create_forecast_router(
 
         _validate_date(date)
 
-        result = (
-            forecast_repository
-            .get_forecast(
-                route=route,
-                date_value=date,
-            )
+        result = forecast_repository.get_forecast(
+            route=route,
+            date_value=date,
         )
 
         return {
             "run_id": run_id,
             "route": (
                 int(route)
-                if route is not None
-                and route.isdigit()
+                if route is not None and route.isdigit()
                 else route
             ),
             "date": date,
-            "forecast": result,
+            "count": len(result),
+            "points": result,
         }
 
     # =========================================================
@@ -155,11 +194,14 @@ def create_forecast_router(
         run_id: str = Query(...),
         route: str = Query(...),
         date: str = Query(...),
-        hour: int = Query(..., ge=0, le=23),
+        hour: int = Query(
+            ...,
+            ge=0,
+            le=23,
+        ),
     ):
         """
-        Одна точка:
-        маршрут × дата × час.
+        Прогноз в конкретный час.
         """
 
         _check_run(
@@ -169,49 +211,46 @@ def create_forecast_router(
 
         _validate_date(date)
 
-        point = (
-            forecast_repository
-            .get_point(
-                route=route,
-                date_value=date,
-                hour=hour,
-            )
+        point = forecast_repository.get_point(
+            route=route,
+            date_value=date,
+            hour=hour,
         )
 
         if point is None:
             raise HTTPException(
                 status_code=404,
-                detail=(
-                    "Прогноз не найден: "
-                    f"route={route}, "
-                    f"date={date}, "
-                    f"hour={hour}"
-                ),
+                detail="Forecast point not found.",
             )
 
-        return point
+        return {
+            "run_id": run_id,
+            "route": (
+                int(route)
+                if route.isdigit()
+                else route
+            ),
+            "date": date,
+            "hour": hour,
+            "count": 1,
+            "points": [
+                point,
+            ],
+        }
 
     # =========================================================
     # TIMESERIES
     # =========================================================
 
-    @router.get(
-        "/timeseries",
-    )
+    @router.get("/timeseries")
     def get_timeseries(
         run_id: str = Query(...),
         route: str | None = Query(None),
-        from_date: str = Query(
-            ...,
-            alias="from",
-        ),
-        to_date: str = Query(
-            ...,
-            alias="to",
-        ),
+        from_date: str = Query(..., alias="from"),
+        to_date: str = Query(..., alias="to"),
     ):
         """
-        Почасовой временной ряд.
+        Почасовой прогноз за диапазон дат.
         """
 
         _check_run(
@@ -224,52 +263,41 @@ def create_forecast_router(
             to_date,
         )
 
-        result = (
-            forecast_repository
-            .get_timeseries(
-                route=route,
-                start=from_date,
-                end=to_date,
-            )
+        result = forecast_repository.get_timeseries(
+            route=route,
+            start=from_date,
+            end=to_date,
         )
 
         return {
             "run_id": run_id,
             "route": (
                 int(route)
-                if route is not None
-                and route.isdigit()
+                if route is not None and route.isdigit()
                 else route
             ),
             "from": from_date,
             "to": to_date,
-            "timeseries": result,
+            "count": len(result),
+            "points": result,
         }
 
     # =========================================================
     # AGGREGATE
     # =========================================================
 
-    @router.get(
-        "/aggregate",
-    )
+    @router.get("/aggregate")
     def get_aggregate(
         run_id: str = Query(...),
         route: str | None = Query(None),
-        from_date: str = Query(
-            ...,
-            alias="from",
-        ),
-        to_date: str = Query(
-            ...,
-            alias="to",
-        ),
-        granularity: str = Query(
-            "day",
-        ),
+        from_date: str = Query(..., alias="from"),
+        to_date: str = Query(..., alias="to"),
+        granularity: str = Query("day"),
     ):
         """
         Агрегированный прогноз.
+
+        Сейчас поддерживается только granularity=day.
         """
 
         _check_run(
@@ -282,35 +310,31 @@ def create_forecast_router(
             to_date,
         )
 
-        try:
-            result = (
-                forecast_repository
-                .get_aggregate(
-                    route=route,
-                    start=from_date,
-                    end=to_date,
-                    granularity=granularity,
-                )
-            )
-
-        except ValueError as exc:
+        if granularity not in {"day", "week", "month"}:
             raise HTTPException(
                 status_code=400,
-                detail=str(exc),
-            ) from exc
+                detail="Supported granularity: day, week, month.",
+            )
+
+        result = forecast_repository.get_aggregate(
+            route=route,
+            start=from_date,
+            end=to_date,
+            granularity=granularity,
+        )
 
         return {
             "run_id": run_id,
             "route": (
                 int(route)
-                if route is not None
-                and route.isdigit()
+                if route is not None and route.isdigit()
                 else route
             ),
             "from": from_date,
             "to": to_date,
             "granularity": granularity,
-            "data": result,
+            "count": len(result),
+            "points": result,
         }
 
     return router

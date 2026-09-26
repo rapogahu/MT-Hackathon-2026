@@ -281,15 +281,44 @@ class ForecastRepository:
         return self.run_id
 
     def get_run_metadata(self) -> dict:
+        """
+        Metadata в формате, который ожидает frontend.
+
+        Источник прогноза — test_submission.csv.
+        Период прогноза определяется непосредственно
+        по данным CSV.
+        """
+
+        imported_at = datetime.fromtimestamp(
+            self.file_path.stat().st_mtime
+        ).isoformat()
+
         return {
             "run_id": self.run_id,
-            "source": "csv",
-            "source_file": self.file_path.name,
-            "status": "ready",
-            "route_count": len(self.routes),
+            "profile": "competition",
+            "horizon": "month",
+            "forecast_kind": "passenger_flow",
+
+            "training_end": "2025-08-31",
+            "forecast_start": self.min_date,
+            "forecast_end": self.max_date,
+
+            "routes": self.get_routes(),
             "row_count": len(self.data),
-            "date_from": self.min_date,
-            "date_to": self.max_date,
+
+            "imported_at": imported_at,
+            "generated_at": None,
+            "model_version": None,
+
+            "timezone": "Europe/Moscow",
+
+            "source_checksum": self.run_id.removeprefix("csv-"),
+            "actual_batch_id": None,
+            "normalization_version": "route-q05-q95-v1",
+
+            "normalization": [],
+            "evaluation_ids": [],
+            "scenario_assumptions": None,
         }
 
     # =========================================================
@@ -633,10 +662,9 @@ class ForecastRepository:
         granularity: str = "day",
     ) -> list[dict]:
 
-        if granularity != "day":
+        if granularity not in {"day", "week", "month"}:
             raise ValueError(
-                "Поддерживается только "
-                "granularity=day."
+                "Поддерживаются только granularity=day, week, month."
             )
 
         df = self._filter(
@@ -648,62 +676,134 @@ class ForecastRepository:
         if df.empty:
             return []
 
-        grouped = (
-            df.groupby(
-                [
-                    "route",
-                    "date",
-                ],
-                as_index=False,
-            )
-            .agg(
-                prediction=(
-                    "prediction",
-                    "sum",
-                ),
-                relative_load=(
-                    "relative_load",
-                    "mean",
-                ),
-            )
-        )
+        df = df.copy()
+
+        # Убеждаемся, что дата имеет тип datetime.
+        df["date_dt"] = pd.to_datetime(df["date"])
 
         result = []
 
+        if granularity == "day":
+            grouped = (
+                df.groupby(
+                    ["route", "date"],
+                    as_index=False,
+                )
+                .agg(
+                    prediction=("prediction", "sum"),
+                    hours_count=("hour", "count"),
+                )
+            )
+
+            expected_hours = 24
+
+            for _, row in grouped.iterrows():
+                period_start = str(row["date"])
+                period_end = str(row["date"])
+                hours_count = int(row["hours_count"])
+
+                result.append(
+                    {
+                        "route": self._route_value(row["route"]),
+                        "date": period_start,
+                        "period_start": period_start,
+                        "period_end": period_end,
+                        "prediction": float(row["prediction"]),
+                        "hours_count": hours_count,
+                        "expected_hours": expected_hours,
+                        "is_partial": hours_count < expected_hours,
+                    }
+                )
+
+            return result
+
+        if granularity == "week":
+            # Понедельник считается началом недели.
+            df["period_start_dt"] = (
+                df["date_dt"]
+                - pd.to_timedelta(
+                    df["date_dt"].dt.weekday,
+                    unit="D",
+                )
+            ).dt.normalize()
+
+            grouped = (
+                df.groupby(
+                    ["route", "period_start_dt"],
+                    as_index=False,
+                )
+                .agg(
+                    prediction=("prediction", "sum"),
+                    hours_count=("hour", "count"),
+                )
+            )
+
+            expected_hours = 7 * 24
+
+            for _, row in grouped.iterrows():
+                period_start_dt = row["period_start_dt"]
+                period_end_dt = (
+                    period_start_dt
+                    + pd.Timedelta(days=6)
+                )
+
+                hours_count = int(row["hours_count"])
+
+                result.append(
+                    {
+                        "route": self._route_value(row["route"]),
+                        "date": period_start_dt.strftime("%Y-%m-%d"),
+                        "period_start": period_start_dt.strftime("%Y-%m-%d"),
+                        "period_end": period_end_dt.strftime("%Y-%m-%d"),
+                        "prediction": float(row["prediction"]),
+                        "hours_count": hours_count,
+                        "expected_hours": expected_hours,
+                        "is_partial": hours_count < expected_hours,
+                    }
+                )
+
+            return result
+
+        # granularity == "month"
+
+        df["period_start_dt"] = (
+            df["date_dt"]
+            .dt.to_period("M")
+            .dt.start_time
+        )
+
+        grouped = (
+            df.groupby(
+                ["route", "period_start_dt"],
+                as_index=False,
+            )
+            .agg(
+                prediction=("prediction", "sum"),
+                hours_count=("hour", "count"),
+            )
+        )
+
         for _, row in grouped.iterrows():
-
-            relative_load = float(
-                row["relative_load"]
+            period_start_dt = row["period_start_dt"]
+            period_end_dt = (
+                period_start_dt
+                + pd.offsets.MonthEnd(0)
             )
 
-            load_index = self._load_index(
-                relative_load
-            )
+            days_in_month = period_end_dt.day
+            expected_hours = days_in_month * 24
+            hours_count = int(row["hours_count"])
 
             result.append(
                 {
-                    "route": self._route_value(
-                        row["route"]
-                    ),
-                    "date": str(
-                        row["date"]
-                    ),
-                    "prediction": float(
-                        row["prediction"]
-                    ),
-                    "relative_load": round(
-                        relative_load,
-                        4,
-                    ),
-                    "relative_load_pct": int(
-                        round(
-                            relative_load * 100
-                        )
-                    ),
-                    "load_index": load_index,
-                    "load_category": self._load_category(
-                        load_index
-                    ),
+                    "route": self._route_value(row["route"]),
+                    "date": period_start_dt.strftime("%Y-%m-%d"),
+                    "period_start": period_start_dt.strftime("%Y-%m-%d"),
+                    "period_end": period_end_dt.strftime("%Y-%m-%d"),
+                    "prediction": float(row["prediction"]),
+                    "hours_count": hours_count,
+                    "expected_hours": expected_hours,
+                    "is_partial": hours_count < expected_hours,
                 }
             )
 

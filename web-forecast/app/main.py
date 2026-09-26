@@ -51,7 +51,6 @@ DEFAULT_GTFS_FILE = (
 
 DEFAULT_FORECAST_FILE = (
     PROJECT_ROOT
-    / "MT-Hackathon-2026"
     / "dataset"
     / "test_submission.csv"
 )
@@ -63,6 +62,7 @@ GTFS_FILE = Path(
         DEFAULT_GTFS_FILE,
     )
 )
+
 
 FORECAST_FILE = Path(
     os.getenv(
