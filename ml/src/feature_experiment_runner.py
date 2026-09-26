@@ -15,8 +15,8 @@ from lightgbm import LGBMRegressor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from historical_features import (  # noqa: E402
-    H19_NAME, H20_NAME, H21_NAME, RouteWeekdayHourHistoricalMedian,
-    RouteWeekdayHourHistoricalMean, MedianLast4SameWeekdayHour,
+    H19_NAME, H20_NAME, H21_NAME, H22_NAME, RouteWeekdayHourHistoricalMedian,
+    RouteWeekdayHourHistoricalMean, MedianLast4SameWeekdayHour, MeanLast4SameWeekdayHour,
 )
 
 TRAIN_LABELS = ROOT / "data/raw/labels/labels_day_train.csv"
@@ -208,6 +208,8 @@ def main() -> None:
         result = run_experiment(experiment, RouteWeekdayHourHistoricalMean, H20_NAME)
     elif experiment == "H21":
         result = run_experiment(experiment, MedianLast4SameWeekdayHour, H21_NAME)
+    elif experiment == "H22":
+        result = run_experiment(experiment, MeanLast4SameWeekdayHour, H22_NAME)
     else:
         parser.error(f"No candidate builder registered for {experiment}")
     print(json.dumps(result, indent=2, allow_nan=False))

@@ -8,6 +8,7 @@ KEYS = ("route", "date", "hour")
 H19_NAME = "route_weekday_hour_historical_median"
 H20_NAME = "route_weekday_hour_historical_mean"
 H21_NAME = "median_last_4_same_weekday_hour"
+H22_NAME = "mean_last_4_same_weekday_hour"
 
 
 class RouteWeekdayHourHistoricalMedian:
@@ -142,6 +143,47 @@ class MedianLast4SameWeekdayHour:
         valid_count = pd.Series(group_size.reindex(query, fill_value=0).to_numpy(),
                                 index=validation_keys.index, dtype="int64")
         return {"train": train_count, "validation": valid_count}
+
+
+class MeanLast4SameWeekdayHour(MedianLast4SameWeekdayHour):
+    """H22: mean of up to four prior group observations, frozen for validation."""
+
+    @staticmethod
+    def build_train(train_rows: pd.DataFrame, history: pd.DataFrame) -> pd.Series:
+        if not train_rows[["route", "date", "hour"]].equals(history[["route", "date", "hour"]]):
+            raise ValueError("Train history must align with train keys")
+        if history["date"].max() > pd.Timestamp("2025-08-31"):
+            raise ValueError("Train history extends beyond forecast origin")
+        ordered = history.assign(weekday=history["date"].dt.weekday)
+        if not ordered.sort_values(["route", "date", "hour"]).index.equals(ordered.index):
+            raise ValueError("Train history must be in chronological order within route")
+        values = ordered.groupby(["route", "weekday", "hour"], sort=False)["boardings"].transform(
+            lambda group: group.shift(1).rolling(window=4, min_periods=1).mean()
+        )
+        values.loc[history["route"].eq(5)] = float("nan")
+        return values.rename(H22_NAME)
+
+    @staticmethod
+    def build_validation(validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        if "boardings" in validation_keys:
+            raise ValueError("Validation feature builder accepts keys only")
+        if frozen_history.empty or frozen_history["date"].max() != pd.Timestamp("2025-08-31"):
+            raise ValueError("Validation history must end at 2025-08-31")
+        if validation_keys["date"].min() <= frozen_history["date"].max():
+            raise ValueError("Validation keys overlap target history")
+        past = frozen_history.loc[frozen_history["route"].ne(5)].assign(
+            weekday=lambda frame: frame["date"].dt.weekday
+        )
+        if not past.sort_values(["route", "date", "hour"]).index.equals(past.index):
+            raise ValueError("Frozen history must be in chronological order within route")
+        recent = past.groupby(["route", "weekday", "hour"], sort=False).tail(4)
+        means = recent.groupby(["route", "weekday", "hour"])["boardings"].mean()
+        query = pd.MultiIndex.from_arrays(
+            [validation_keys["route"], validation_keys["date"].dt.weekday, validation_keys["hour"]],
+            names=["route", "weekday", "hour"],
+        )
+        return pd.Series(means.reindex(query).to_numpy(), index=validation_keys.index,
+                         name=H22_NAME, dtype="float64")
 
 
 def build_train_lag(
