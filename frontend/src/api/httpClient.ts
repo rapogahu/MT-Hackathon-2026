@@ -17,6 +17,8 @@ import type {
   DirectionsResponse,
   StopsResponse,
   SegmentsResponse,
+  RouteDirection,
+  RouteStop,
 } from "./types";
 
 interface HttpClientOptions {
@@ -116,15 +118,22 @@ export class HttpForecastClient implements ForecastDataClient {
     return this.request(`/api/routes/number/${encodeURIComponent(route)}/geometry`, options);
   }
 
-  getDirections(route: number, options?: DataRequest): Promise<DirectionsResponse> {
-    return this.request(`/api/routes/number/${encodeURIComponent(route)}/directions`, options);
+  async getDirections(route: number, options?: DataRequest): Promise<DirectionsResponse> {
+    const payload = await this.request<DirectionsResponse | LegacyDirectionsResponse>(`/api/routes/number/${encodeURIComponent(route)}/directions`, options);
+    if ("reference_version" in payload) return payload;
+    const directions: RouteDirection[] = (payload.directions ?? []).map((item) => ({ geometry_id: geometryId(route, item.trip_id, item.direction_id), trip_id: String(item.trip_id), direction_id: Number(item.direction_id), valid_from: item.valid_from ?? "", valid_to: item.valid_to ?? null }));
+    return { route, reference_version: legacyReference(payload.route_id ?? route), count: directions.length, directions };
   }
 
-  getStops(
+  async getStops(
     input: { route: number; tripId?: string; directionId?: number },
     options?: DataRequest,
   ): Promise<StopsResponse> {
-    return this.request(`/api/routes/number/${encodeURIComponent(input.route)}/stops${this.navigationQuery(input)}`, options);
+    const payload = await this.request<StopsResponse | LegacyStopsResponse>(`/api/routes/number/${encodeURIComponent(input.route)}/stops${this.navigationQuery(input)}`, options);
+    if ("reference_version" in payload) return payload;
+    const rows = Object.values(payload.directions ?? {}).flat().filter((item) => (input.tripId === undefined || String(item.trip_id) === input.tripId) && (input.directionId === undefined || Number(item.direction_id) === input.directionId));
+    const stops: RouteStop[] = rows.map((item) => ({ route: input.route, route_id: String(item.route_id), trip_id: String(item.trip_id), direction_id: Number(item.direction_id), geometry_id: geometryId(input.route, item.trip_id, item.direction_id), stop_sequence: Number(item.stop_sequence), stop_id: String(item.stop_id), stop_name: String(item.stop_name), lat: Number(item.stop_lat), lon: Number(item.stop_lon) }));
+    return { route: input.route, reference_version: legacyReference(payload.route?.route_id ?? input.route), count: stops.length, stops };
   }
 
   getSegments(
@@ -189,3 +198,10 @@ export class HttpForecastClient implements ForecastDataClient {
     return response;
   }
 }
+
+interface LegacyDirection { trip_id: string | number; direction_id: string | number; valid_from?: string; valid_to?: string | null }
+interface LegacyDirectionsResponse { route?: number; route_id?: string | number; directions?: LegacyDirection[] }
+interface LegacyStop extends LegacyDirection { route_id: string | number; stop_sequence: string | number; stop_id: string | number; stop_name: string; stop_lat: number; stop_lon: number }
+interface LegacyStopsResponse { route?: { route_id: string | number }; directions?: Record<string, LegacyStop[]> }
+function geometryId(route: number, tripId: string | number, directionId: string | number) { return `route-${route}-${tripId}-${directionId}`; }
+function legacyReference(routeId: string | number) { return `legacy-gtfs-${routeId}`; }

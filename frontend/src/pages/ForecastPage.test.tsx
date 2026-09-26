@@ -141,15 +141,13 @@ describe("ForecastPage", () => {
     expect(window.location.search).toContain("route=ALL");
   });
 
-  it("navigates reference geography without changing forecast filters", async () => {
+  it("shows the route map without a stop selector", async () => {
     const user = userEvent.setup();
     render(<ForecastPage client={new FixtureForecastClient({ latencyMs: 0 })} dataSource="fixtures" />);
-    expect(await screen.findByLabelText("Справочная карта: 2 вариантов пути.")).toBeVisible();
+    expect(await screen.findByLabelText("Карта маршрута: 2 вариантов пути.")).toBeVisible();
     const hourBefore = (screen.getByLabelText("Час снимка") as HTMLSelectElement).value;
-    await waitFor(() => expect(screen.getByLabelText("Остановка")).toBeEnabled());
-    await user.selectOptions(screen.getByLabelText("Остановка"), "ref-1-2040920-0-2025-10-11:1");
+    expect(screen.queryByLabelText("Остановка")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Час снимка")).toHaveValue(hourBefore);
-    expect(window.location.search).toContain("stop=ref-1-2040920-0-2025-10-11%3A1");
 
     await user.selectOptions(screen.getByLabelText("Маршрут"), "17");
     expect(await screen.findByText("Геометрия маршрута отсутствует в предоставленном справочнике")).toBeVisible();

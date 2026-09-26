@@ -58,7 +58,7 @@ describe("HttpForecastClient", () => {
     const client = new HttpForecastClient({ baseUrl: "http://api.test", fetchImpl: fetchMock });
     await client.getTimeseries({ runId: "run", route: null, from: "2025-11-15", to: "2025-12-05" });
     const exported = await client.exportCsv({ runId: "run", route: null, from: "2025-11-15", to: "2025-12-05" });
-    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/api/timeseries?run_id=run&from=2025-11-15&to=2025-12-05");
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/api/forecast/timeseries?run_id=run&from=2025-11-15&to=2025-12-05");
     expect(fetchMock.mock.calls[1][0]).not.toContain("route=");
     expect(exported.filename).toBe("selection.csv");
   });
@@ -78,5 +78,16 @@ describe("HttpForecastClient", () => {
       "http://api.test/api/routes/number/1/segments?trip_id=trip%2F1&direction_id=0",
       "http://api.test/api/routes/number/1/geometry",
     ]);
+  });
+
+  it("normalizes legacy backend directions and stops for the map overlay", async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ route: 11, route_id: 4423, directions: [{ trip_id: 2043371, direction_id: 0 }] }), { status: 200, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ route: { route_id: 4423 }, directions: { "0": [{ route_id: 4423, trip_id: 2043371, direction_id: 0, stop_sequence: 1, stop_id: 6152, stop_name: "Останкино", stop_lat: 55.82, stop_lon: 37.61 }] } }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const client = new HttpForecastClient({ baseUrl: "http://api.test", fetchImpl: fetchMock });
+    const directions = await client.getDirections(11);
+    const stops = await client.getStops({ route: 11, tripId: directions.directions[0].trip_id, directionId: directions.directions[0].direction_id });
+    expect(directions).toMatchObject({ reference_version: "legacy-gtfs-4423", count: 1, directions: [{ geometry_id: "route-11-2043371-0" }] });
+    expect(stops).toMatchObject({ reference_version: "legacy-gtfs-4423", count: 1, stops: [{ stop_name: "Останкино", stop_id: "6152", lat: 55.82, lon: 37.61 }] });
   });
 });
