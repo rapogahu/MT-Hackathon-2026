@@ -15,7 +15,8 @@ from lightgbm import LGBMRegressor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from historical_features import (  # noqa: E402
-    H19_NAME, H20_NAME, RouteWeekdayHourHistoricalMedian, RouteWeekdayHourHistoricalMean,
+    H19_NAME, H20_NAME, H21_NAME, RouteWeekdayHourHistoricalMedian,
+    RouteWeekdayHourHistoricalMean, MedianLast4SameWeekdayHour,
 )
 
 TRAIN_LABELS = ROOT / "data/raw/labels/labels_day_train.csv"
@@ -121,6 +122,7 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
 
     coverage = float(valid[candidate_name].notna().mean()) if candidate_name else 1.0
     feature_diagnostics = None
+    history_observation_counts = None
     if candidate_name:
         feature_diagnostics = {}
         for split_name, frame in (("train", train), ("validation", valid)):
@@ -141,6 +143,28 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
                     "max": float(observed.max()), "mean": float(observed.mean()),
                 },
             }
+        if hasattr(candidate_builder, "history_counts"):
+            counts_by_split = candidate_builder.history_counts(
+                train[["route", "date", "hour"]], valid[["route", "date", "hour"]], history
+            )
+            history_observation_counts = {}
+            for split_name, frame in (("train", train), ("validation", valid)):
+                counts = counts_by_split[split_name]
+                if not counts.index.equals(frame.index) or not counts.between(0, 4).all():
+                    raise ValueError("Invalid historical observation counts")
+                if not counts.gt(0).equals(frame[candidate_name].notna()):
+                    raise ValueError("Feature coverage disagrees with historical observation counts")
+                eligible_counts = counts.loc[frame["route"].ne(5)]
+                history_observation_counts[split_name] = {
+                    "all_routes": {
+                        str(i): {"rows": int((counts == i).sum()),
+                                 "fraction": float((counts == i).mean())} for i in range(5)
+                    },
+                    "excluding_route_5": {
+                        str(i): {"rows": int((eligible_counts == i).sum()),
+                                 "fraction": float((eligible_counts == i).mean())} for i in range(5)
+                    },
+                }
     result = {
         "experiment": experiment,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -160,6 +184,7 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
             "candidate_coverage": coverage, "candidate_nan_rate": 1.0 - coverage,
         },
         "candidate_diagnostics": feature_diagnostics,
+        "history_observation_counts": history_observation_counts,
         "missing_value_handling": "Native LightGBM missing value; no numeric fallback" if candidate_name else None,
         "decision": None,
     }
@@ -181,6 +206,8 @@ def main() -> None:
         result = run_experiment(experiment, RouteWeekdayHourHistoricalMedian, H19_NAME)
     elif experiment == "H20":
         result = run_experiment(experiment, RouteWeekdayHourHistoricalMean, H20_NAME)
+    elif experiment == "H21":
+        result = run_experiment(experiment, MedianLast4SameWeekdayHour, H21_NAME)
     else:
         parser.error(f"No candidate builder registered for {experiment}")
     print(json.dumps(result, indent=2, allow_nan=False))
