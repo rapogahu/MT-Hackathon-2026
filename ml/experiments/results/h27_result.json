@@ -1,0 +1,161 @@
+{
+  "experiment": "H27",
+  "created_at_utc": "2026-09-26T22:18:50.456481+00:00",
+  "data_sources": [
+    "data/raw/labels/labels_day_train.csv",
+    "data/raw/labels/labels_day_test.csv"
+  ],
+  "grid_rows": {
+    "train": 58320,
+    "validation": 14640
+  },
+  "periods": {
+    "train": [
+      "2025-01-01",
+      "2025-08-31"
+    ],
+    "validation": [
+      "2025-09-01",
+      "2025-10-31"
+    ]
+  },
+  "temporal_boundary_passed": true,
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "candidate_parameters": null,
+  "baseline_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "last_observed_same_route_weekday_hour"
+  ],
+  "metrics": {
+    "baseline_overall_wape": 0.12357994025785918,
+    "candidate_overall_wape": 0.15364106152182908,
+    "delta_wape": 0.030061121263969898,
+    "wape_score": 0.8463589384781709,
+    "baseline_per_route_wape": {
+      "1": 0.10940917688956801,
+      "5": null,
+      "7": 0.15733322078850975,
+      "11": 0.10545493825315498,
+      "12": 0.08806596477926038,
+      "17": 0.08589449971841562,
+      "25": 0.19959874025104565,
+      "26": 0.1253876274812746,
+      "28": 0.15373884855288591,
+      "50": 0.2406562645793375
+    },
+    "candidate_per_route_wape": {
+      "1": 0.14491859381230235,
+      "5": null,
+      "7": 0.19718001174316382,
+      "11": 0.13296113758290898,
+      "12": 0.10678895586014144,
+      "17": 0.09024738616237217,
+      "25": 0.23240129419185124,
+      "26": 0.19060721271528233,
+      "28": 0.194735985545466,
+      "50": 0.3057263317954832
+    },
+    "candidate_coverage": 0.9,
+    "candidate_nan_rate": 0.09999999999999998
+  },
+  "candidate_diagnostics": {
+    "train": {
+      "non_null": 50976,
+      "nan_count": 7344,
+      "coverage_all_routes": 0.8740740740740741,
+      "coverage_excluding_route_5": 0.9711934156378601,
+      "route_5_nan_count": 5832,
+      "distribution": {
+        "min": 0.0,
+        "p05": 0.0,
+        "p25": 107.0,
+        "median": 572.0,
+        "p75": 1410.0,
+        "p95": 2866.25,
+        "max": 5773.0,
+        "mean": 894.3695464532329
+      }
+    },
+    "validation": {
+      "non_null": 13176,
+      "nan_count": 1464,
+      "coverage_all_routes": 0.9,
+      "coverage_excluding_route_5": 1.0,
+      "route_5_nan_count": 1464,
+      "distribution": {
+        "min": 0.0,
+        "p05": 0.0,
+        "p25": 113.0,
+        "median": 589.0,
+        "p75": 1358.0,
+        "p95": 2849.75,
+        "max": 4870.0,
+        "mean": 881.2030965391621
+      }
+    }
+  },
+  "history_observation_counts": null,
+  "historical_day_diagnostics": null,
+  "frozen_route_levels": null,
+  "ratio_diagnostics": null,
+  "anchor_age_diagnostics": {
+    "non_null": 13176,
+    "nan_count": 1464,
+    "min": 7.0,
+    "p05": 7.0,
+    "p25": 21.0,
+    "median": 35.0,
+    "p75": 49.0,
+    "p95": 63.0,
+    "max": 63.0,
+    "mean": 34.08196721311475
+  },
+  "forecast_distance_bucket_metrics": {
+    "days_1_7": {
+      "rows": 1680,
+      "baseline_wape": 0.11123501277691845,
+      "candidate_wape": 0.13199265618134126,
+      "delta_wape": 0.020757643404422807,
+      "mean_anchor_age_days": 7.0
+    },
+    "days_8_28": {
+      "rows": 5040,
+      "baseline_wape": 0.12101013894104394,
+      "candidate_wape": 0.14508694756041438,
+      "delta_wape": 0.024076808619370435,
+      "mean_anchor_age_days": 21.0
+    },
+    "days_29_plus": {
+      "rows": 7920,
+      "baseline_wape": 0.12759100277681273,
+      "candidate_wape": 0.16310253999764623,
+      "delta_wape": 0.0355115372208335,
+      "mean_anchor_age_days": 48.15151515151515
+    }
+  },
+  "missing_value_handling": "Native LightGBM missing value; no numeric fallback",
+  "decision": "REJECT",
+  "decision_rationale": "Overall WAPE increased by 0.030061 (24.33%); all nine scored routes worsened. Candidate-minus-baseline WAPE also rose across forecast-distance buckets."
+}

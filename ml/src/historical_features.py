@@ -14,6 +14,7 @@ H24_NAME = "route_previous_4w_mean"
 H25_NAME = "route_recent_vs_previous_diff"
 H26_NAME = "route_recent_vs_previous_rel_change"
 H26_EPS = 1e-6
+H27_NAME = "last_observed_same_route_weekday_hour"
 
 
 class RouteWeekdayHourHistoricalMedian:
@@ -434,6 +435,55 @@ class RouteRecentVsPreviousRelChange(RouteRecentVsPreviousDiff):
                 if extreme.any() else None,
             }
         return diagnostics
+
+
+class LastObservedSameRouteWeekdayHour:
+    """H27: last prior group target in train; Jan-Aug-frozen anchor in validation."""
+
+    @staticmethod
+    def build_train(train_rows: pd.DataFrame, history: pd.DataFrame) -> pd.Series:
+        if not train_rows[["route", "date", "hour"]].equals(history[["route", "date", "hour"]]):
+            raise ValueError("Train history must align with train keys")
+        if history["date"].max() > pd.Timestamp("2025-08-31"):
+            raise ValueError("Train history extends beyond forecast origin")
+        ordered = history.assign(weekday=history["date"].dt.weekday)
+        if not ordered.sort_values(["route", "date", "hour"]).index.equals(ordered.index):
+            raise ValueError("Train history must be chronological within route")
+        values = ordered.groupby(["route", "weekday", "hour"], sort=False)["boardings"].shift(1)
+        values.loc[history["route"].eq(5)] = float("nan")
+        return values.rename(H27_NAME).astype("float64")
+
+    @staticmethod
+    def _anchor_lookup(validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.DataFrame:
+        if "boardings" in validation_keys:
+            raise ValueError("Validation feature builder accepts keys only")
+        if frozen_history.empty or frozen_history["date"].max() != pd.Timestamp("2025-08-31"):
+            raise ValueError("Validation history must end at 2025-08-31")
+        if validation_keys["date"].min() <= frozen_history["date"].max():
+            raise ValueError("Validation keys overlap target history")
+        past = frozen_history.loc[frozen_history["route"].ne(5)].assign(
+            weekday=lambda frame: frame["date"].dt.weekday
+        )
+        if not past.sort_values(["route", "date", "hour"]).index.equals(past.index):
+            raise ValueError("Frozen history must be chronological within route")
+        anchors = past.groupby(["route", "weekday", "hour"], sort=False).tail(1)
+        query = pd.MultiIndex.from_arrays(
+            [validation_keys["route"], validation_keys["date"].dt.weekday, validation_keys["hour"]],
+            names=["route", "weekday", "hour"],
+        )
+        return anchors.set_index(["route", "weekday", "hour"])[["date", "boardings"]].reindex(query)
+
+    @classmethod
+    def build_validation(cls, validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        anchors = cls._anchor_lookup(validation_keys, frozen_history)
+        return pd.Series(anchors["boardings"].to_numpy(), index=validation_keys.index,
+                         name=H27_NAME, dtype="float64")
+
+    @classmethod
+    def anchor_age_days(cls, validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        anchors = cls._anchor_lookup(validation_keys, frozen_history)
+        anchor_date = pd.Series(anchors["date"].to_numpy(), index=validation_keys.index)
+        return (validation_keys["date"] - anchor_date).dt.days.rename("anchor_age_days")
 
 
 def build_train_lag(

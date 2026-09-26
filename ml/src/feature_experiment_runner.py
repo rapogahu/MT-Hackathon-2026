@@ -15,11 +15,11 @@ from lightgbm import LGBMRegressor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from historical_features import (  # noqa: E402
-    H19_NAME, H20_NAME, H21_NAME, H22_NAME, H23_NAME, H24_NAME, H25_NAME, H26_NAME,
+    H19_NAME, H20_NAME, H21_NAME, H22_NAME, H23_NAME, H24_NAME, H25_NAME, H26_NAME, H27_NAME,
     RouteWeekdayHourHistoricalMedian,
     RouteWeekdayHourHistoricalMean, MedianLast4SameWeekdayHour, MeanLast4SameWeekdayHour,
     RouteRecent4WeekMean, RoutePrevious4WeekMean, RouteRecentVsPreviousDiff,
-    RouteRecentVsPreviousRelChange,
+    RouteRecentVsPreviousRelChange, LastObservedSameRouteWeekdayHour,
 )
 
 TRAIN_LABELS = ROOT / "data/raw/labels/labels_day_train.csv"
@@ -129,6 +129,8 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
     historical_day_diagnostics = None
     frozen_route_levels = None
     ratio_diagnostics = None
+    anchor_age_diagnostics = None
+    forecast_distance_bucket_metrics = None
     if candidate_name:
         feature_diagnostics = {}
         for split_name, frame in (("train", train), ("validation", valid)):
@@ -196,6 +198,38 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
                 train[["route", "date", "hour"]], valid[["route", "date", "hour"]],
                 history, train[candidate_name], valid[candidate_name]
             )
+        if hasattr(candidate_builder, "anchor_age_days"):
+            age = candidate_builder.anchor_age_days(valid[["route", "date", "hour"]], history)
+            if not age.index.equals(valid.index) or not age.notna().equals(valid[candidate_name].notna()):
+                raise ValueError("Anchor age does not align with validation feature coverage")
+            observed_age = age.dropna()
+            if not observed_age.ge(1).all():
+                raise ValueError("Anchor must precede every validation row")
+            quantiles = observed_age.quantile([0.05, 0.25, 0.5, 0.75, 0.95])
+            anchor_age_diagnostics = {
+                "non_null": int(age.notna().sum()), "nan_count": int(age.isna().sum()),
+                "min": float(observed_age.min()), "p05": float(quantiles.loc[0.05]),
+                "p25": float(quantiles.loc[0.25]), "median": float(quantiles.loc[0.5]),
+                "p75": float(quantiles.loc[0.75]), "p95": float(quantiles.loc[0.95]),
+                "max": float(observed_age.max()), "mean": float(observed_age.mean()),
+            }
+            forecast_day = (valid["date"] - pd.Timestamp(VALID_START)).dt.days + 1
+            forecast_distance_bucket_metrics = {}
+            for name, mask in (
+                ("days_1_7", forecast_day.between(1, 7)),
+                ("days_8_28", forecast_day.between(8, 28)),
+                ("days_29_plus", forecast_day.ge(29)),
+            ):
+                selected = mask.to_numpy()
+                baseline_bucket = wape(actual[selected], baseline_pred[selected])
+                candidate_bucket = wape(actual[selected], candidate_pred[selected])
+                forecast_distance_bucket_metrics[name] = {
+                    "rows": int(selected.sum()),
+                    "baseline_wape": baseline_bucket,
+                    "candidate_wape": candidate_bucket,
+                    "delta_wape": candidate_bucket - baseline_bucket,
+                    "mean_anchor_age_days": float(age.loc[mask].mean()),
+                }
     result = {
         "experiment": experiment,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -220,6 +254,8 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
         "historical_day_diagnostics": historical_day_diagnostics,
         "frozen_route_levels": frozen_route_levels,
         "ratio_diagnostics": ratio_diagnostics,
+        "anchor_age_diagnostics": anchor_age_diagnostics,
+        "forecast_distance_bucket_metrics": forecast_distance_bucket_metrics,
         "missing_value_handling": "Native LightGBM missing value; no numeric fallback" if candidate_name else None,
         "decision": None,
     }
@@ -253,6 +289,8 @@ def main() -> None:
         result = run_experiment(experiment, RouteRecentVsPreviousDiff, H25_NAME)
     elif experiment == "H26":
         result = run_experiment(experiment, RouteRecentVsPreviousRelChange, H26_NAME)
+    elif experiment == "H27":
+        result = run_experiment(experiment, LastObservedSameRouteWeekdayHour, H27_NAME)
     else:
         parser.error(f"No candidate builder registered for {experiment}")
     print(json.dumps(result, indent=2, allow_nan=False))
