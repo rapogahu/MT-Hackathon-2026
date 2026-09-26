@@ -145,7 +145,159 @@ def create_routes_router(
             "route": route,
             "directions": directions,
         }
+    # =========================================================
+    # GET /api/routes/number/{route_number}/geometry
+    # =========================================================
 
+    @router.get(
+        "/number/{route_number}/geometry"
+    )
+    def get_route_geometry(
+        route_number: str,
+    ):
+        """
+        Получить геометрию маршрута.
+        """
+
+        routes = (
+            repository
+            .get_route_by_number(
+                route_number
+            )
+        )
+
+        if not routes:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Маршрут №{route_number} "
+                    "не найден"
+                ),
+            )
+
+        route_id = str(
+            routes[0]["route_id"]
+        )
+
+        geometry = (
+            repository
+            .get_route_geometry(
+                route_id
+            )
+        )
+
+        return {
+            "route": (
+                int(route_number)
+                if route_number.isdigit()
+                else route_number
+            ),
+            "route_id": route_id,
+            "geometry": geometry,
+        }
+
+    # =========================================================
+    # GET /api/routes/number/{route_number}/directions
+    # =========================================================
+
+    @router.get(
+        "/number/{route_number}/directions"
+    )
+    def get_route_directions(
+        route_number: str,
+    ):
+        """
+        Получить направления маршрута.
+        """
+
+        routes = (
+            repository
+            .get_route_by_number(
+                route_number
+            )
+        )
+
+        if not routes:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Маршрут №{route_number} "
+                    "не найден"
+                ),
+            )
+
+        route_id = str(
+            routes[0]["route_id"]
+        )
+
+        directions = (
+            repository
+            .get_route_directions(
+                route_id
+            )
+        )
+
+        return {
+            "route": (
+                int(route_number)
+                if route_number.isdigit()
+                else route_number
+            ),
+            "route_id": route_id,
+            "directions": directions,
+        }
+
+    # =========================================================
+    # GET /api/routes/number/{route_number}/stops
+    # =========================================================
+
+    @router.get(
+        "/number/{route_number}/stops"
+    )
+    def get_route_stops(
+        route_number: str,
+    ):
+        """
+        Получить остановки маршрута.
+        """
+
+        routes = (
+            repository
+            .get_route_by_number(
+                route_number
+            )
+        )
+
+        if not routes:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Маршрут №{route_number} "
+                    "не найден"
+                ),
+            )
+
+        route_id = str(
+            routes[0]["route_id"]
+        )
+
+        stops = (
+            repository
+            .get_route_geometry(
+                route_id
+            )
+        )
+
+        return {
+            "route": (
+                int(route_number)
+                if route_number.isdigit()
+                else route_number
+            ),
+            "route_id": route_id,
+            "count": len(stops),
+            "stops": stops,
+        }
     # =========================================================
     # GET /api/routes/{route_id}
     # =========================================================
