@@ -9,6 +9,12 @@ Excel из dataset/spravochniki/
     → GTFSRepository (pandas DataFrame в памяти)
     → фабрики роутеров routes / stops / assignments
     → FastAPI /api/... → JSON
+
+VITE_DATA_SOURCE=fixtures
+    → FixtureForecastClient → React DAY / KPI / ECharts
+
+VITE_DATA_SOURCE=api (default/production)
+    → HttpForecastClient → будущие /api/forecast/... endpoint
 ```
 
 - Точка входа: `web-forecast/app/main.py`, объект `app`.
@@ -16,6 +22,9 @@ Excel из dataset/spravochniki/
 - `main.py` передаёт один экземпляр репозитория фабрикам роутеров через аргументы; `Depends` и отдельного сервисного слоя нет.
 - HTTP-обработчики синхронные. Методы репозитория фильтруют DataFrame и преобразуют значения для JSON.
 - Есть `/`, `/health`, справочники маршрутов/остановок и наряды. `/docs` генерируется FastAPI.
+- В корневом `frontend/` реализован FE-01: React 19/TypeScript/Vite, DAY для конкретного маршрута, KPI, ECharts и URL-состояние.
+- Frontend имеет общий типизированный интерфейс и два явных адаптера. Fixtures включаются только development-командой и постоянно маркируются; production допускает только HTTP API.
+- HTTP-адаптер готов к runs/metadata/product routes/DAY/POINT, но соответствующие прогнозные endpoint backend ещё отсутствуют. Это проверенный клиентский контракт, не end-to-end интеграция.
 
 ## Ключевые файлы
 
@@ -27,6 +36,10 @@ Excel из dataset/spravochniki/
 | `web-forecast/app/api/assignments.py` | Наряды, фильтры маршрута/даты |
 | `web-forecast/app/repositories/gtfs_repository.py` | Чтение/проверка Excel и методы доступа |
 | `web-forecast/app/api/forecast.py` | Неподключённая 15-минутная заглушка с константами |
+| `frontend/src/api/` | DTO, общий интерфейс и HTTP-клиент прогноза |
+| `frontend/src/dev/fixtureClient.ts` | Детерминированный development/test источник FE-01 |
+| `frontend/src/pages/ForecastPage.tsx` | Экран DAY, фильтры, KPI и состояния |
+| `frontend/src/components/ForecastChart.tsx` | ECharts и клавиатурный выбор часа |
 | `experiments.ipynb` | Отдельные эксперименты на стороннем датасете Коломны |
 | `data/`, `ml/` | README и подготовленные каталоги стадий данных/ML |
 
@@ -38,7 +51,7 @@ Excel из dataset/spravochniki/
 
 ## Ещё не реализовано
 
-PostgreSQL/Alembic, ForecastRepository и сервисы, внешний `POST /api/predict`, реальный ML-пайплайн, импорт прогнозов, нормализация, React frontend, Docker Compose, тестовый набор и benchmark. Они описаны в ТЗ и не становятся работающими компонентами от наличия документации.
+PostgreSQL/Alembic, ForecastRepository и сервисы, внешний `POST /api/predict`, реальный ML-пайплайн, импорт прогнозов, backend-нормализация, MONTH/PERIOD/ALL/CSV, карта, метрики, Docker Compose, backend/ML-тесты и benchmark. Frontend FE-01 имеет 8 тестов, но его API-интеграция не выполнена.
 
 Вложенный `MT-Hackathon-2026/` — другой Git-проект с ранним каркасом; не использовать как runtime основного приложения. Данные в `data/raw`, `interim`, `processed` и модели исключены из Git; XLSX справочника хранится отдельно и отслеживается.
 
