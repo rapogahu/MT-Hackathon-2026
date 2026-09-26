@@ -28,14 +28,14 @@ const fallbackStyle: StyleSpecification = {
     },
   },
   layers: [
-    { id: "background", type: "background", paint: { "background-color": "#dce8e7" } },
+    { id: "background", type: "background", paint: { "background-color": "#e7eefc" } },
     { id: "openstreetmap", type: "raster", source: "openstreetmap", paint: { "raster-saturation": -.55, "raster-contrast": .16, "raster-brightness-max": .82, "raster-opacity": .82 } },
   ],
 };
 
 const loadColor = [
   "step", ["to-number", ["get", "load_index"], 1],
-  "#1473E6", 3, "#16A34A", 5, "#D39A00", 7, "#F06418", 9, "#DC2626",
+  "#38BDF8", 3, "#2563EB", 5, "#D39A00", 7, "#F06418", 9, "#DC2626",
 ] as const;
 
 export function ForecastMap({ data, fitKey, geometryId, stops, loadIndexes, onRouteSelect }: Props) {
@@ -123,11 +123,11 @@ export function ForecastMap({ data, fitKey, geometryId, stops, loadIndexes, onRo
       </g>)}
       {projectedStops.map((item) => <circle key={item.key} className="map-stop-point" data-testid={`map-stop-${item.stop.stop_id}`} cx={item.x} cy={item.y} r={hoveredStopKey === item.key ? 9 : 6} fill="#fff" stroke={item.color} strokeWidth="4" role="button" tabIndex={0} aria-label={`Остановка ${item.stop.stop_name}`} onMouseEnter={() => setHoveredStopKey(item.key)} onMouseLeave={() => setHoveredStopKey(null)} onFocus={() => setHoveredStopKey(item.key)} onBlur={() => setHoveredStopKey(null)}><title>{item.stop.stop_name}</title></circle>)}
     </svg>
-    {hoveredStop && <div className="map-stop-tooltip" style={{ left: hoveredStop.x, top: hoveredStop.y }} role="tooltip"><strong>{hoveredStop.stop.stop_name}</strong><span>Остановка №{hoveredStop.stop.stop_sequence} по маршруту</span><span>stop_id: {hoveredStop.stop.stop_id}</span><span>Направление: {hoveredStop.stop.direction_id}</span></div>}
+    {hoveredStop && <div className="map-stop-tooltip" style={{ left: hoveredStop.x, top: hoveredStop.y }} role="tooltip"><strong>{hoveredStop.stop.stop_name}</strong><span>Остановка №{hoveredStop.stop.stop_sequence} по маршруту</span></div>}
     <div className="map-load-summary" aria-live="polite"><span>Маршрут {primary?.properties.route ?? "—"} · {primary?.geometry.coordinates.length ?? 0} точек</span><strong style={{ color: primaryIndex === null ? undefined : colorForIndex(primaryIndex) }}>Индекс загрузки {primaryIndex ?? "—"}/10</strong><small>{primaryIndex === null ? "Нет данных о загрузке" : categoryForIndex(primaryIndex)}</small></div>
     <div className="map-resize-hint" aria-hidden="true">↕ Потяните нижний край, чтобы изменить высоту</div>
     {styleError && <div className="map-overlay" role="alert"><strong>Подложка карты недоступна</strong><span>{styleError}</span><button type="button" onClick={() => setGeneration((value) => value + 1)}>Повторить</button></div>}
-    <div className="map-legend" aria-label="Категории загрузки"><Legend color="#1473E6" label="1–2 Очень низкая" /><Legend color="#16A34A" label="3–4 Низкая" /><Legend color="#D39A00" label="5–6 Средняя" /><Legend color="#F06418" label="7–8 Высокая" /><Legend color="#DC2626" label="9–10 Очень высокая" /></div>
+    <div className="map-legend" aria-label="Категории загрузки"><Legend color="#38BDF8" label="1–2 Очень низкая" /><Legend color="#2563EB" label="3–4 Низкая" /><Legend color="#D39A00" label="5–6 Средняя" /><Legend color="#F06418" label="7–8 Высокая" /><Legend color="#DC2626" label="9–10 Очень высокая" /></div>
   </div>;
 }
 
@@ -135,7 +135,7 @@ function Legend({ color, label }: { color: string; label: string }) { return <sp
 function withLoadIndexes(data: MapRoutesResponse, loadIndexes: Record<number, number>): MapRoutesResponse { return { ...data, features: data.features.map((feature) => ({ ...feature, properties: { ...feature.properties, load_index: loadIndexes[feature.properties.route] ?? feature.properties.load_index } })) }; }
 function lineColor(data: MapRoutesResponse) { const routes = new Set(data.features.map((feature) => feature.properties.route)); if (routes.size === 1 && data.features[0]) return colorForIndex(clampIndex(data.features[0].properties.load_index)); return loadColor; }
 function clampIndex(value: number) { return Math.max(1, Math.min(10, Math.round(Number.isFinite(value) ? value : 1))); }
-function colorForIndex(index: number) { if (index <= 2) return "#1473E6"; if (index <= 4) return "#16A34A"; if (index <= 6) return "#D39A00"; if (index <= 8) return "#F06418"; return "#DC2626"; }
+function colorForIndex(index: number) { if (index <= 2) return "#38BDF8"; if (index <= 4) return "#2563EB"; if (index <= 6) return "#D39A00"; if (index <= 8) return "#F06418"; return "#DC2626"; }
 function categoryForIndex(index: number) { if (index <= 2) return "Очень низкая загрузка"; if (index <= 4) return "Низкая загрузка"; if (index <= 6) return "Средняя загрузка"; if (index <= 8) return "Высокая загрузка"; return "Очень высокая загрузка"; }
 function boundsFor(data: MapRoutesResponse): maplibregl.LngLatBounds | null { const coordinates = data.features.flatMap((feature) => feature.geometry.coordinates); if (!coordinates.length) return null; const bounds = new maplibregl.LngLatBounds(coordinates[0], coordinates[0]); for (const coordinate of coordinates.slice(1)) bounds.extend(coordinate); return bounds; }
 function focusRoute(map: MapLibreMap, data: MapRoutesResponse) { const bounds = boundsFor(data); if (bounds) map.fitBounds(bounds, { padding: 90, maxZoom: 13, duration: 0 }); }

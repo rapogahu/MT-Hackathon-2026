@@ -49,6 +49,8 @@ describe("ForecastMap", () => {
     expect(screen.getByTestId("visible-map-route-1")).toHaveAttribute("stroke", "#DC2626");
     fireEvent.mouseEnter(screen.getByTestId("map-stop-stop-3"));
     expect(screen.getByRole("tooltip")).toHaveTextContent("Тестовая остановка");
-    expect(screen.getByRole("tooltip")).toHaveTextContent("stop_id: stop-3");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Остановка №3 по маршруту");
+    expect(screen.getByRole("tooltip")).not.toHaveTextContent("stop_id");
+    expect(screen.getByRole("tooltip")).not.toHaveTextContent("Направление");
   });
 });
