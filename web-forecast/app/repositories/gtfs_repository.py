@@ -479,3 +479,83 @@ class GTFSRepository:
         )
 
         return self._clean_records(df)
+
+    # =========================================================
+    # ROUTE GEOMETRY
+    # =========================================================
+
+    def get_route_geometry(
+        self,
+        route_id: str,
+        direction_id: str | None = None,
+    ) -> list[dict]:
+        """
+        Получить последовательность остановок
+        маршрута с координатами.
+
+        Важно:
+        trip_short_name не используется как ключ маршрута,
+        потому что в текущем справочнике он может быть одинаковым
+        для разных маршрутов.
+
+        Основной ключ:
+            route_id + direction_id
+        """
+
+        df = self.stops_coordinates[
+            self.stops_coordinates["route_id"]
+            .astype(str)
+            == str(route_id)
+        ]
+
+        if direction_id is not None:
+            df = df[
+                df["direction_id"]
+                .astype(str)
+                == str(direction_id)
+            ]
+
+        df = df.sort_values(
+            "stop_sequence"
+        )
+
+        return self._clean_records(
+            df
+        )
+
+    def get_route_directions(
+        self,
+        route_id: str,
+    ) -> list[dict]:
+        """
+        Получить направления конкретного маршрута.
+        """
+
+        df = self.stops_coordinates[
+            self.stops_coordinates["route_id"]
+            .astype(str)
+            == str(route_id)
+        ]
+
+        if df.empty:
+            return []
+
+        directions = (
+            df[
+                [
+                    "route_id",
+                    "route_short_name",
+                    "trip_id",
+                    "trip_short_name",
+                    "direction_id",
+                ]
+            ]
+            .drop_duplicates()
+            .sort_values(
+                "direction_id"
+            )
+        )
+
+        return self._clean_records(
+            directions
+        )
