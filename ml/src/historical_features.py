@@ -9,6 +9,7 @@ H19_NAME = "route_weekday_hour_historical_median"
 H20_NAME = "route_weekday_hour_historical_mean"
 H21_NAME = "median_last_4_same_weekday_hour"
 H22_NAME = "mean_last_4_same_weekday_hour"
+H23_NAME = "route_recent_4w_mean"
 
 
 class RouteWeekdayHourHistoricalMedian:
@@ -184,6 +185,88 @@ class MeanLast4SameWeekdayHour(MedianLast4SameWeekdayHour):
         )
         return pd.Series(means.reindex(query).to_numpy(), index=validation_keys.index,
                          name=H22_NAME, dtype="float64")
+
+
+class RouteRecent4WeekMean:
+    """H23: mean hourly target over 28 complete prior calendar days by route."""
+
+    @staticmethod
+    def _daily(history: pd.DataFrame) -> pd.DataFrame:
+        daily = history.groupby(["route", "date"], sort=False).agg(
+            total=("boardings", "sum"), hours=("boardings", "size")
+        ).reset_index()
+        if not daily["hours"].eq(24).all():
+            raise ValueError("Route-day history must contain all 24 hourly cells")
+        if not daily.sort_values(["route", "date"]).index.equals(daily.index):
+            raise ValueError("Route-day history must be chronological within route")
+        return daily
+
+    @staticmethod
+    def _query(rows: pd.DataFrame, daily_values: pd.Series) -> pd.Series:
+        query = pd.MultiIndex.from_frame(rows[["route", "date"]])
+        return pd.Series(daily_values.reindex(query).to_numpy(), index=rows.index)
+
+    @classmethod
+    def build_train(cls, train_rows: pd.DataFrame, history: pd.DataFrame) -> pd.Series:
+        if not train_rows[["route", "date", "hour"]].equals(history[["route", "date", "hour"]]):
+            raise ValueError("Train history must align with train keys")
+        if history["date"].max() > pd.Timestamp("2025-08-31"):
+            raise ValueError("Train history extends beyond forecast origin")
+        daily = cls._daily(history)
+        # Shift by a whole route-day: every hour of the current date sees only earlier dates.
+        daily["feature"] = daily.groupby("route")["total"].transform(
+            lambda group: group.shift(1).rolling(window=28, min_periods=1).mean() / 24
+        )
+        values = cls._query(train_rows, daily.set_index(["route", "date"])["feature"])
+        values.loc[train_rows["route"].eq(5)] = float("nan")
+        return values.rename(H23_NAME).astype("float64")
+
+    @classmethod
+    def build_validation(cls, validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        if "boardings" in validation_keys:
+            raise ValueError("Validation feature builder accepts keys only")
+        if frozen_history.empty or frozen_history["date"].max() != pd.Timestamp("2025-08-31"):
+            raise ValueError("Validation history must end at 2025-08-31")
+        if validation_keys["date"].min() <= frozen_history["date"].max():
+            raise ValueError("Validation keys overlap target history")
+        recent_start = pd.Timestamp("2025-08-31") - pd.Timedelta(days=27)
+        recent = frozen_history.loc[
+            frozen_history["date"].between(recent_start, pd.Timestamp("2025-08-31"))
+            & frozen_history["route"].ne(5)
+        ]
+        cls._daily(recent)
+        levels = recent.groupby("route")["boardings"].mean()
+        return pd.Series(validation_keys["route"].map(levels).to_numpy(),
+                         index=validation_keys.index, name=H23_NAME, dtype="float64")
+
+    @classmethod
+    def history_days(
+        cls, train_keys: pd.DataFrame, validation_keys: pd.DataFrame, history: pd.DataFrame
+    ) -> dict[str, pd.Series]:
+        daily = cls._daily(history)
+        daily["days"] = daily.groupby("route").cumcount().clip(upper=28)
+        train_days = cls._query(train_keys, daily.set_index(["route", "date"])["days"])
+        train_days.loc[train_keys["route"].eq(5)] = 0
+        valid_days = pd.Series(28, index=validation_keys.index, dtype="int64")
+        valid_days.loc[validation_keys["route"].eq(5)] = 0
+        return {"train": train_days.astype("int64"), "validation": valid_days}
+
+    @classmethod
+    def frozen_route_levels(cls, history: pd.DataFrame) -> dict[str, dict[str, float | None]]:
+        recent_start = pd.Timestamp("2025-08-31") - pd.Timedelta(days=27)
+        past = history.loc[history["route"].ne(5)]
+        recent = past.loc[past["date"].between(recent_start, pd.Timestamp("2025-08-31"))]
+        full_level = past.groupby("route")["boardings"].mean()
+        recent_level = recent.groupby("route")["boardings"].mean()
+        return {
+            str(route): {
+                "recent_4w_mean": float(recent_level.loc[route]) if route in recent_level else None,
+                "jan_aug_mean": float(full_level.loc[route]) if route in full_level else None,
+                "relative_shift_pct": float(100 * (recent_level.loc[route] / full_level.loc[route] - 1))
+                if route in recent_level and full_level.loc[route] > 0 else None,
+            }
+            for route in sorted(history["route"].unique())
+        }
 
 
 def build_train_lag(

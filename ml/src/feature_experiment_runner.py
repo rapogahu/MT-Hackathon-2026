@@ -15,8 +15,9 @@ from lightgbm import LGBMRegressor
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from historical_features import (  # noqa: E402
-    H19_NAME, H20_NAME, H21_NAME, H22_NAME, RouteWeekdayHourHistoricalMedian,
+    H19_NAME, H20_NAME, H21_NAME, H22_NAME, H23_NAME, RouteWeekdayHourHistoricalMedian,
     RouteWeekdayHourHistoricalMean, MedianLast4SameWeekdayHour, MeanLast4SameWeekdayHour,
+    RouteRecent4WeekMean,
 )
 
 TRAIN_LABELS = ROOT / "data/raw/labels/labels_day_train.csv"
@@ -123,6 +124,8 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
     coverage = float(valid[candidate_name].notna().mean()) if candidate_name else 1.0
     feature_diagnostics = None
     history_observation_counts = None
+    historical_day_diagnostics = None
+    frozen_route_levels = None
     if candidate_name:
         feature_diagnostics = {}
         for split_name, frame in (("train", train), ("validation", valid)):
@@ -165,6 +168,26 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
                                  "fraction": float((eligible_counts == i).mean())} for i in range(5)
                     },
                 }
+        if hasattr(candidate_builder, "history_days"):
+            days_by_split = candidate_builder.history_days(
+                train[["route", "date", "hour"]], valid[["route", "date", "hour"]], history
+            )
+            historical_day_diagnostics = {}
+            for split_name, frame in (("train", train), ("validation", valid)):
+                days = days_by_split[split_name]
+                if not days.index.equals(frame.index) or not days.between(0, 28).all():
+                    raise ValueError("Invalid historical day counts")
+                if not days.gt(0).equals(frame[candidate_name].notna()):
+                    raise ValueError("Feature coverage disagrees with historical day counts")
+                historical_day_diagnostics[split_name] = {
+                    "rows_by_available_days": {str(i): int((days == i).sum()) for i in range(29)},
+                    "zero_days": int(days.eq(0).sum()),
+                    "partial_1_to_27_days": int(days.between(1, 27).sum()),
+                    "full_28_days": int(days.eq(28).sum()),
+                    "mean_days_all_routes": float(days.mean()),
+                    "mean_days_excluding_route_5": float(days.loc[frame["route"].ne(5)].mean()),
+                }
+            frozen_route_levels = candidate_builder.frozen_route_levels(history)
     result = {
         "experiment": experiment,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -185,6 +208,8 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
         },
         "candidate_diagnostics": feature_diagnostics,
         "history_observation_counts": history_observation_counts,
+        "historical_day_diagnostics": historical_day_diagnostics,
+        "frozen_route_levels": frozen_route_levels,
         "missing_value_handling": "Native LightGBM missing value; no numeric fallback" if candidate_name else None,
         "decision": None,
     }
@@ -210,6 +235,8 @@ def main() -> None:
         result = run_experiment(experiment, MedianLast4SameWeekdayHour, H21_NAME)
     elif experiment == "H22":
         result = run_experiment(experiment, MeanLast4SameWeekdayHour, H22_NAME)
+    elif experiment == "H23":
+        result = run_experiment(experiment, RouteRecent4WeekMean, H23_NAME)
     else:
         parser.error(f"No candidate builder registered for {experiment}")
     print(json.dumps(result, indent=2, allow_nan=False))
