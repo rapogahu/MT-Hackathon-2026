@@ -1054,3 +1054,7 @@ Recent block выше previous у восьми маршрутов; route 50 им
 **Диагностическое сопоставление с H21/H22:** Δ WAPE single latest observation H27 = +0.030061, median last 4 H21 = +0.046414, mean last 4 H22 = +0.040926 при одинаковом шестипризнаковом baseline. Frozen single anchor ухудшил overall WAPE меньше агрегатов последних четырёх наблюдений, но все три проиграли принятому набору; combined experiment не проводился.
 
 **Результат и вывод — REJECT:** overall WAPE вырос на 0.030061 (+24.33%) на одном temporal holdout; ухудшились все 9 маршрутов с определённой метрикой. H27 не добавляется в текущий принятый набор.
+
+## Direct Historical Target v1 — completed
+
+В серии H19–H27 проверены full-history агрегаты `route × weekday × hour`, recent same-slot аггрегаты, recent route-level statistics, изменение уровня recent vs previous и frozen last-observed seasonal anchor. Все варианты оценивались отдельно против одного frozen baseline (`route`, `weekday`, `hour`, `route_hour`, `hour_weekend`, `is_night`) на Jan–Aug train / Sep–Oct validation; каждый из H19–H27 получил `REJECT` и ухудшил baseline WAPE `0.123580`. Этот вывод ограничен проверенными direct / frozen-on-origin формулировками H19–H27 и не означает, что любые historical target features бесполезны.
