@@ -33,3 +33,6 @@ ml/models/*
 # OS
 .DS_Store
 Thumbs.db
+test.csv
+.gitignore
+train.csv
