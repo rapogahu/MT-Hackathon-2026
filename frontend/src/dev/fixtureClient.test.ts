@@ -41,4 +41,22 @@ describe("FixtureForecastClient", () => {
     expect(exported.blob.size).toBeGreaterThan(21 * 20);
     expect(exported.filename).toBe("forecast_2025-11-15_2025-12-05.csv");
   });
+
+  it("keeps map, directions, stops and segments on stable reference keys", async () => {
+    const client = new FixtureForecastClient({ latencyMs: 0 });
+    const map = await client.getMapRoutes({ runId: FIXTURE_RUN_ID, route: 1, date: "2025-11-01", hour: 8 });
+    const allMap = await client.getMapRoutes({ runId: FIXTURE_RUN_ID, route: null, date: "2025-11-01", hour: 8 });
+    const directions = await client.getDirections(1);
+    const selected = directions.directions[0];
+    const stops = await client.getStops({ route: 1, tripId: selected.trip_id, directionId: selected.direction_id });
+    const segments = await client.getSegments({ route: 1, tripId: selected.trip_id, directionId: selected.direction_id });
+    const missing = await client.getReferenceGeometry(17);
+    expect(map.features).toHaveLength(2);
+    expect(map.features.every((feature) => feature.properties.prediction === map.features[0].properties.prediction)).toBe(true);
+    expect(new Set(allMap.features.map((feature) => feature.properties.route))).toEqual(new Set([1, 5, 7, 11, 12]));
+    expect(stops.reference_version).toBe(directions.reference_version);
+    expect(stops.stops.every((stop) => stop.geometry_id === selected.geometry_id)).toBe(true);
+    expect(segments.segments.every((segment) => segment.geometry_id === selected.geometry_id && segment.to_sequence === segment.from_sequence + 1)).toBe(true);
+    expect(missing).toMatchObject({ geometry_available: false, features: [] });
+  });
 });

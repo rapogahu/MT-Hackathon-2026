@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "echarts": "^6.0.0",
+    "maplibre-gl": "^6.11.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

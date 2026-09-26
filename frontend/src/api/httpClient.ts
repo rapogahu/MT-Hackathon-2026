@@ -12,6 +12,11 @@ import type {
   RunMetadata,
   RunsResponse,
   TimeseriesResponse,
+  MapRoutesResponse,
+  ReferenceGeometryResponse,
+  DirectionsResponse,
+  StopsResponse,
+  SegmentsResponse,
 } from "./types";
 
 interface HttpClientOptions {
@@ -98,6 +103,37 @@ export class HttpForecastClient implements ForecastDataClient {
     return { blob: await response.blob(), filename };
   }
 
+  getMapRoutes(
+    input: { runId: string; route: RouteFilter; date: string; hour: number },
+    options?: DataRequest,
+  ): Promise<MapRoutesResponse> {
+    const query = new URLSearchParams({ run_id: input.runId, date: input.date, hour: String(input.hour) });
+    if (input.route !== null) query.set("route", String(input.route));
+    return this.request(`/api/map/routes?${query.toString()}`, options);
+  }
+
+  getReferenceGeometry(route: number, options?: DataRequest): Promise<ReferenceGeometryResponse> {
+    return this.request(`/api/routes/number/${encodeURIComponent(route)}/geometry`, options);
+  }
+
+  getDirections(route: number, options?: DataRequest): Promise<DirectionsResponse> {
+    return this.request(`/api/routes/number/${encodeURIComponent(route)}/directions`, options);
+  }
+
+  getStops(
+    input: { route: number; tripId?: string; directionId?: number },
+    options?: DataRequest,
+  ): Promise<StopsResponse> {
+    return this.request(`/api/routes/number/${encodeURIComponent(input.route)}/stops${this.navigationQuery(input)}`, options);
+  }
+
+  getSegments(
+    input: { route: number; tripId?: string; directionId?: number },
+    options?: DataRequest,
+  ): Promise<SegmentsResponse> {
+    return this.request(`/api/routes/number/${encodeURIComponent(input.route)}/segments${this.navigationQuery(input)}`, options);
+  }
+
   private async request<T>(path: string, options?: DataRequest): Promise<T> {
     const response = await this.fetchResponse(path, options, "application/json");
     return (await response.json()) as T;
@@ -112,6 +148,14 @@ export class HttpForecastClient implements ForecastDataClient {
     const query = new URLSearchParams({ run_id: input.runId, from: input.from, to: input.to });
     if (input.route !== null) query.set("route", String(input.route));
     return query;
+  }
+
+  private navigationQuery(input: { tripId?: string; directionId?: number }): string {
+    const query = new URLSearchParams();
+    if (input.tripId !== undefined) query.set("trip_id", input.tripId);
+    if (input.directionId !== undefined) query.set("direction_id", String(input.directionId));
+    const value = query.toString();
+    return value ? `?${value}` : "";
   }
 
   private async fetchResponse(

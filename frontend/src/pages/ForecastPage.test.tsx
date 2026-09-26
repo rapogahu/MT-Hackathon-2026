@@ -60,6 +60,11 @@ describe("ForecastPage", () => {
       getTimeseries: async () => { throw new Error("unused"); },
       getAggregate: async () => { throw new Error("unused"); },
       exportCsv: async () => { throw new Error("unused"); },
+      getMapRoutes: async () => { throw new Error("unused"); },
+      getReferenceGeometry: async () => { throw new Error("unused"); },
+      getDirections: async () => { throw new Error("unused"); },
+      getStops: async () => { throw new Error("unused"); },
+      getSegments: async () => { throw new Error("unused"); },
     };
     render(<ForecastPage client={failingClient} dataSource="api" />);
 
@@ -87,6 +92,11 @@ describe("ForecastPage", () => {
       getTimeseries: (input, options) => base.getTimeseries(input, options),
       getAggregate: (input, options) => base.getAggregate(input, options),
       exportCsv: (input, options) => base.exportCsv(input, options),
+      getMapRoutes: (input, options) => base.getMapRoutes(input, options),
+      getReferenceGeometry: (route, options) => base.getReferenceGeometry(route, options),
+      getDirections: (route, options) => base.getDirections(route, options),
+      getStops: (input, options) => base.getStops(input, options),
+      getSegments: (input, options) => base.getSegments(input, options),
     };
     const user = userEvent.setup();
     render(<ForecastPage client={racingClient} dataSource="fixtures" />);
@@ -121,5 +131,28 @@ describe("ForecastPage", () => {
     await waitFor(() => expect(screen.getAllByRole("row")).toHaveLength(11));
     expect(screen.getAllByText("См. по маршрутам")).toHaveLength(2);
     expect(window.location.search).toContain("route=ALL");
+  });
+
+  it("navigates reference geography without changing forecast filters", async () => {
+    const user = userEvent.setup();
+    render(<ForecastPage client={new FixtureForecastClient({ latencyMs: 0 })} dataSource="fixtures" />);
+    expect(await screen.findByLabelText("Справочная карта: 2 вариантов пути.")).toBeVisible();
+    const hourBefore = (screen.getByLabelText("Час снимка") as HTMLSelectElement).value;
+    await waitFor(() => expect(screen.getByLabelText("Остановка")).toBeEnabled());
+    await user.selectOptions(screen.getByLabelText("Остановка"), "ref-1-2040920-0-2025-10-11:1");
+    expect(screen.getByLabelText("Час снимка")).toHaveValue(hourBefore);
+    expect(window.location.search).toContain("stop=ref-1-2040920-0-2025-10-11%3A1");
+
+    await user.selectOptions(screen.getByLabelText("Маршрут"), "17");
+    expect(await screen.findByText("Геометрия маршрута отсутствует в предоставленном справочнике")).toBeVisible();
+    expect(screen.getByText(/Прогноз доступен/)).toBeVisible();
+    expect(screen.getByTestId("forecast-chart")).toBeVisible();
+  });
+
+  it("keeps a map failure local to the geography block", async () => {
+    render(<ForecastPage client={new FixtureForecastClient({ latencyMs: 0, scenario: "map-error" })} dataSource="fixtures" fixtureScenario="map-error" />);
+    expect(await screen.findByText("Карта недоступна")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Повторить" })).toBeEnabled();
+    expect(screen.getByTestId("forecast-chart")).toBeVisible();
   });
 });

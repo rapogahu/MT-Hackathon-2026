@@ -50,4 +50,21 @@ describe("HttpForecastClient", () => {
     expect(fetchMock.mock.calls[1][0]).not.toContain("route=");
     expect(exported.filename).toBe("selection.csv");
   });
+
+  it("forms map and reference-navigation URLs without inventing ALL", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async () => new Response(JSON.stringify({ type: "FeatureCollection", features: [], count: 0 }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const client = new HttpForecastClient({ baseUrl: "http://api.test", fetchImpl: fetchMock });
+    await client.getMapRoutes({ runId: "run id", route: null, date: "2025-11-01", hour: 8 });
+    await client.getDirections(1);
+    await client.getStops({ route: 1, tripId: "trip/1", directionId: 0 });
+    await client.getSegments({ route: 1, tripId: "trip/1", directionId: 0 });
+    await client.getReferenceGeometry(1);
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      "http://api.test/api/map/routes?run_id=run+id&date=2025-11-01&hour=8",
+      "http://api.test/api/routes/number/1/directions",
+      "http://api.test/api/routes/number/1/stops?trip_id=trip%2F1&direction_id=0",
+      "http://api.test/api/routes/number/1/segments?trip_id=trip%2F1&direction_id=0",
+      "http://api.test/api/routes/number/1/geometry",
+    ]);
+  });
 });

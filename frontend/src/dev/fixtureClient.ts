@@ -17,10 +17,16 @@ import {
   type RouteFilter,
   type TimeseriesResponse,
   type ExportResult,
+  type DirectionsResponse,
+  type MapRoutesResponse,
+  type ReferenceGeometryResponse,
+  type SegmentsResponse,
+  type StopsResponse,
 } from "../api/types";
 import { addDays, enumerateDates, parseIsoDate } from "../api/dateUtils";
+import { fixturePaths, REFERENCE_VERSION } from "./referenceFixture";
 
-export type FixtureScenario = "default" | "empty-runs" | "error" | "degenerate";
+export type FixtureScenario = "default" | "empty-runs" | "error" | "degenerate" | "map-error";
 
 export const FIXTURE_RUN_ID = "6ce61394-dd47-4f27-a430-b215e52bbf09";
 export const FIXTURE_START = "2025-11-01";
@@ -290,6 +296,45 @@ export class FixtureForecastClient implements ForecastDataClient {
     return { blob: new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" }), filename: `forecast_${input.from}_${input.to}.csv` };
   }
 
+  async getMapRoutes(
+    input: { runId: string; route: RouteFilter; date: string; hour: number },
+    options?: DataRequest,
+  ): Promise<MapRoutesResponse> {
+    await this.pause(options?.signal); this.assertHealthy();
+    if (this.scenario === "map-error") throw new ApiError(503, { code: "MAP_UNAVAILABLE", message: "Тестовая ошибка географического блока" });
+    this.assertRun(input.runId); this.assertRouteFilter(input.route); assertDate(input.date);
+    const routes = this.routesFor(input.route);
+    const features = fixturePaths.filter((path) => routes.includes(path.properties.route)).map((path) => {
+      const point = makeFixturePoint(path.properties.route, input.date, input.hour, this.scenario === "degenerate");
+      return { type: "Feature" as const, id: path.properties.geometry_id, geometry: { type: "LineString" as const, coordinates: path.coordinates }, properties: { ...point, ...path.properties, outside_validity_period: input.date < path.properties.valid_from || (path.properties.valid_to !== null && input.date > path.properties.valid_to) } };
+    });
+    return { type: "FeatureCollection", features, run_id: input.runId, date: input.date, hour: input.hour, reference_version: REFERENCE_VERSION, geometry_mode: "reference" };
+  }
+
+  async getReferenceGeometry(route: number, options?: DataRequest): Promise<ReferenceGeometryResponse> {
+    await this.pause(options?.signal); this.assertHealthy(); this.assertRoute(route);
+    const features = fixturePaths.filter((path) => path.properties.route === route).map((path) => ({ type: "Feature" as const, id: path.properties.geometry_id, geometry: { type: "LineString" as const, coordinates: path.coordinates }, properties: path.properties }));
+    return { type: "FeatureCollection", features, route, reference_version: REFERENCE_VERSION, geometry_available: features.length > 0, geometry_mode: "reference" };
+  }
+
+  async getDirections(route: number, options?: DataRequest): Promise<DirectionsResponse> {
+    await this.pause(options?.signal); this.assertHealthy(); this.assertRoute(route);
+    const directions = fixturePaths.filter((path) => path.properties.route === route).map((path) => path.direction);
+    return { route, reference_version: REFERENCE_VERSION, count: directions.length, directions };
+  }
+
+  async getStops(input: { route: number; tripId?: string; directionId?: number }, options?: DataRequest): Promise<StopsResponse> {
+    await this.pause(options?.signal); this.assertHealthy(); this.assertRoute(input.route);
+    const stops = this.navigationPaths(input).flatMap((path) => path.stops);
+    return { route: input.route, reference_version: REFERENCE_VERSION, count: stops.length, stops };
+  }
+
+  async getSegments(input: { route: number; tripId?: string; directionId?: number }, options?: DataRequest): Promise<SegmentsResponse> {
+    await this.pause(options?.signal); this.assertHealthy(); this.assertRoute(input.route);
+    const segments = this.navigationPaths(input).flatMap((path) => path.segments);
+    return { route: input.route, reference_version: REFERENCE_VERSION, count: segments.length, segments };
+  }
+
   private assertHealthy(): void {
     if (this.scenario === "error") {
       throw new ApiError(503, {
@@ -323,6 +368,10 @@ export class FixtureForecastClient implements ForecastDataClient {
     assertDate(from);
     assertDate(to);
     if (from > to) throw new ApiError(422, { code: "INVALID_REQUEST", message: "Начало периода позже окончания" });
+  }
+
+  private navigationPaths(input: { route: number; tripId?: string; directionId?: number }) {
+    return fixturePaths.filter((path) => path.properties.route === input.route && (input.tripId === undefined || path.properties.trip_id === input.tripId) && (input.directionId === undefined || path.properties.direction_id === input.directionId));
   }
 
   private pause(signal?: AbortSignal): Promise<void> {

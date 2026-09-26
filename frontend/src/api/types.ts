@@ -131,6 +131,126 @@ export interface ExportResult {
   filename: string;
 }
 
+export type Position = [number, number];
+
+export interface LineStringGeometry {
+  type: "LineString";
+  coordinates: Position[];
+}
+
+export interface PointGeometry {
+  type: "Point";
+  coordinates: Position;
+}
+
+export interface GeoFeature<G, P> {
+  type: "Feature";
+  id?: string;
+  geometry: G;
+  properties: P;
+}
+
+export interface RouteGeometryProperties extends ForecastPoint {
+  route_id: string;
+  trip_id: string;
+  direction_id: number;
+  geometry_id: string;
+  valid_from: string;
+  valid_to: string | null;
+  reference_actual_date: string;
+  geometry_source: "stop_sequence";
+  outside_validity_period: boolean;
+}
+
+export interface ReferenceGeometryProperties {
+  route: number;
+  route_id: string;
+  trip_id: string;
+  direction_id: number;
+  geometry_id: string;
+  valid_from: string;
+  valid_to: string | null;
+  reference_actual_date: string;
+  geometry_source: "stop_sequence";
+}
+
+export interface FeatureCollection<P> {
+  type: "FeatureCollection";
+  features: Array<GeoFeature<LineStringGeometry, P>>;
+}
+
+export interface MapRoutesResponse extends FeatureCollection<RouteGeometryProperties> {
+  run_id: string;
+  date: string;
+  hour: number;
+  reference_version: string;
+  geometry_mode: "reference";
+}
+
+export interface ReferenceGeometryResponse extends FeatureCollection<ReferenceGeometryProperties> {
+  route: number;
+  reference_version: string;
+  geometry_available: boolean;
+  geometry_mode: "reference";
+}
+
+export interface RouteDirection {
+  geometry_id: string;
+  trip_id: string;
+  direction_id: number;
+  valid_from: string;
+  valid_to: string | null;
+}
+
+export interface DirectionsResponse {
+  route: number;
+  reference_version: string;
+  count: number;
+  directions: RouteDirection[];
+}
+
+export interface RouteStop {
+  route: number;
+  route_id: string;
+  trip_id: string;
+  direction_id: number;
+  geometry_id: string;
+  stop_sequence: number;
+  stop_id: string;
+  stop_name: string;
+  lat: number;
+  lon: number;
+}
+
+export interface StopsResponse {
+  route: number;
+  reference_version: string;
+  count: number;
+  stops: RouteStop[];
+}
+
+export interface RouteSegment {
+  segment_id: string;
+  geometry_id: string;
+  route: number;
+  trip_id: string;
+  direction_id: number;
+  from_stop_id: string;
+  to_stop_id: string;
+  from_sequence: number;
+  to_sequence: number;
+  from_stop_name: string;
+  to_stop_name: string;
+  geometry: LineStringGeometry;
+}
+
+export interface SegmentsResponse {
+  route: number;
+  reference_version: string;
+  count: number;
+  segments: RouteSegment[];
+}
+
 export interface DataRequest {
   signal?: AbortSignal;
 }
@@ -165,4 +285,18 @@ export interface ForecastDataClient {
     input: { runId: string; route: RouteFilter; from: string; to: string; hour?: number },
     options?: DataRequest,
   ): Promise<ExportResult>;
+  getMapRoutes(
+    input: { runId: string; route: RouteFilter; date: string; hour: number },
+    options?: DataRequest,
+  ): Promise<MapRoutesResponse>;
+  getReferenceGeometry(route: number, options?: DataRequest): Promise<ReferenceGeometryResponse>;
+  getDirections(route: number, options?: DataRequest): Promise<DirectionsResponse>;
+  getStops(
+    input: { route: number; tripId?: string; directionId?: number },
+    options?: DataRequest,
+  ): Promise<StopsResponse>;
+  getSegments(
+    input: { route: number; tripId?: string; directionId?: number },
+    options?: DataRequest,
+  ): Promise<SegmentsResponse>;
 }
