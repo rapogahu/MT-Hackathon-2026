@@ -6,7 +6,8 @@ import pandas as pd
 
 class GTFSRepository:
     """
-    Репозиторий для работы со справочниками трамвайной сети.
+    Репозиторий для работы со справочниками
+    трамвайной сети.
     """
 
     SHEETS = {
@@ -18,8 +19,8 @@ class GTFSRepository:
         "stops_coordinates": "Порядок_с_координатами",
     }
 
-    # Все листы, кроме этого, имеют строку с пояснениями
-    # перед настоящими названиями колонок.
+    # Все листы, кроме этого, имеют строку
+    # с пояснениями перед названиями колонок.
     SHEETS_WITH_DESCRIPTION_ROW = {
         "routes",
         "stops",
@@ -61,8 +62,8 @@ class GTFSRepository:
             "stops_coordinates"
         )
 
-        # Проверяем, что нужные колонки действительно
-        # присутствуют после чтения Excel.
+        # Проверяем необходимые колонки.
+
         self._require_columns(
             self.routes,
             [
@@ -86,8 +87,25 @@ class GTFSRepository:
         )
 
         self._require_columns(
+            self.trips_stops,
+            [
+                "route_id",
+                "route_short_name",
+                "trip_id",
+                "trip_short_name",
+                "direction_id",
+                "stop_sequence",
+                "stop_id",
+            ],
+            self.SHEETS["trips_stops"],
+        )
+
+        self._require_columns(
             self.stops_coordinates,
             [
+                "route_id",
+                "route_short_name",
+                "trip_id",
                 "trip_short_name",
                 "direction_id",
                 "stop_sequence",
@@ -99,7 +117,9 @@ class GTFSRepository:
             self.SHEETS["stops_coordinates"],
         )
 
-        print("Справочники успешно загружены.")
+        print(
+            "Справочники успешно загружены."
+        )
 
     # =========================================================
     # EXCEL
@@ -345,19 +365,23 @@ class GTFSRepository:
 
     def get_trip_stops(
         self,
-        trip_short_name: str,
+        route_id: str,
         direction_id: str | None = None,
     ) -> list[dict]:
         """
-        Получить остановки маршрутного пути.
+        Получить остановки конкретного маршрута
+        с координатами.
+
+        Связь выполняется через route_id.
+
+        direction_id позволяет получить только
+        одно направление движения.
         """
 
         df = self.stops_coordinates[
-            self.stops_coordinates[
-                "trip_short_name"
-            ]
+            self.stops_coordinates["route_id"]
             .astype(str)
-            == str(trip_short_name)
+            == str(route_id)
         ]
 
         if direction_id is not None:
@@ -367,6 +391,7 @@ class GTFSRepository:
                 == str(direction_id)
             ]
 
+        # Восстанавливаем порядок остановок.
         df = df.sort_values(
             "stop_sequence"
         )
@@ -423,20 +448,23 @@ class GTFSRepository:
 
     def get_stops_coordinates(
         self,
-        trip_short_name: str | None = None,
+        route_id: str | None = None,
         direction_id: str | None = None,
     ) -> list[dict]:
         """
         Получить остановки с координатами.
+
+        Можно отфильтровать по route_id
+        и direction_id.
         """
 
         df = self.stops_coordinates.copy()
 
-        if trip_short_name is not None:
+        if route_id is not None:
             df = df[
-                df["trip_short_name"]
+                df["route_id"]
                 .astype(str)
-                == str(trip_short_name)
+                == str(route_id)
             ]
 
         if direction_id is not None:
@@ -446,4 +474,88 @@ class GTFSRepository:
                 == str(direction_id)
             ]
 
+        df = df.sort_values(
+            "stop_sequence"
+        )
+
         return self._clean_records(df)
+
+    # =========================================================
+    # ROUTE GEOMETRY
+    # =========================================================
+
+    def get_route_geometry(
+        self,
+        route_id: str,
+        direction_id: str | None = None,
+    ) -> list[dict]:
+        """
+        Получить последовательность остановок
+        маршрута с координатами.
+
+        Важно:
+        trip_short_name не используется как ключ маршрута,
+        потому что в текущем справочнике он может быть одинаковым
+        для разных маршрутов.
+
+        Основной ключ:
+            route_id + direction_id
+        """
+
+        df = self.stops_coordinates[
+            self.stops_coordinates["route_id"]
+            .astype(str)
+            == str(route_id)
+        ]
+
+        if direction_id is not None:
+            df = df[
+                df["direction_id"]
+                .astype(str)
+                == str(direction_id)
+            ]
+
+        df = df.sort_values(
+            "stop_sequence"
+        )
+
+        return self._clean_records(
+            df
+        )
+
+    def get_route_directions(
+        self,
+        route_id: str,
+    ) -> list[dict]:
+        """
+        Получить направления конкретного маршрута.
+        """
+
+        df = self.stops_coordinates[
+            self.stops_coordinates["route_id"]
+            .astype(str)
+            == str(route_id)
+        ]
+
+        if df.empty:
+            return []
+
+        directions = (
+            df[
+                [
+                    "route_id",
+                    "route_short_name",
+                    "trip_id",
+                    "trip_short_name",
+                    "direction_id",
+                ]
+            ]
+            .drop_duplicates()
+            .sort_values(
+                "direction_id"
+            )
+        )
+
+        return self._clean_records(
+            directions
+        )

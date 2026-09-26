@@ -1,116 +1,566 @@
 from __future__ import annotations
 
-import hashlib
-from io import StringIO
+from datetime import date
 
-import pandas as pd
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
-from app.repositories.forecast_repository import ForecastRepository
-from app.repositories.gtfs_repository import GTFSRepository
+from app.repositories.forecast_repository import (
+    ForecastRepository,
+)
+from app.repositories.gtfs_repository import (
+    GTFSRepository,
+)
 
 
-def create_forecast_router(forecast: ForecastRepository, gtfs: GTFSRepository) -> APIRouter:
-    router = APIRouter(tags=["Forecast integration"])
-    reference_version = f"sha256:{hashlib.sha256(gtfs.file_path.read_bytes()).hexdigest()[:16]}"
+def create_forecast_router(
+    forecast_repository: ForecastRepository,
+    gtfs_repository: GTFSRepository,
+) -> APIRouter:
 
-    def check_run(run_id: str):
-        if run_id != forecast.run_id: raise HTTPException(404, "Выпуск прогноза не найден")
+    router = APIRouter(
+        prefix="/forecast",
+        tags=["Forecast"],
+    )
 
-    def check_route(route: int | None):
-        if route is not None and route not in forecast.summary["routes"]: raise HTTPException(422, "Маршрут не поддерживается")
+    # =========================================================
+    # RUNS
+    # =========================================================
 
-    def check_range(start: str, end: str):
-        if start > end: raise HTTPException(422, "Начало диапазона позже окончания")
-        if start < forecast.summary["forecast_start"] or end > forecast.summary["forecast_end"]: raise HTTPException(422, "Диапазон вне покрытия выпуска")
+    @router.get("/runs")
+    def get_runs():
+        """
+        Получить список доступных forecast runs.
+        """
 
-    def geometry_rows(route: int):
-        frame = gtfs.stops_coordinates
-        return frame[frame["route_short_name"].astype(str) == str(route)].copy()
+        metadata = forecast_repository.get_run_metadata()
+        run_id = forecast_repository.get_run_id()
 
-    def paths(route: int) -> list[dict]:
-        frame = geometry_rows(route)
-        result = []
-        keys = ["route_id", "trip_id", "direction_id", "start_date"]
-        for key, group in frame.groupby(keys, dropna=False, sort=True):
-            route_id, trip_id, direction_id, start_date = key
-            group = group.sort_values("stop_sequence"); coordinates = [[float(row.stop_lon), float(row.stop_lat)] for row in group.itertuples() if pd.notna(row.stop_lon) and pd.notna(row.stop_lat)]
-            if len(coordinates) < 2: continue
-            valid_from = str(start_date)[:10]; geometry_id = f"ref-{route}-{trip_id}-{int(direction_id)}-{valid_from}"
-            actual = group["actual_date"].dropna(); valid_to = group["end_date"].dropna()
-            properties = {"route": route, "route_id": str(route_id), "trip_id": str(trip_id), "direction_id": int(direction_id), "geometry_id": geometry_id, "valid_from": valid_from, "valid_to": str(valid_to.iloc[0])[:10] if len(valid_to) else None, "reference_actual_date": str(actual.iloc[0])[:10] if len(actual) else valid_from, "geometry_source": "stop_sequence"}
-            result.append({"properties": properties, "coordinates": coordinates, "rows": group})
-        return result
+        return {
+            "active_run_id": run_id,
+            "active_runs": {
+                "day": None,
+                "month": run_id,
+                "year": None,
+            },
+            "runs": [
+                metadata,
+            ],
+        }
 
-    @router.get("/forecast/runs")
-    def runs(): return {"active_run_id": forecast.run_id, "active_runs": {"day": None, "month": forecast.run_id, "year": None}, "runs": [forecast.summary]}
+    @router.get("/runs/{run_id}")
+    def get_run(run_id: str):
+        """
+        Получить информацию о конкретном run.
+        """
 
-    @router.get("/forecast/runs/{run_id}")
-    def run(run_id: str): check_run(run_id); return forecast.metadata()
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
 
-    @router.get("/forecast/routes")
-    def product_routes(run_id: str):
-        check_run(run_id); items = []
-        for route in forecast.summary["routes"]:
-            route_rows = gtfs.get_route_by_number(str(route)); items.append({"route": route, "name": f"Трамвай {route}", "gtfs_route_ids": [str(row["route_id"]) for row in route_rows], "geometry_available": bool(paths(route)), "forecast_available": True})
-        return {"run_id": run_id, "count": len(items), "routes": items}
+        return forecast_repository.get_run_metadata()
 
-    @router.get("/forecast")
-    def day(run_id: str, date: str, route: int | None = None):
-        check_run(run_id); check_route(route); check_range(date, date); points = forecast.records(forecast.select(route=route, date=date)); return {"run_id": run_id, "route": route, "date": date, "count": len(points), "points": points}
+    # =========================================================
+    # ROUTES
+    # =========================================================
 
-    @router.get("/forecast/point")
-    def point(run_id: str, date: str, hour: int = Query(ge=0, le=23), route: int | None = None):
-        check_run(run_id); check_route(route); check_range(date, date); points = forecast.records(forecast.select(route=route, date=date, hour=hour)); return {"run_id": run_id, "route": route, "date": date, "hour": hour, "count": len(points), "points": points}
+    @router.get("/routes")
+    def get_forecast_routes(
+        run_id: str = Query(...),
+    ):
+        """
+        Получить маршруты, доступные в прогнозе,
+        с метаданными из GTFS.
+        """
+
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
+
+        forecast_routes = forecast_repository.get_routes()
+
+        routes = []
+
+        for route_number in forecast_routes:
+            route_info = (
+                gtfs_repository
+                .get_route_by_number(
+                    str(route_number)
+                )
+            )
+
+            if not route_info:
+                routes.append(
+                    {
+                        "route": int(route_number),
+                        "name": f"Маршрут {route_number}",
+                        "gtfs_route_ids": [],
+                        "geometry_available": False,
+                        "forecast_available": True,
+                    }
+                )
+                continue
+
+            gtfs_route_ids = [
+                str(item["route_id"])
+                for item in route_info
+                if item.get("route_id") is not None
+            ]
+
+            geometry_available = False
+
+            for route_id in gtfs_route_ids:
+                geometry = (
+                    gtfs_repository
+                    .get_route_geometry(
+                        route_id=route_id,
+                    )
+                )
+
+                if geometry:
+                    geometry_available = True
+                    break
+
+            route_name = (
+                route_info[0].get("route_long_name")
+                or route_info[0].get("route_short_name")
+                or f"Маршрут {route_number}"
+            )
+
+            routes.append(
+                {
+                    "route": int(route_number),
+                    "name": str(route_name),
+                    "gtfs_route_ids": gtfs_route_ids,
+                    "geometry_available": geometry_available,
+                    "forecast_available": True,
+                }
+            )
+
+        return {
+            "run_id": run_id,
+            "routes": routes,
+        }
+
+    # =========================================================
+    # DAY
+    # =========================================================
+
+    @router.get("")
+    def get_forecast(
+        run_id: str = Query(...),
+        route: str | None = Query(None),
+        date: str = Query(...),
+    ):
+        """
+        Прогноз за конкретную дату.
+
+        Если route не указан —
+        возвращаются данные по всем маршрутам.
+        """
+
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
+
+        _validate_date(date)
+
+        result = forecast_repository.get_forecast(
+            route=route,
+            date_value=date,
+        )
+
+        return {
+            "run_id": run_id,
+            "route": (
+                int(route)
+                if route is not None and route.isdigit()
+                else route
+            ),
+            "date": date,
+            "count": len(result),
+            "points": result,
+        }
+
+    # =========================================================
+    # POINT
+    # =========================================================
+
+    @router.get("/point")
+    def get_forecast_point(
+        run_id: str = Query(...),
+        route: str = Query(...),
+        date: str = Query(...),
+        hour: int = Query(
+            ...,
+            ge=0,
+            le=23,
+        ),
+    ):
+        """
+        Прогноз в конкретный час.
+        """
+
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
+
+        _validate_date(date)
+
+        point = forecast_repository.get_point(
+            route=route,
+            date_value=date,
+            hour=hour,
+        )
+
+        if point is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Forecast point not found.",
+            )
+
+        return {
+            "run_id": run_id,
+            "route": (
+                int(route)
+                if route.isdigit()
+                else route
+            ),
+            "date": date,
+            "hour": hour,
+            "count": 1,
+            "points": [
+                point,
+            ],
+        }
+
+    # =========================================================
+    # TIMESERIES
+    # =========================================================
 
     @router.get("/timeseries")
-    def timeseries(run_id: str, from_: str = Query(alias="from"), to: str = Query(), route: int | None = None):
-        check_run(run_id); check_route(route); check_range(from_, to); points = forecast.records(forecast.select(route=route, start=from_, end=to)); return {"run_id": run_id, "route": route, "from": from_, "to": to, "count": len(points), "points": points}
+    def get_timeseries(
+        run_id: str = Query(...),
+        route: str | None = Query(None),
+        from_date: str = Query(..., alias="from"),
+        to_date: str = Query(..., alias="to"),
+    ):
+        """
+        Почасовой прогноз за диапазон дат.
+        """
 
-    @router.get("/forecast/aggregate")
-    def aggregate(run_id: str, from_: str = Query(alias="from"), to: str = Query(), granularity: str = Query(pattern="^(day|week|month)$"), route: int | None = None):
-        check_run(run_id); check_route(route); check_range(from_, to); frame = forecast.select(route=route, start=from_, end=to).copy(); frame["parsed"] = pd.to_datetime(frame["date"])
-        if granularity == "day": frame["bucket"] = frame["date"]
-        elif granularity == "month": frame["bucket"] = frame["parsed"].dt.to_period("M").astype(str)
-        else: frame["bucket"] = ((frame["parsed"] - pd.Timestamp(from_)).dt.days // 7).astype(int)
-        points = []
-        for (route_number, _), group in frame.groupby(["route", "bucket"], sort=True):
-            start, end = str(group["date"].min()), str(group["date"].max()); hours = int(len(group)); expected = (pd.Timestamp(end) - pd.Timestamp(start)).days * 24 + 24
-            points.append({"route": int(route_number), "date": start, "period_start": start, "period_end": end, "prediction": float(group["prediction"].sum()), "hours_count": hours, "expected_hours": expected, "is_partial": hours != expected})
-        return {"run_id": run_id, "route": route, "from": from_, "to": to, "granularity": granularity, "count": len(points), "points": points}
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
 
-    @router.get("/export.csv")
-    def export_csv(run_id: str, from_: str = Query(alias="from"), to: str = Query(), route: int | None = None, hour: int | None = Query(default=None, ge=0, le=23)):
-        check_run(run_id); check_route(route); check_range(from_, to); frame = forecast.select(route=route, start=from_, end=to, hour=hour); columns = ["route", "date", "hour", "prediction", "relative_load_pct", "load_index", "load_category"]; buffer = StringIO(); frame.to_csv(buffer, sep=";", columns=columns, index=False, lineterminator="\n")
-        return Response(buffer.getvalue(), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": f'attachment; filename="forecast_{from_}_{to}.csv"'})
+        _validate_range(
+            from_date,
+            to_date,
+        )
 
-    @router.get("/map/routes")
-    def map_routes(run_id: str, date: str, hour: int = Query(ge=0, le=23), route: int | None = None):
-        check_run(run_id); check_route(route); check_range(date, date); selected = forecast.records(forecast.select(route=route, date=date, hour=hour)); by_route = {row["route"]: row for row in selected}; features = []
-        for route_number, value in by_route.items():
-            for path in paths(route_number):
-                props = path["properties"]; outside = date < props["valid_from"] or (props["valid_to"] is not None and date > props["valid_to"])
-                features.append({"type": "Feature", "id": props["geometry_id"], "geometry": {"type": "LineString", "coordinates": path["coordinates"]}, "properties": {**value, **props, "outside_validity_period": outside}})
-        return {"type": "FeatureCollection", "features": features, "run_id": run_id, "date": date, "hour": hour, "reference_version": reference_version, "geometry_mode": "reference"}
+        result = forecast_repository.get_timeseries(
+            route=route,
+            start=from_date,
+            end=to_date,
+        )
 
-    @router.get("/routes/number/{route}/geometry")
-    def geometry(route: int):
-        features = [{"type": "Feature", "id": path["properties"]["geometry_id"], "geometry": {"type": "LineString", "coordinates": path["coordinates"]}, "properties": path["properties"]} for path in paths(route)]
-        return {"type": "FeatureCollection", "features": features, "route": route, "reference_version": reference_version, "geometry_available": bool(features), "geometry_mode": "reference"}
+        return {
+            "run_id": run_id,
+            "route": (
+                int(route)
+                if route is not None and route.isdigit()
+                else route
+            ),
+            "from": from_date,
+            "to": to_date,
+            "count": len(result),
+            "points": result,
+        }
 
-    @router.get("/routes/number/{route}/directions")
-    def directions(route: int):
-        items = [{key: path["properties"][key] for key in ("geometry_id", "trip_id", "direction_id", "valid_from", "valid_to")} for path in paths(route)]; return {"route": route, "reference_version": reference_version, "count": len(items), "directions": items}
+    # =========================================================
+    # AGGREGATE
+    # =========================================================
 
-    @router.get("/routes/number/{route}/stops")
-    def route_stops(route: int, trip_id: str | None = None, direction_id: int | None = None):
-        items = []
-        for path in paths(route):
-            props = path["properties"]
-            if trip_id is not None and props["trip_id"] != trip_id: continue
-            if direction_id is not None and props["direction_id"] != direction_id: continue
-            for row in path["rows"].sort_values("stop_sequence").itertuples(): items.append({"route": route, "route_id": props["route_id"], "trip_id": props["trip_id"], "direction_id": props["direction_id"], "geometry_id": props["geometry_id"], "stop_sequence": int(row.stop_sequence), "stop_id": str(row.stop_id), "stop_name": str(row.stop_name), "lat": float(row.stop_lat), "lon": float(row.stop_lon)})
-        return {"route": route, "reference_version": reference_version, "count": len(items), "stops": items}
+    @router.get("/aggregate")
+    def get_aggregate(
+        run_id: str = Query(...),
+        route: str | None = Query(None),
+        from_date: str = Query(..., alias="from"),
+        to_date: str = Query(..., alias="to"),
+        granularity: str = Query("day"),
+    ):
+        """
+        Агрегированный прогноз.
+
+        Сейчас поддерживается только granularity=day.
+        """
+
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
+
+        _validate_range(
+            from_date,
+            to_date,
+        )
+
+        if granularity not in {"day", "week", "month"}:
+            raise HTTPException(
+                status_code=400,
+                detail="Supported granularity: day, week, month.",
+            )
+
+        result = forecast_repository.get_aggregate(
+            route=route,
+            start=from_date,
+            end=to_date,
+            granularity=granularity,
+        )
+
+        return {
+            "run_id": run_id,
+            "route": (
+                int(route)
+                if route is not None and route.isdigit()
+                else route
+            ),
+            "from": from_date,
+            "to": to_date,
+            "granularity": granularity,
+            "count": len(result),
+            "points": result,
+        }
 
     return router
+
+
+# =========================================================
+# MAP
+# =========================================================
+
+
+def create_map_router(
+    forecast_repository: ForecastRepository,
+    gtfs_repository: GTFSRepository,
+) -> APIRouter:
+
+    router = APIRouter(
+        prefix="/map",
+        tags=["Map"],
+    )
+
+    @router.get("/routes")
+    def get_map_routes(
+        run_id: str = Query(...),
+        route: str = Query(...),
+        date: str = Query(...),
+        hour: int = Query(
+            ...,
+            ge=0,
+            le=23,
+        ),
+    ):
+        """
+        Возвращает GeoJSON маршрута.
+
+        Геометрия берётся из GTFS-справочника.
+        Прогноз берётся из ForecastRepository.
+
+        Если маршрут есть в прогнозе, но отсутствует
+        в справочнике — возвращается пустой FeatureCollection.
+        """
+
+        _check_run(
+            forecast_repository,
+            run_id,
+        )
+
+        _validate_date(date)
+
+        point = (
+            forecast_repository
+            .get_point(
+                route=route,
+                date_value=date,
+                hour=hour,
+            )
+        )
+
+        if point is None:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "Прогноз не найден."
+                ),
+            )
+
+        geometry = _get_route_geometry(
+            gtfs_repository,
+            route,
+        )
+
+        if not geometry:
+            return {
+                "type": "FeatureCollection",
+                "features": [],
+            }
+
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        float(item["stop_lon"]),
+                        float(item["stop_lat"]),
+                    ]
+                    for item in geometry
+                ],
+            },
+            "properties": {
+                "route": point["route"],
+                "load_index": point["load_index"],
+                "load_category": point[
+                    "load_category"
+                ],
+                "prediction": point[
+                    "prediction"
+                ],
+                "geometry_id": (
+                    f"route-{route}"
+                ),
+                "route_id": str(
+                    geometry[0]["route_id"]
+                ),
+                "trip_id": str(
+                    geometry[0]["trip_id"]
+                ),
+                "direction_id": int(
+                    geometry[0]["direction_id"]
+                ),
+            },
+        }
+
+        return {
+            "type": "FeatureCollection",
+            "features": [
+                feature
+            ],
+        }
+
+    return router
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+
+
+def _check_run(
+    repository: ForecastRepository,
+    run_id: str,
+):
+    if run_id != repository.get_run_id():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Run '{run_id}' не найден.",
+        )
+
+
+def _validate_date(
+    value: str,
+):
+    try:
+        date.fromisoformat(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Некорректная дата: {value}. "
+                "Ожидается YYYY-MM-DD."
+            ),
+        ) from exc
+
+
+def _validate_range(
+    start: str,
+    end: str,
+):
+    _validate_date(start)
+    _validate_date(end)
+
+    if start > end:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Дата from не может быть "
+                "позже даты to."
+            ),
+        )
+
+
+def _get_route_geometry(
+    repository: GTFSRepository,
+    route_number: str,
+) -> list[dict]:
+
+    routes = (
+        repository
+        .get_route_by_number(
+            route_number
+        )
+    )
+
+    if not routes:
+        return []
+
+    route_id = str(
+        routes[0]["route_id"]
+    )
+
+    coordinates = (
+        repository
+        .get_route_geometry(
+            route_id=route_id,
+        )
+    )
+
+    if not coordinates:
+        return []
+
+    # Берём первое направление,
+    # если в справочнике несколько направлений.
+    direction_ids = sorted(
+        {
+            str(item["direction_id"])
+            for item in coordinates
+        }
+    )
+
+    if not direction_ids:
+        return []
+
+    selected_direction = (
+        direction_ids[0]
+    )
+
+    geometry = [
+        item
+        for item in coordinates
+        if str(item["direction_id"])
+        == selected_direction
+    ]
+
+    geometry.sort(
+        key=lambda item: int(
+            item["stop_sequence"]
+        )
+    )
+
+    return geometry

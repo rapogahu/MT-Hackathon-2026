@@ -1,79 +1,841 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
 
-ROUTES = (1, 5, 7, 11, 12, 17, 25, 26, 28, 50)
-
-
 class ForecastRepository:
-    """Read-only integration repository. The CSV is loaded and normalized once."""
+    """
+    Репозиторий прогнозов.
 
-    def __init__(self, path: str | Path):
-        self.path = Path(path)
-        if not self.path.is_file():
-            raise FileNotFoundError(f"Файл прогноза не найден: {self.path}")
-        raw = self.path.read_bytes()
-        self.checksum = hashlib.sha256(raw).hexdigest()
-        frame = pd.read_csv(self.path, sep=";", dtype={"route": "int64", "date": "string", "hour": "int64", "prediction": "float64"})
-        required = {"route", "date", "hour", "prediction"}
-        if not required.issubset(frame.columns):
-            raise ValueError(f"В прогнозе отсутствуют колонки: {sorted(required - set(frame.columns))}")
-        if frame.empty or frame[list(required)].isna().any().any():
-            raise ValueError("Прогноз пуст или содержит пропуски")
-        if not frame["route"].isin(ROUTES).all() or not frame["hour"].between(0, 23).all() or (frame["prediction"] < 0).any():
-            raise ValueError("Прогноз содержит неподдерживаемый маршрут, час или отрицательное значение")
-        parsed_dates = pd.to_datetime(frame["date"], format="%Y-%m-%d", errors="raise")
-        frame["date"] = parsed_dates.dt.strftime("%Y-%m-%d")
-        if frame.duplicated(["route", "date", "hour"]).any():
-            raise ValueError("Прогноз содержит дубли route/date/hour")
+    Сейчас источник данных — CSV.
+    В будущем этот класс можно заменить PostgreSQL-реализацией,
+    не меняя HTTP API.
+    """
 
-        self.normalization: list[dict] = []
-        normalized = []
-        for route, group in frame.groupby("route", sort=True):
-            values = group["prediction"]
-            q05, q95 = float(values.quantile(.05)), float(values.quantile(.95))
-            degenerate = q95 <= q05
-            current = group.copy()
-            relative = pd.Series(.5, index=current.index) if degenerate else ((values - q05) / (q95 - q05)).clip(0, 1)
-            current["relative_load"] = relative
-            current["relative_load_pct"] = (relative * 100 + .5).astype(int)
-            current["load_index"] = 5 if degenerate else ((relative * 10).astype(int) + 1).clip(1, 10)
-            current["normalization_degenerate"] = degenerate
-            current["load_category"] = current["load_index"].map(self._category)
-            normalized.append(current)
-            self.normalization.append({"route": int(route), "source_type": "forecast", "actual_batch_id": None, "period_start": frame["date"].min(), "period_end": frame["date"].max(), "sample_count": int(len(group)), "q05": q05, "q95": q95, "degenerate": degenerate, "fallback_reason": "forecast_distribution" if not degenerate else "constant_forecast", "algorithm_version": "q05-q95-v1"})
+    REQUIRED_COLUMNS = {
+        "route",
+        "date",
+        "hour",
+        "prediction",
+    }
 
-        self.frame = pd.concat(normalized).sort_values(["route", "date", "hour"]).reset_index(drop=True)
-        self.run_id = f"csv-{self.checksum[:16]}"
-        modified = datetime.fromtimestamp(self.path.stat().st_mtime, timezone.utc).isoformat()
-        self.summary = {"run_id": self.run_id, "profile": "competition", "horizon": "month", "forecast_kind": "forecast", "training_end": "2025-10-31", "forecast_start": str(self.frame["date"].min()), "forecast_end": str(self.frame["date"].max()), "routes": sorted(int(value) for value in self.frame["route"].unique()), "row_count": int(len(self.frame)), "imported_at": modified, "generated_at": None, "model_version": self.path.stem, "timezone": "Europe/Moscow"}
+    LOAD_CATEGORIES = (
+        "very_low",
+        "low",
+        "medium",
+        "high",
+        "very_high",
+    )
+
+    def __init__(self, file_path: str | Path):
+        self.file_path = Path(file_path)
+
+        if not self.file_path.exists():
+            raise FileNotFoundError(
+                f"Файл прогнозов не найден: {self.file_path}"
+            )
+
+        print(
+            f"Загрузка прогнозов из: "
+            f"{self.file_path}"
+        )
+
+        self.data = self._read_csv()
+
+        self.run_id = self._make_run_id()
+
+        self._validate()
+
+        self._prepare()
+
+        print(
+            f"Прогноз успешно загружен: "
+            f"{len(self.data)} строк"
+        )
+
+        print(
+            f"Run ID: {self.run_id}"
+        )
+
+    # =========================================================
+    # CSV
+    # =========================================================
+
+    def _read_csv(self) -> pd.DataFrame:
+        """
+        Читает CSV.
+
+        Основной формат хакатона:
+            route;date;hour;prediction
+
+        Также пытаемся определить разделитель автоматически,
+        если файл вдруг окажется с запятыми.
+        """
+
+        try:
+            df = pd.read_csv(
+                self.file_path,
+                sep=";",
+            )
+
+            if len(df.columns) == 1:
+                df = pd.read_csv(
+                    self.file_path,
+                    sep=",",
+                )
+
+        except Exception as exc:
+            raise ValueError(
+                f"Не удалось прочитать CSV "
+                f"{self.file_path}: {exc}"
+            ) from exc
+
+        df.columns = (
+            df.columns
+            .astype(str)
+            .str.strip()
+            .str.replace(
+                "\ufeff",
+                "",
+                regex=False,
+            )
+        )
+
+        return df
+
+    # =========================================================
+    # VALIDATION
+    # =========================================================
+
+    def _validate(self):
+        """
+        Проверяет структуру и содержимое прогноза.
+        """
+
+        missing = (
+            self.REQUIRED_COLUMNS
+            - set(self.data.columns)
+        )
+
+        if missing:
+            raise ValueError(
+                "В CSV отсутствуют обязательные "
+                f"колонки: {sorted(missing)}. "
+                f"Найдены: {self.data.columns.tolist()}"
+            )
+
+        # route
+        if self.data["route"].isna().any():
+            raise ValueError(
+                "В колонке route обнаружены "
+                "пустые значения."
+            )
+
+        # date
+        try:
+            parsed_dates = pd.to_datetime(
+                self.data["date"],
+                errors="raise",
+            )
+        except Exception as exc:
+            raise ValueError(
+                "Колонка date содержит "
+                "некорректные даты."
+            ) from exc
+
+        self.data["date"] = (
+            parsed_dates.dt.strftime("%Y-%m-%d")
+        )
+
+        # hour
+        self.data["hour"] = pd.to_numeric(
+            self.data["hour"],
+            errors="coerce",
+        )
+
+        if self.data["hour"].isna().any():
+            raise ValueError(
+                "Колонка hour содержит "
+                "некорректные значения."
+            )
+
+        self.data["hour"] = (
+            self.data["hour"]
+            .astype(int)
+        )
+
+        invalid_hours = self.data[
+            ~self.data["hour"].between(0, 23)
+        ]
+
+        if not invalid_hours.empty:
+            raise ValueError(
+                "Колонка hour должна содержать "
+                "значения от 0 до 23."
+            )
+
+        # prediction
+        self.data["prediction"] = pd.to_numeric(
+            self.data["prediction"],
+            errors="coerce",
+        )
+
+        if self.data["prediction"].isna().any():
+            raise ValueError(
+                "Колонка prediction содержит "
+                "некорректные значения."
+            )
+
+        if (
+            self.data["prediction"] < 0
+        ).any():
+            raise ValueError(
+                "prediction не может быть отрицательным."
+            )
+
+        # duplicates
+        duplicates = self.data.duplicated(
+            subset=[
+                "route",
+                "date",
+                "hour",
+            ]
+        )
+
+        if duplicates.any():
+            duplicate_count = int(
+                duplicates.sum()
+            )
+
+            raise ValueError(
+                "В прогнозе обнаружены дубли "
+                "по ключу route + date + hour: "
+                f"{duplicate_count}"
+            )
+
+    # =========================================================
+    # PREPARE
+    # =========================================================
+
+    def _prepare(self):
+        """
+        Подготавливает внутренние поля.
+        """
+
+        self.data["route"] = (
+            self.data["route"]
+            .astype(str)
+            .str.strip()
+        )
+
+        self.data["hour"] = (
+            self.data["hour"]
+            .astype(int)
+        )
+
+        self.data["prediction"] = (
+            self.data["prediction"]
+            .astype(float)
+        )
+
+        self.routes = sorted(
+            self.data["route"].unique(),
+            key=self._route_sort_key,
+        )
+
+        self.min_date = (
+            self.data["date"].min()
+        )
+
+        self.max_date = (
+            self.data["date"].max()
+        )
+
+        self._calculate_load_metrics()
+
+    # =========================================================
+    # RUN
+    # =========================================================
+
+    def _make_run_id(self) -> str:
+        """
+        Создаёт стабильный ID на основе содержимого CSV.
+
+        Если файл не изменился, run_id остаётся тем же.
+        """
+
+        content = self.file_path.read_bytes()
+
+        digest = hashlib.sha256(
+            content
+        ).hexdigest()[:16]
+
+        return f"csv-{digest}"
+
+    def get_run_id(self) -> str:
+        return self.run_id
+
+    def get_run_metadata(self) -> dict:
+        """
+        Metadata в формате, который ожидает frontend.
+
+        Источник прогноза — test_submission.csv.
+        Период прогноза определяется непосредственно
+        по данным CSV.
+        """
+
+        imported_at = datetime.fromtimestamp(
+            self.file_path.stat().st_mtime
+        ).isoformat()
+
+        return {
+            "run_id": self.run_id,
+            "profile": "competition",
+            "horizon": "month",
+            "forecast_kind": "passenger_flow",
+
+            "training_end": "2025-08-31",
+            "forecast_start": self.min_date,
+            "forecast_end": self.max_date,
+
+            "routes": self.get_routes(),
+            "row_count": len(self.data),
+
+            "imported_at": imported_at,
+            "generated_at": None,
+            "model_version": None,
+
+            "timezone": "Europe/Moscow",
+
+            "source_checksum": self.run_id.removeprefix("csv-"),
+            "actual_batch_id": None,
+            "normalization_version": "route-q05-q95-v1",
+
+            "normalization": [],
+            "evaluation_ids": [],
+            "scenario_assumptions": None,
+        }
+
+    # =========================================================
+    # ROUTES
+    # =========================================================
 
     @staticmethod
-    def _category(index: int) -> str:
-        return "very_low" if index <= 2 else "low" if index <= 4 else "medium" if index <= 6 else "high" if index <= 8 else "very_high"
+    def _route_sort_key(
+        route: str,
+    ):
+        try:
+            return (
+                0,
+                int(route),
+            )
+        except ValueError:
+            return (
+                1,
+                route,
+            )
 
-    def metadata(self) -> dict:
-        return {**self.summary, "source_checksum": self.checksum, "actual_batch_id": None, "normalization_version": "q05-q95-v1", "normalization": self.normalization, "evaluation_ids": [], "scenario_assumptions": None}
+    def get_routes(self) -> list[int | str]:
+        """
+        Возвращает маршруты, присутствующие
+        именно в прогнозном файле.
+        """
 
-    def select(self, *, route: int | None = None, date: str | None = None, hour: int | None = None, start: str | None = None, end: str | None = None) -> pd.DataFrame:
-        result = self.frame
-        if route is not None: result = result[result["route"] == route]
-        if date is not None: result = result[result["date"] == date]
-        if hour is not None: result = result[result["hour"] == hour]
-        if start is not None: result = result[result["date"] >= start]
-        if end is not None: result = result[result["date"] <= end]
+        result = []
+
+        for route in self.routes:
+            try:
+                result.append(int(route))
+            except ValueError:
+                result.append(route)
+
         return result
 
+    # =========================================================
+    # FILTER
+    # =========================================================
+
+    def _filter(
+        self,
+        route: str | None = None,
+        start: str | None = None,
+        end: str | None = None,
+    ) -> pd.DataFrame:
+
+        df = self.data
+
+        if route is not None:
+            df = df[
+                df["route"].astype(str)
+                == str(route)
+            ]
+
+        if start is not None:
+            df = df[
+                df["date"] >= start
+            ]
+
+        if end is not None:
+            df = df[
+                df["date"] <= end
+            ]
+
+        return df.copy()
+
+    # =========================================================
+    # LOAD METRICS
+    # =========================================================
+
+    def _calculate_load_metrics(self):
+        """
+        Рассчитывает относительную загрузку.
+
+        Нормализация выполняется отдельно для каждого маршрута.
+        Q05 и Q95 используются как нижняя и верхняя границы.
+
+        Если все значения маршрута одинаковы,
+        normalization_degenerate = True.
+        """
+
+        self.data["relative_load"] = 0.0
+        self.data["normalization_degenerate"] = False
+
+        for route in self.data["route"].unique():
+
+            mask = (
+                self.data["route"]
+                == route
+            )
+
+            values = (
+                self.data.loc[
+                    mask,
+                    "prediction"
+                ]
+            )
+
+            q05 = values.quantile(0.05)
+            q95 = values.quantile(0.95)
+
+            if q95 <= q05:
+                self.data.loc[
+                    mask,
+                    "relative_load"
+                ] = 0.0
+
+                self.data.loc[
+                    mask,
+                    "normalization_degenerate"
+                ] = True
+
+                continue
+
+            normalized = (
+                (
+                    values - q05
+                )
+                / (
+                    q95 - q05
+                )
+            )
+
+            normalized = normalized.clip(
+                0,
+                1,
+            )
+
+            self.data.loc[
+                mask,
+                "relative_load"
+            ] = normalized
+
     @staticmethod
-    def records(frame: pd.DataFrame) -> list[dict]:
-        columns = ["route", "date", "hour", "prediction", "relative_load", "relative_load_pct", "load_index", "load_category", "normalization_degenerate"]
-        records = frame[columns].to_dict("records")
-        for row in records:
-            for key in ("route", "hour", "relative_load_pct", "load_index"): row[key] = int(row[key])
-            row["prediction"] = float(row["prediction"]); row["relative_load"] = float(row["relative_load"]); row["normalization_degenerate"] = bool(row["normalization_degenerate"])
-        return records
+    def _load_index(
+        relative_load: float,
+    ) -> int:
+        """
+        0..1 -> 1..10
+        """
+
+        value = max(
+            0.0,
+            min(
+                1.0,
+                float(relative_load),
+            ),
+        )
+
+        return min(
+            10,
+            max(
+                1,
+                int(value * 10) + 1,
+            ),
+        )
+
+    @staticmethod
+    def _load_category(
+        load_index: int,
+    ) -> str:
+
+        if load_index <= 2:
+            return "very_low"
+
+        if load_index <= 4:
+            return "low"
+
+        if load_index <= 6:
+            return "medium"
+
+        if load_index <= 8:
+            return "high"
+
+        return "very_high"
+
+    # =========================================================
+    # DTO
+    # =========================================================
+
+    @classmethod
+    def _record(
+        cls,
+        row: pd.Series,
+    ) -> dict:
+
+        relative_load = float(
+            row["relative_load"]
+        )
+
+        load_index = cls._load_index(
+            relative_load
+        )
+
+        return {
+            "route": cls._route_value(
+                row["route"]
+            ),
+            "date": str(
+                row["date"]
+            ),
+            "hour": int(
+                row["hour"]
+            ),
+            "prediction": float(
+                row["prediction"]
+            ),
+            "relative_load": round(
+                relative_load,
+                4,
+            ),
+            "relative_load_pct": int(
+                round(
+                    relative_load * 100
+                )
+            ),
+            "load_index": load_index,
+            "load_category": cls._load_category(
+                load_index
+            ),
+            "normalization_degenerate": bool(
+                row["normalization_degenerate"]
+            ),
+        }
+
+    @staticmethod
+    def _route_value(
+        route: Any,
+    ):
+        try:
+            return int(route)
+        except (
+            ValueError,
+            TypeError,
+        ):
+            return str(route)
+
+    # =========================================================
+    # FORECAST
+    # =========================================================
+
+    def get_forecast(
+        self,
+        route: str | None = None,
+        date_value: str | None = None,
+    ) -> list[dict]:
+
+        df = self._filter(
+            route=route,
+            start=date_value,
+            end=date_value,
+        )
+
+        df = df.sort_values(
+            [
+                "date",
+                "hour",
+                "route",
+            ]
+        )
+
+        return [
+            self._record(row)
+            for _, row in df.iterrows()
+        ]
+
+    # =========================================================
+    # POINT
+    # =========================================================
+
+    def get_point(
+        self,
+        route: str,
+        date_value: str,
+        hour: int,
+    ) -> dict | None:
+
+        df = self.data[
+            (
+                self.data["route"]
+                == str(route)
+            )
+            & (
+                self.data["date"]
+                == date_value
+            )
+            & (
+                self.data["hour"]
+                == int(hour)
+            )
+        ]
+
+        if df.empty:
+            return None
+
+        return self._record(
+            df.iloc[0]
+        )
+
+    # =========================================================
+    # TIMESERIES
+    # =========================================================
+
+    def get_timeseries(
+        self,
+        route: str | None = None,
+        start: str | None = None,
+        end: str | None = None,
+    ) -> list[dict]:
+
+        df = self._filter(
+            route=route,
+            start=start,
+            end=end,
+        )
+
+        df = df.sort_values(
+            [
+                "date",
+                "hour",
+                "route",
+            ]
+        )
+
+        return [
+            self._record(row)
+            for _, row in df.iterrows()
+        ]
+
+    # =========================================================
+    # AGGREGATE
+    # =========================================================
+
+    def get_aggregate(
+        self,
+        route: str | None = None,
+        start: str | None = None,
+        end: str | None = None,
+        granularity: str = "day",
+    ) -> list[dict]:
+
+        if granularity not in {"day", "week", "month"}:
+            raise ValueError(
+                "Поддерживаются только granularity=day, week, month."
+            )
+
+        df = self._filter(
+            route=route,
+            start=start,
+            end=end,
+        )
+
+        if df.empty:
+            return []
+
+        df = df.copy()
+
+        # Убеждаемся, что дата имеет тип datetime.
+        df["date_dt"] = pd.to_datetime(df["date"])
+
+        result = []
+
+        if granularity == "day":
+            grouped = (
+                df.groupby(
+                    ["route", "date"],
+                    as_index=False,
+                )
+                .agg(
+                    prediction=("prediction", "sum"),
+                    hours_count=("hour", "count"),
+                )
+            )
+
+            expected_hours = 24
+
+            for _, row in grouped.iterrows():
+                period_start = str(row["date"])
+                period_end = str(row["date"])
+                hours_count = int(row["hours_count"])
+
+                result.append(
+                    {
+                        "route": self._route_value(row["route"]),
+                        "date": period_start,
+                        "period_start": period_start,
+                        "period_end": period_end,
+                        "prediction": float(row["prediction"]),
+                        "hours_count": hours_count,
+                        "expected_hours": expected_hours,
+                        "is_partial": hours_count < expected_hours,
+                    }
+                )
+
+            return result
+
+        if granularity == "week":
+            # Понедельник считается началом недели.
+            df["period_start_dt"] = (
+                df["date_dt"]
+                - pd.to_timedelta(
+                    df["date_dt"].dt.weekday,
+                    unit="D",
+                )
+            ).dt.normalize()
+
+            grouped = (
+                df.groupby(
+                    ["route", "period_start_dt"],
+                    as_index=False,
+                )
+                .agg(
+                    prediction=("prediction", "sum"),
+                    hours_count=("hour", "count"),
+                )
+            )
+
+            expected_hours = 7 * 24
+
+            for _, row in grouped.iterrows():
+                period_start_dt = row["period_start_dt"]
+                period_end_dt = (
+                    period_start_dt
+                    + pd.Timedelta(days=6)
+                )
+
+                hours_count = int(row["hours_count"])
+
+                result.append(
+                    {
+                        "route": self._route_value(row["route"]),
+                        "date": period_start_dt.strftime("%Y-%m-%d"),
+                        "period_start": period_start_dt.strftime("%Y-%m-%d"),
+                        "period_end": period_end_dt.strftime("%Y-%m-%d"),
+                        "prediction": float(row["prediction"]),
+                        "hours_count": hours_count,
+                        "expected_hours": expected_hours,
+                        "is_partial": hours_count < expected_hours,
+                    }
+                )
+
+            return result
+
+        # granularity == "month"
+
+        df["period_start_dt"] = (
+            df["date_dt"]
+            .dt.to_period("M")
+            .dt.start_time
+        )
+
+        grouped = (
+            df.groupby(
+                ["route", "period_start_dt"],
+                as_index=False,
+            )
+            .agg(
+                prediction=("prediction", "sum"),
+                hours_count=("hour", "count"),
+            )
+        )
+
+        for _, row in grouped.iterrows():
+            period_start_dt = row["period_start_dt"]
+            period_end_dt = (
+                period_start_dt
+                + pd.offsets.MonthEnd(0)
+            )
+
+            days_in_month = period_end_dt.day
+            expected_hours = days_in_month * 24
+            hours_count = int(row["hours_count"])
+
+            result.append(
+                {
+                    "route": self._route_value(row["route"]),
+                    "date": period_start_dt.strftime("%Y-%m-%d"),
+                    "period_start": period_start_dt.strftime("%Y-%m-%d"),
+                    "period_end": period_end_dt.strftime("%Y-%m-%d"),
+                    "prediction": float(row["prediction"]),
+                    "hours_count": hours_count,
+                    "expected_hours": expected_hours,
+                    "is_partial": hours_count < expected_hours,
+                }
+            )
+
+        return result
+
+    # =========================================================
+    # CSV
+    # =========================================================
+
+    def export_csv(
+        self,
+        route: str | None = None,
+        start: str | None = None,
+        end: str | None = None,
+    ) -> str:
+
+        df = self._filter(
+            route=route,
+            start=start,
+            end=end,
+        )
+
+        columns = [
+            "route",
+            "date",
+            "hour",
+            "prediction",
+        ]
+
+        return df[
+            columns
+        ].to_csv(
+            index=False,
+            sep=";",
+        )

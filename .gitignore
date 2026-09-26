@@ -29,13 +29,10 @@ ml/models/*
 
 # Environment variables
 .env
-frontend/.env.local
-frontend/.env.*.local
-
-# Frontend build
-frontend/node_modules/
-frontend/dist/
 
 # OS
 .DS_Store
 Thumbs.db
+test.csv
+.gitignore
+train.csv

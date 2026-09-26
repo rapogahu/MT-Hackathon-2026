@@ -71,7 +71,7 @@ export class HttpForecastClient implements ForecastDataClient {
     options?: DataRequest,
   ): Promise<TimeseriesResponse> {
     const query = this.rangeQuery(input);
-    return this.request(`/api/timeseries?${query.toString()}`, options);
+    return this.request(`/api/forecast/timeseries?${query.toString()}`, options);
   }
 
   getAggregate(
