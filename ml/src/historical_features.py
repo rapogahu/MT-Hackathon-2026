@@ -11,6 +11,7 @@ H21_NAME = "median_last_4_same_weekday_hour"
 H22_NAME = "mean_last_4_same_weekday_hour"
 H23_NAME = "route_recent_4w_mean"
 H24_NAME = "route_previous_4w_mean"
+H25_NAME = "route_recent_vs_previous_diff"
 
 
 class RouteWeekdayHourHistoricalMedian:
@@ -342,6 +343,29 @@ class RoutePrevious4WeekMean(RouteRecent4WeekMean):
                 "absolute_difference": abs(after - before),
                 "recent_over_previous": after / before if before > 0 else None,
             }
+        return levels
+
+
+class RouteRecentVsPreviousDiff(RoutePrevious4WeekMean):
+    """H25: one feature, recent 28-day level minus previous 28-day level."""
+
+    @staticmethod
+    def build_train(train_rows: pd.DataFrame, history: pd.DataFrame) -> pd.Series:
+        recent = RouteRecent4WeekMean.build_train(train_rows, history)
+        previous = RoutePrevious4WeekMean.build_train(train_rows, history)
+        return (recent - previous).rename(H25_NAME)
+
+    @staticmethod
+    def build_validation(validation_keys: pd.DataFrame, frozen_history: pd.DataFrame) -> pd.Series:
+        recent = RouteRecent4WeekMean.build_validation(validation_keys, frozen_history)
+        previous = RoutePrevious4WeekMean.build_validation(validation_keys, frozen_history)
+        return (recent - previous).rename(H25_NAME)
+
+    @classmethod
+    def frozen_route_levels(cls, history: pd.DataFrame) -> dict[str, dict[str, float | None]]:
+        levels = super().frozen_route_levels(history)
+        for route_levels in levels.values():
+            route_levels[H25_NAME] = route_levels["signed_difference_recent_minus_previous"]
         return levels
 
 
