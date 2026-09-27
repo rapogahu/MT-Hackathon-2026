@@ -1,20 +1,16 @@
 from __future__ import annotations
-
 import hashlib
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
-
 import pandas as pd
 
 
 class ForecastRepository:
     """
-    Репозиторий прогнозов.
+    Репозиторий прогнозов
 
-    Сейчас источник данных — CSV.
-    В будущем этот класс можно заменить PostgreSQL-реализацией,
-    не меняя HTTP API.
+    Сейчас источник данных CSV, но в будущем этот класс можно заменить на БД
     """
 
     REQUIRED_COLUMNS = {
@@ -62,19 +58,11 @@ class ForecastRepository:
             f"Run ID: {self.run_id}"
         )
 
-    # =========================================================
     # CSV
-    # =========================================================
 
     def _read_csv(self) -> pd.DataFrame:
         """
-        Читает CSV.
-
-        Основной формат хакатона:
-            route;date;hour;prediction
-
-        Также пытаемся определить разделитель автоматически,
-        если файл вдруг окажется с запятыми.
+        Читает CSV, основной формат route;date;hour;prediction
         """
 
         try:
@@ -91,14 +79,11 @@ class ForecastRepository:
 
         except Exception as exc:
             raise ValueError(
-                f"Не удалось прочитать CSV "
-                f"{self.file_path}: {exc}"
+                f"Не удалось прочитать CSV {self.file_path}: {exc}"
             ) from exc
 
         df.columns = (
-            df.columns
-            .astype(str)
-            .str.strip()
+            df.columns.astype(str).str.strip()
             .str.replace(
                 "\ufeff",
                 "",
@@ -108,9 +93,7 @@ class ForecastRepository:
 
         return df
 
-    # =========================================================
     # VALIDATION
-    # =========================================================
 
     def _validate(self):
         """
@@ -124,33 +107,36 @@ class ForecastRepository:
 
         if missing:
             raise ValueError(
-                "В CSV отсутствуют обязательные "
-                f"колонки: {sorted(missing)}. "
+                "В CSV отсутствуют обязательные колонки: {sorted(missing)}. "
                 f"Найдены: {self.data.columns.tolist()}"
             )
 
         # route
         if self.data["route"].isna().any():
             raise ValueError(
-                "В колонке route обнаружены "
-                "пустые значения."
+                "В колонке route обнаружены пустые значения."
             )
 
         # date
-        try:
-            parsed_dates = pd.to_datetime(
-                self.data["date"],
-                errors="raise",
-            )
-        except Exception as exc:
-            raise ValueError(
-                "Колонка date содержит "
-                "некорректные даты."
-            ) from exc
 
-        self.data["date"] = (
-            parsed_dates.dt.strftime("%Y-%m-%d")
+        dates = (
+            self.data["date"]
+            .astype(str)
+            .str.strip()
         )
+
+        invalid_dates = ~dates.str.match(
+            r"^\d{4}-\d{2}-\d{2}$",
+            na=False,
+        )
+
+        if invalid_dates.any():
+            raise ValueError(
+                "Колонка date содержит некорректные даты. "
+                "Ожидается формат YYYY-MM-DD."
+            )
+
+        self.data["date"] = dates
 
         # hour
         self.data["hour"] = pd.to_numeric(
@@ -160,8 +146,7 @@ class ForecastRepository:
 
         if self.data["hour"].isna().any():
             raise ValueError(
-                "Колонка hour содержит "
-                "некорректные значения."
+                "Колонка hour содержит некорректные значения."
             )
 
         self.data["hour"] = (
@@ -175,8 +160,7 @@ class ForecastRepository:
 
         if not invalid_hours.empty:
             raise ValueError(
-                "Колонка hour должна содержать "
-                "значения от 0 до 23."
+                "Колонка hour должна содержать значения от 0 до 23."
             )
 
         # prediction
@@ -187,8 +171,7 @@ class ForecastRepository:
 
         if self.data["prediction"].isna().any():
             raise ValueError(
-                "Колонка prediction содержит "
-                "некорректные значения."
+                "Колонка prediction содержит некорректные значения."
             )
 
         if (
@@ -213,18 +196,15 @@ class ForecastRepository:
             )
 
             raise ValueError(
-                "В прогнозе обнаружены дубли "
-                "по ключу route + date + hour: "
+                "В прогнозе обнаружены дубли по ключу route + date + hour: "
                 f"{duplicate_count}"
             )
 
-    # =========================================================
     # PREPARE
-    # =========================================================
 
     def _prepare(self):
         """
-        Подготавливает внутренние поля.
+        Подготавливает внутренние поля
         """
 
         self.data["route"] = (
@@ -264,9 +244,8 @@ class ForecastRepository:
 
     def _make_run_id(self) -> str:
         """
-        Создаёт стабильный ID на основе содержимого CSV.
-
-        Если файл не изменился, run_id остаётся тем же.
+        Создаёт стабильный id на основе содержимого csv файла
+        Если файл не изменился, run_id будет тот же
         """
 
         content = self.file_path.read_bytes()
@@ -282,11 +261,10 @@ class ForecastRepository:
 
     def get_run_metadata(self) -> dict:
         """
-        Metadata в формате, который ожидает frontend.
+        Метадата в формате, который ожидает фронт
 
-        Источник прогноза — test_submission.csv.
-        Период прогноза определяется непосредственно
-        по данным CSV.
+        Источник прогноза forecast.csv
+        Период прогноза определяется по csv
         """
 
         imported_at = datetime.fromtimestamp(
@@ -295,7 +273,7 @@ class ForecastRepository:
 
         return {
             "run_id": self.run_id,
-            "profile": "competition",
+            "profile": "forecast",
             "horizon": "month",
             "forecast_kind": "passenger_flow",
 
@@ -321,9 +299,7 @@ class ForecastRepository:
             "scenario_assumptions": None,
         }
 
-    # =========================================================
     # ROUTES
-    # =========================================================
 
     @staticmethod
     def _route_sort_key(
@@ -342,8 +318,7 @@ class ForecastRepository:
 
     def get_routes(self) -> list[int | str]:
         """
-        Возвращает маршруты, присутствующие
-        именно в прогнозном файле.
+        Возвращает маршруты, присутствующие в прогнозном файле
         """
 
         result = []
@@ -356,9 +331,7 @@ class ForecastRepository:
 
         return result
 
-    # =========================================================
     # FILTER
-    # =========================================================
 
     def _filter(
         self,
@@ -387,19 +360,15 @@ class ForecastRepository:
 
         return df.copy()
 
-    # =========================================================
-    # LOAD METRICS
-    # =========================================================
+    # Загрузка метрик
 
     def _calculate_load_metrics(self):
         """
         Рассчитывает относительную загрузку.
 
-        Нормализация выполняется отдельно для каждого маршрута.
-        Q05 и Q95 используются как нижняя и верхняя границы.
+        Нормализация выполняется отдельно для каждого маршрута Q05 и Q95 используются как нижняя и верхняя границы.
 
-        Если все значения маршрута одинаковы,
-        normalization_degenerate = True.
+        Если все значения маршрута одинаковы, normalization_degenerate = True.
         """
 
         self.data["relative_load"] = 0.0
@@ -459,7 +428,7 @@ class ForecastRepository:
         relative_load: float,
     ) -> int:
         """
-        0..1 -> 1..10
+        0-1 -> 1-10
         """
 
         value = max(
@@ -497,9 +466,7 @@ class ForecastRepository:
 
         return "very_high"
 
-    # =========================================================
     # DTO
-    # =========================================================
 
     @classmethod
     def _record(
@@ -558,9 +525,7 @@ class ForecastRepository:
         ):
             return str(route)
 
-    # =========================================================
-    # FORECAST
-    # =========================================================
+    # Прогноз
 
     def get_forecast(
         self,
@@ -587,9 +552,7 @@ class ForecastRepository:
             for _, row in df.iterrows()
         ]
 
-    # =========================================================
-    # POINT
-    # =========================================================
+    # Остановки
 
     def get_point(
         self,
@@ -620,9 +583,7 @@ class ForecastRepository:
             df.iloc[0]
         )
 
-    # =========================================================
-    # TIMESERIES
-    # =========================================================
+    # Временные интервалы
 
     def get_timeseries(
         self,
@@ -650,9 +611,7 @@ class ForecastRepository:
             for _, row in df.iterrows()
         ]
 
-    # =========================================================
-    # AGGREGATE
-    # =========================================================
+    # Агрегация
 
     def get_aggregate(
         self,
@@ -678,7 +637,7 @@ class ForecastRepository:
 
         df = df.copy()
 
-        # Убеждаемся, что дата имеет тип datetime.
+        # Точно ли тип datetime
         df["date_dt"] = pd.to_datetime(df["date"])
 
         result = []
@@ -718,7 +677,7 @@ class ForecastRepository:
             return result
 
         if granularity == "week":
-            # Понедельник считается началом недели.
+            # Понедельник считается началом недели
             df["period_start_dt"] = (
                 df["date_dt"]
                 - pd.to_timedelta(
@@ -809,9 +768,7 @@ class ForecastRepository:
 
         return result
 
-    # =========================================================
     # CSV
-    # =========================================================
 
     def export_csv(
         self,

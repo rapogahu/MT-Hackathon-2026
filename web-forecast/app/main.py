@@ -52,7 +52,7 @@ DEFAULT_GTFS_FILE = (
 DEFAULT_FORECAST_FILE = (
     PROJECT_ROOT
     / "dataset"
-    / "test_submission.csv"
+    / "forecast.csv"
 )
 
 
