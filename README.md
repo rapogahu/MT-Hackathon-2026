@@ -32,6 +32,9 @@ route × date × hour → prediction
 docker compose up --build
 ```
 
+сервис будет доступен по адресу
+http://localhost:5173
+
 После сборки доступны:
 
 - frontend: `http://localhost:5173`;
