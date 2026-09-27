@@ -14,10 +14,8 @@ env/
 # Data
 data/raw/*
 data/interim/*
-data/processed/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
-!data/processed/.gitkeep
 
 # ML models
 ml/models/*
