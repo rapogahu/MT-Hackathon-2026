@@ -22,6 +22,7 @@ import final_model_config as config
 MODEL_PATH = config.ROOT / "ml/models/pilot_model_v5_xgboost.json"
 SUBMISSION_PATH = config.ROOT / "data/end_submissions/pilot_model_v5_reproduced_submission.csv"
 REFERENCE_PATH = config.ROOT / "data/end_submissions/pilot_model_v5_weighted_xgboost_submission.csv"
+RUNTIME_PATH = config.ROOT / "dataset/forecast.csv"
 
 
 def main() -> None:
@@ -92,6 +93,12 @@ def main() -> None:
     print(f"Reproduced submission: {SUBMISSION_PATH.relative_to(config.ROOT).as_posix()}")
     if not (same_row_count and key_matches and prediction_mismatches == 0 and max_abs_diff == 0):
         print("REFERENCE COMPARISON MISMATCH: inspect diagnostics above; no automatic changes made.")
+    else:
+        submission.to_csv(RUNTIME_PATH, sep=";", index=False, encoding="utf-8")
+        if RUNTIME_PATH.read_bytes() != SUBMISSION_PATH.read_bytes():
+            raise ValueError("Runtime forecast differs from reproduced submission")
+        print(f"Runtime forecast updated: {RUNTIME_PATH.relative_to(config.ROOT).as_posix()}")
+        print("Runtime forecast matches reproduced submission: True")
 
 
 if __name__ == "__main__":

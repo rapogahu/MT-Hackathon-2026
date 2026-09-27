@@ -38,7 +38,14 @@ python -m ml.src.predict
 Команда python -m ml.src.train обучает настроенный XGBRegressor на полной выборке за январь–октябрь с настроенным экспоненциальным взвешиванием по давности данных с периодом полураспада 180 дней и сохраняет модель в нативном формате XGBoost.
 
 ## Инференс
-Команда python -m ml.src.predict загружает сохранённую модель, обрабатывает входные данные для прогнозирования за ноябрь–декабрь и сохраняет воспроизведённый submission-файл.
+
+Команда `python -m ml.src.predict`:
+
+1. Формирует `data/end_submissions/pilot_model_v5_reproduced_submission.csv`.
+2. Сравнивает его с frozen reference `data/end_submissions/pilot_model_v5_weighted_xgboost_submission.csv`.
+3. Только при полном совпадении записывает финальный runtime-прогноз в `dataset/forecast.csv`.
+
+Backend использует `dataset/forecast.csv` как источник прогнозных данных.
 
 ## Выходной файл:
 data/end_submissions/pilot_model_v5_reproduced_submission.csv
