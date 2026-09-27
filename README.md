@@ -24,6 +24,30 @@ route × date × hour → prediction
 
 Прогноз относится к маршруту целиком. Остановки и линия на карте являются справочной географией и не означают, что прогноз рассчитан отдельно для каждой остановки или участка.
 
+## Запуск через Docker Compose
+
+Из корня репозитория:
+
+```bash
+docker compose up --build
+```
+
+После сборки доступны:
+
+- frontend: `http://localhost:5173`;
+- backend: `http://localhost:8000`;
+- Swagger UI: `http://localhost:8000/docs`;
+- health check: `http://localhost:8000/health`.
+
+Остановка:
+
+```bash
+docker compose down
+```
+
+Compose монтирует `dataset/` в backend в read-only режиме. Изменение `dataset/forecast.csv` требует перезапуска backend, поскольку CSV загружается один раз при старте.
+
+
 ## Архитектура
 
 ```text
@@ -152,28 +176,7 @@ MTTECH/
 | GET | `/api/assignments` | наряды с фильтрами |
 | GET | `/api/assignments/routes/{route_id}` | наряды маршрута |
 
-## Запуск через Docker Compose
 
-Из корня репозитория:
-
-```bash
-docker compose up --build
-```
-
-После сборки доступны:
-
-- frontend: `http://localhost:5173`;
-- backend: `http://localhost:8000`;
-- Swagger UI: `http://localhost:8000/docs`;
-- health check: `http://localhost:8000/health`.
-
-Остановка:
-
-```bash
-docker compose down
-```
-
-Compose монтирует `dataset/` в backend в read-only режиме. Изменение `dataset/forecast.csv` требует перезапуска backend, поскольку CSV загружается один раз при старте.
 
 ## Нагрузочное тестирование
 
