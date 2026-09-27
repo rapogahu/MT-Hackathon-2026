@@ -1,0 +1,546 @@
+{
+  "experiment_class": "model_architecture_temporal_stability",
+  "name": "route_specific_lightgbm_temporal_stability",
+  "reference_artifact": "ml/experiments/results/route_specific_lightgbm_v1.json",
+  "fold_3_reference_reproduced": true,
+  "folds": [
+    {
+      "fold": "fold_1",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_train.csv"
+      ],
+      "grid_rows": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "periods": {
+        "train": [
+          "2025-01-01",
+          "2025-04-30"
+        ],
+        "validation": [
+          "2025-05-01",
+          "2025-06-30"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.18387295918243723,
+        "candidate_wape": 0.1851459011269387,
+        "delta_wape_absolute": 0.0012729419445014767,
+        "delta_wape_relative": 0.006922942612994411,
+        "baseline_wape_score": 0.8161270408175627,
+        "candidate_wape_score": 0.8148540988730613,
+        "total_actual_boardings": 11555908.0,
+        "routes_improved": 4,
+        "routes_worsened": 5
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.19519741384979614,
+          "candidate_wape": 0.19380302183348677,
+          "actual_boardings": 973184.0,
+          "baseline_absolute_error": 189963.0,
+          "candidate_absolute_error": 188606.0,
+          "delta_absolute_error": -1357.0,
+          "delta_overall_wape_contribution": -0.00011742911071981536
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.19304938910617597,
+          "candidate_wape": 0.1951301273621511,
+          "actual_boardings": 1354327.0,
+          "baseline_absolute_error": 261452.0,
+          "candidate_absolute_error": 264270.0,
+          "delta_absolute_error": 2818.0,
+          "delta_overall_wape_contribution": 0.0002438579469480027
+        },
+        "11": {
+          "baseline_wape": 0.16906884998932598,
+          "candidate_wape": 0.17023286705154825,
+          "actual_boardings": 1728497.0,
+          "baseline_absolute_error": 292235.0,
+          "candidate_absolute_error": 294247.0,
+          "delta_absolute_error": 2012.0,
+          "delta_overall_wape_contribution": 0.00017411007425811975
+        },
+        "12": {
+          "baseline_wape": 0.1834951246261714,
+          "candidate_wape": 0.18259643820615534,
+          "actual_boardings": 1802631.0,
+          "baseline_absolute_error": 330774.0,
+          "candidate_absolute_error": 329154.0,
+          "delta_absolute_error": -1620.0,
+          "delta_overall_wape_contribution": -0.00014018803195733299
+        },
+        "17": {
+          "baseline_wape": 0.13736931053457635,
+          "candidate_wape": 0.14088582085543253,
+          "actual_boardings": 2755004.0,
+          "baseline_absolute_error": 378453.0,
+          "candidate_absolute_error": 388141.0,
+          "delta_absolute_error": 9688.0,
+          "delta_overall_wape_contribution": 0.0008383590454337297
+        },
+        "25": {
+          "baseline_wape": 0.21253308754624553,
+          "candidate_wape": 0.21343168240063468,
+          "actual_boardings": 389497.0,
+          "baseline_absolute_error": 82781.0,
+          "candidate_absolute_error": 83131.0,
+          "delta_absolute_error": 350.0,
+          "delta_overall_wape_contribution": 3.02875377685596e-05
+        },
+        "26": {
+          "baseline_wape": 0.22977018100159988,
+          "candidate_wape": 0.2334303764043323,
+          "actual_boardings": 901318.0,
+          "baseline_absolute_error": 207096.0,
+          "candidate_absolute_error": 210395.0,
+          "delta_absolute_error": 3299.0,
+          "delta_overall_wape_contribution": 0.0002854816774242232
+        },
+        "28": {
+          "baseline_wape": 0.23274236912562332,
+          "candidate_wape": 0.2323855111943157,
+          "actual_boardings": 535227.0,
+          "baseline_absolute_error": 124570.0,
+          "candidate_absolute_error": 124379.0,
+          "delta_absolute_error": -191.0,
+          "delta_overall_wape_contribution": -1.652834203941395e-05
+        },
+        "50": {
+          "baseline_wape": 0.2306841912413559,
+          "candidate_wape": 0.2304252824032474,
+          "actual_boardings": 1116223.0,
+          "baseline_absolute_error": 257495.0,
+          "candidate_absolute_error": 257206.0,
+          "delta_absolute_error": -289.0,
+          "delta_overall_wape_contribution": -2.500885261461064e-05
+        }
+      },
+      "decision": null
+    },
+    {
+      "fold": "fold_2",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_train.csv"
+      ],
+      "grid_rows": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "periods": {
+        "train": [
+          "2025-01-01",
+          "2025-06-30"
+        ],
+        "validation": [
+          "2025-07-01",
+          "2025-08-31"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.24878646472320012,
+        "candidate_wape": 0.2524916602543486,
+        "delta_wape_absolute": 0.0037051955311484808,
+        "delta_wape_relative": 0.014893075213198926,
+        "baseline_wape_score": 0.7512135352767999,
+        "candidate_wape_score": 0.7475083397456515,
+        "total_actual_boardings": 10717653.0,
+        "routes_improved": 3,
+        "routes_worsened": 6
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.21843733778740093,
+          "candidate_wape": 0.21866669885769408,
+          "actual_boardings": 911227.0,
+          "baseline_absolute_error": 199046.0,
+          "candidate_absolute_error": 199255.0,
+          "delta_absolute_error": 209.0,
+          "delta_overall_wape_contribution": 1.9500538037572218e-05
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.6988668914816174,
+          "candidate_wape": 0.7031402051693717,
+          "actual_boardings": 874497.0,
+          "baseline_absolute_error": 611157.0,
+          "candidate_absolute_error": 614894.0,
+          "delta_absolute_error": 3737.0,
+          "delta_overall_wape_contribution": 0.0003486770844325712
+        },
+        "11": {
+          "baseline_wape": 0.18389145894773334,
+          "candidate_wape": 0.18944002706208987,
+          "actual_boardings": 1667277.0,
+          "baseline_absolute_error": 306598.0,
+          "candidate_absolute_error": 315849.0,
+          "delta_absolute_error": 9251.0,
+          "delta_overall_wape_contribution": 0.0008631553941893808
+        },
+        "12": {
+          "baseline_wape": 0.1922038040419956,
+          "candidate_wape": 0.19744062070058502,
+          "actual_boardings": 1741516.0,
+          "baseline_absolute_error": 334726.0,
+          "candidate_absolute_error": 343846.0,
+          "delta_absolute_error": 9120.0,
+          "delta_overall_wape_contribution": 0.0008509325689122423
+        },
+        "17": {
+          "baseline_wape": 0.14667349407425548,
+          "candidate_wape": 0.1515061112719015,
+          "actual_boardings": 2695020.0,
+          "baseline_absolute_error": 395288.0,
+          "candidate_absolute_error": 408312.0,
+          "delta_absolute_error": 13024.0,
+          "delta_overall_wape_contribution": 0.0012151914229729215
+        },
+        "25": {
+          "baseline_wape": 0.29494497317313,
+          "candidate_wape": 0.29331793901131836,
+          "actual_boardings": 338653.0,
+          "baseline_absolute_error": 99884.0,
+          "candidate_absolute_error": 99333.0,
+          "delta_absolute_error": -551.0,
+          "delta_overall_wape_contribution": -5.1410509371781304e-05
+        },
+        "26": {
+          "baseline_wape": 0.3166141895210245,
+          "candidate_wape": 0.31621032740254335,
+          "actual_boardings": 802254.0,
+          "baseline_absolute_error": 254005.0,
+          "candidate_absolute_error": 253681.0,
+          "delta_absolute_error": -324.0,
+          "delta_overall_wape_contribution": -3.0230499158724395e-05
+        },
+        "28": {
+          "baseline_wape": 0.320558976788252,
+          "candidate_wape": 0.31715688385513113,
+          "actual_boardings": 464420.0,
+          "baseline_absolute_error": 148874.0,
+          "candidate_absolute_error": 147294.0,
+          "delta_absolute_error": -1580.0,
+          "delta_overall_wape_contribution": -0.00014742033540365602
+        },
+        "50": {
+          "baseline_wape": 0.25910357387905847,
+          "candidate_wape": 0.2646850764931644,
+          "actual_boardings": 1222789.0,
+          "baseline_absolute_error": 316829.0,
+          "candidate_absolute_error": 323654.0,
+          "delta_absolute_error": 6825.0,
+          "delta_overall_wape_contribution": 0.0006367998665379444
+        }
+      },
+      "decision": null
+    },
+    {
+      "fold": "fold_3",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_test.csv"
+      ],
+      "grid_rows": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "periods": {
+        "train": [
+          "2025-01-01",
+          "2025-08-31"
+        ],
+        "validation": [
+          "2025-09-01",
+          "2025-10-31"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.12357994025785918,
+        "candidate_wape": 0.12075207137005418,
+        "delta_wape_absolute": -0.0028278688878049935,
+        "delta_wape_relative": -0.02288291191842644,
+        "baseline_wape_score": 0.8764200597421408,
+        "candidate_wape_score": 0.8792479286299458,
+        "total_actual_boardings": 12754481.0,
+        "routes_improved": 7,
+        "routes_worsened": 2
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.10940917688956801,
+          "candidate_wape": 0.10880271245399804,
+          "actual_boardings": 1136093.0,
+          "baseline_absolute_error": 124299.0,
+          "candidate_absolute_error": 123610.0,
+          "delta_absolute_error": -689.0,
+          "delta_overall_wape_contribution": -5.402023022340149e-05
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.15733322078850975,
+          "candidate_wape": 0.15288695983112352,
+          "actual_boardings": 1350573.0,
+          "baseline_absolute_error": 212490.0,
+          "candidate_absolute_error": 206485.0,
+          "delta_absolute_error": -6005.0,
+          "delta_overall_wape_contribution": -0.0004708149237903134
+        },
+        "11": {
+          "baseline_wape": 0.10545493825315498,
+          "candidate_wape": 0.10335170191199967,
+          "actual_boardings": 1907061.0,
+          "baseline_absolute_error": 201109.0,
+          "candidate_absolute_error": 197098.0,
+          "delta_absolute_error": -4011.0,
+          "delta_overall_wape_contribution": -0.00031447771179399616
+        },
+        "12": {
+          "baseline_wape": 0.08806596477926038,
+          "candidate_wape": 0.08631914434534313,
+          "actual_boardings": 1983604.0,
+          "baseline_absolute_error": 174688.0,
+          "candidate_absolute_error": 171223.0,
+          "delta_absolute_error": -3465.0,
+          "delta_overall_wape_contribution": -0.00027166922746601764
+        },
+        "17": {
+          "baseline_wape": 0.08589449971841562,
+          "candidate_wape": 0.0803947078460019,
+          "actual_boardings": 3063025.0,
+          "baseline_absolute_error": 263097.0,
+          "candidate_absolute_error": 246251.0,
+          "delta_absolute_error": -16846.0,
+          "delta_overall_wape_contribution": -0.001320790708771294
+        },
+        "25": {
+          "baseline_wape": 0.19959874025104565,
+          "candidate_wape": 0.20038016347459944,
+          "actual_boardings": 464537.0,
+          "baseline_absolute_error": 92721.0,
+          "candidate_absolute_error": 93084.0,
+          "delta_absolute_error": 363.0,
+          "delta_overall_wape_contribution": 2.846058573453518e-05
+        },
+        "26": {
+          "baseline_wape": 0.1253876274812746,
+          "candidate_wape": 0.12344260911369549,
+          "actual_boardings": 1089964.0,
+          "baseline_absolute_error": 136668.0,
+          "candidate_absolute_error": 134548.0,
+          "delta_absolute_error": -2120.0,
+          "delta_overall_wape_contribution": -0.0001662160929950815
+        },
+        "28": {
+          "baseline_wape": 0.15373884855288591,
+          "candidate_wape": 0.15646235909154316,
+          "actual_boardings": 602164.0,
+          "baseline_absolute_error": 92576.0,
+          "candidate_absolute_error": 94216.0,
+          "delta_absolute_error": 1640.0,
+          "delta_overall_wape_contribution": 0.00012858226061883662
+        },
+        "50": {
+          "baseline_wape": 0.2406562645793375,
+          "candidate_wape": 0.23639261831942357,
+          "actual_boardings": 1157460.0,
+          "baseline_absolute_error": 278550.0,
+          "candidate_absolute_error": 273615.0,
+          "delta_absolute_error": -4935.0,
+          "delta_overall_wape_contribution": -0.00038692283911826754
+        }
+      },
+      "decision": null
+    }
+  ],
+  "aggregate": {
+    "mean_delta_wape": 0.0007167561959483213,
+    "median_delta_wape": 0.0012729419445014767,
+    "folds_route_specific_wins": 1,
+    "pooled_actual_boardings": 35028042.0,
+    "pooled_global_absolute_error": 6367424.0,
+    "pooled_route_specific_absolute_error": 6385777.0,
+    "pooled_global_wape": 0.18178075725728546,
+    "pooled_route_specific_wape": 0.1823047088958041
+  },
+  "decision": "HOLDOUT_SPECIFIC_GAIN",
+  "decision_rationale": "Route-specific improves only on Sep-Oct (delta WAPE -0.002828); May-Jun and Jul-Aug favor global (+0.001273 and +0.003705). Pooled route-specific absolute error is 18353 higher. No route consistently prefers either architecture across all three folds. The Sep-Oct gain remains after removing route 17 only as a diagnostic calculation, but does not generalize to earlier folds.",
+  "architecture_tuning_recommended": false
+}

@@ -1,0 +1,2641 @@
+{
+  "experiment_class": "model_architecture_prediction_decomposition",
+  "name": "route_specific_early_holdouts_decomposition",
+  "reference_artifact": "ml/experiments/results/route_specific_history_vs_period.json",
+  "sep_oct_decomposition_artifact": "ml/experiments/results/route_specific_may_aug_sep_oct_decomposition.json",
+  "feature_names": {
+    "global": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night"
+    ],
+    "route_specific": [
+      "weekday",
+      "hour",
+      "hour_weekend",
+      "is_night"
+    ]
+  },
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+  "route_5_prediction": 0,
+  "runs": {
+    "jan_apr_may_jun": {
+      "periods": {
+        "train": [
+          "2025-01-01",
+          "2025-04-30"
+        ],
+        "validation": [
+          "2025-05-01",
+          "2025-06-30"
+        ]
+      },
+      "reference_reproduced": true,
+      "predictions_artifact": "ml/experiments/results/route_specific_jan_apr_may_jun_predictions.csv.gz",
+      "week_definition": "Consecutive seven-day buckets from 2025-05-01; final bucket may be shorter",
+      "overall": {
+        "rows": 14640,
+        "actual_boardings": 11555908.0,
+        "global_wape": 0.18387295918243723,
+        "route_specific_wape": 0.1851459011269387,
+        "delta_wape": 0.001272941944501462,
+        "global_absolute_error": 2124819.0,
+        "route_specific_absolute_error": 2139529.0,
+        "delta_absolute_error": 14710.0
+      },
+      "month": {
+        "2025-05": {
+          "rows": 7440,
+          "actual_boardings": 6000921.0,
+          "global_wape": 0.18144098214257445,
+          "route_specific_wape": 0.18150847178291465,
+          "delta_wape": 6.748964034020778e-05,
+          "global_absolute_error": 1088813.0,
+          "route_specific_absolute_error": 1089218.0,
+          "delta_absolute_error": 405.0
+        },
+        "2025-06": {
+          "rows": 7200,
+          "actual_boardings": 5554987.0,
+          "global_wape": 0.18650016642703215,
+          "route_specific_wape": 0.18907532996926907,
+          "delta_wape": 0.0025751635422369126,
+          "global_absolute_error": 1036006.0,
+          "route_specific_absolute_error": 1050311.0,
+          "delta_absolute_error": 14305.0
+        }
+      },
+      "week": {
+        "week_01": {
+          "start": "2025-05-01",
+          "end": "2025-05-07",
+          "rows": 1680,
+          "actual_boardings": 1151360.0,
+          "global_wape": 0.3294243329627571,
+          "route_specific_wape": 0.33530694135630906,
+          "delta_wape": 0.005882608393551973,
+          "global_absolute_error": 379286.0,
+          "route_specific_absolute_error": 386059.0,
+          "delta_absolute_error": 6773.0
+        },
+        "week_02": {
+          "start": "2025-05-08",
+          "end": "2025-05-14",
+          "rows": 1680,
+          "actual_boardings": 1188960.0,
+          "global_wape": 0.2997611357825326,
+          "route_specific_wape": 0.30101853720898936,
+          "delta_wape": 0.0012574014264567354,
+          "global_absolute_error": 356404.0,
+          "route_specific_absolute_error": 357899.0,
+          "delta_absolute_error": 1495.0
+        },
+        "week_03": {
+          "start": "2025-05-15",
+          "end": "2025-05-21",
+          "rows": 1680,
+          "actual_boardings": 1514354.0,
+          "global_wape": 0.08738511602967337,
+          "route_specific_wape": 0.08385687890678137,
+          "delta_wape": -0.0035282371228920056,
+          "global_absolute_error": 132332.0,
+          "route_specific_absolute_error": 126989.0,
+          "delta_absolute_error": -5343.0
+        },
+        "week_04": {
+          "start": "2025-05-22",
+          "end": "2025-05-28",
+          "rows": 1680,
+          "actual_boardings": 1518756.0,
+          "global_wape": 0.09832389139532617,
+          "route_specific_wape": 0.09701163320507046,
+          "delta_wape": -0.0013122581902557094,
+          "global_absolute_error": 149330.0,
+          "route_specific_absolute_error": 147337.0,
+          "delta_absolute_error": -1993.0
+        },
+        "week_05": {
+          "start": "2025-05-29",
+          "end": "2025-06-04",
+          "rows": 1680,
+          "actual_boardings": 1469458.0,
+          "global_wape": 0.10473249320497761,
+          "route_specific_wape": 0.10543139034936691,
+          "delta_wape": 0.0006988971443892918,
+          "global_absolute_error": 153900.0,
+          "route_specific_absolute_error": 154927.0,
+          "delta_absolute_error": 1027.0
+        },
+        "week_06": {
+          "start": "2025-06-05",
+          "end": "2025-06-11",
+          "rows": 1680,
+          "actual_boardings": 1404592.0,
+          "global_wape": 0.1339563374987185,
+          "route_specific_wape": 0.13387731099137687,
+          "delta_wape": -7.902650734163372e-05,
+          "global_absolute_error": 188154.0,
+          "route_specific_absolute_error": 188043.0,
+          "delta_absolute_error": -111.0
+        },
+        "week_07": {
+          "start": "2025-06-12",
+          "end": "2025-06-18",
+          "rows": 1680,
+          "actual_boardings": 1112230.0,
+          "global_wape": 0.3632845724355574,
+          "route_specific_wape": 0.3687357830664521,
+          "delta_wape": 0.005451210630894689,
+          "global_absolute_error": 404056.0,
+          "route_specific_absolute_error": 410119.0,
+          "delta_absolute_error": 6063.0
+        },
+        "week_08": {
+          "start": "2025-06-19",
+          "end": "2025-06-25",
+          "rows": 1680,
+          "actual_boardings": 1327345.0,
+          "global_wape": 0.1526920280710742,
+          "route_specific_wape": 0.15622464393205987,
+          "delta_wape": 0.003532615860985652,
+          "global_absolute_error": 202675.0,
+          "route_specific_absolute_error": 207364.0,
+          "delta_absolute_error": 4689.0
+        },
+        "week_09": {
+          "start": "2025-06-26",
+          "end": "2025-06-30",
+          "rows": 1200,
+          "actual_boardings": 868853.0,
+          "global_wape": 0.18263388628456137,
+          "route_specific_wape": 0.18506237533852102,
+          "delta_wape": 0.0024284890539596456,
+          "global_absolute_error": 158682.0,
+          "route_specific_absolute_error": 160792.0,
+          "delta_absolute_error": 2110.0
+        }
+      },
+      "route_month": {
+        "1": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 503987.0,
+            "global_wape": 0.19981070940321874,
+            "route_specific_wape": 0.19904283245401172,
+            "delta_wape": -0.0007678769492070232,
+            "global_absolute_error": 100702.0,
+            "route_specific_absolute_error": 100315.0,
+            "delta_absolute_error": -387.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 469197.0,
+            "global_wape": 0.1902420518460263,
+            "route_specific_wape": 0.18817468994899797,
+            "delta_wape": -0.0020673618970283273,
+            "global_absolute_error": 89261.0,
+            "route_specific_absolute_error": 88291.0,
+            "delta_absolute_error": -970.0
+          }
+        },
+        "5": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          }
+        },
+        "7": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 711903.0,
+            "global_wape": 0.19433405955586647,
+            "route_specific_wape": 0.19533560049613502,
+            "delta_wape": 0.001001540940268548,
+            "global_absolute_error": 138347.0,
+            "route_specific_absolute_error": 139060.0,
+            "delta_absolute_error": 713.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 642424.0,
+            "global_wape": 0.19162577985878484,
+            "route_specific_wape": 0.1949024320386536,
+            "delta_wape": 0.003276652179868747,
+            "global_absolute_error": 123105.0,
+            "route_specific_absolute_error": 125210.0,
+            "delta_absolute_error": 2105.0
+          }
+        },
+        "11": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 881308.0,
+            "global_wape": 0.17195237079431935,
+            "route_specific_wape": 0.17358403645490567,
+            "delta_wape": 0.0016316656605863103,
+            "global_absolute_error": 151543.0,
+            "route_specific_absolute_error": 152981.0,
+            "delta_absolute_error": 1438.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 847189.0,
+            "global_wape": 0.16606920061521102,
+            "route_specific_wape": 0.1667467353801808,
+            "delta_wape": 0.0006775347649698001,
+            "global_absolute_error": 140692.0,
+            "route_specific_absolute_error": 141266.0,
+            "delta_absolute_error": 574.0
+          }
+        },
+        "12": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 940816.0,
+            "global_wape": 0.18002776313328003,
+            "route_specific_wape": 0.1781559837417731,
+            "delta_wape": -0.0018717793915069472,
+            "global_absolute_error": 169373.0,
+            "route_specific_absolute_error": 167612.0,
+            "delta_absolute_error": -1761.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 861815.0,
+            "global_wape": 0.18728033278603876,
+            "route_specific_wape": 0.18744394098501418,
+            "delta_wape": 0.00016360819897541816,
+            "global_absolute_error": 161401.0,
+            "route_specific_absolute_error": 161542.0,
+            "delta_absolute_error": 141.0
+          }
+        },
+        "17": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 1413651.0,
+            "global_wape": 0.13784095225766474,
+            "route_specific_wape": 0.13950331446729072,
+            "delta_wape": 0.0016623622096259968,
+            "global_absolute_error": 194859.0,
+            "route_specific_absolute_error": 197209.0,
+            "delta_absolute_error": 2350.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 1341353.0,
+            "global_wape": 0.13687224764845646,
+            "route_specific_wape": 0.1423428433827635,
+            "delta_wape": 0.005470595734307077,
+            "global_absolute_error": 183594.0,
+            "route_specific_absolute_error": 190932.0,
+            "delta_absolute_error": 7338.0
+          }
+        },
+        "25": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 205005.0,
+            "global_wape": 0.21350698763444795,
+            "route_specific_wape": 0.21348747591522158,
+            "delta_wape": -1.9511719226360333e-05,
+            "global_absolute_error": 43770.0,
+            "route_specific_absolute_error": 43766.0,
+            "delta_absolute_error": -4.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 184492.0,
+            "global_wape": 0.21145090302018515,
+            "route_specific_wape": 0.2133696854064133,
+            "delta_wape": 0.001918782386228129,
+            "global_absolute_error": 39011.0,
+            "route_specific_absolute_error": 39365.0,
+            "delta_absolute_error": 354.0
+          }
+        },
+        "26": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 472761.0,
+            "global_wape": 0.2058947332796064,
+            "route_specific_wape": 0.20758268977347963,
+            "delta_wape": 0.0016879564938732255,
+            "global_absolute_error": 97339.0,
+            "route_specific_absolute_error": 98137.0,
+            "delta_absolute_error": 798.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 428557.0,
+            "global_wape": 0.2561082889790623,
+            "route_specific_wape": 0.26194415211978805,
+            "delta_wape": 0.005835863140725738,
+            "global_absolute_error": 109757.0,
+            "route_specific_absolute_error": 112258.0,
+            "delta_absolute_error": 2501.0
+          }
+        },
+        "28": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 282677.0,
+            "global_wape": 0.22735843383083873,
+            "route_specific_wape": 0.22714971504579431,
+            "delta_wape": -0.00020871878504441464,
+            "global_absolute_error": 64269.0,
+            "route_specific_absolute_error": 64210.0,
+            "delta_absolute_error": -59.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 252550.0,
+            "global_wape": 0.23876856068105326,
+            "route_specific_wape": 0.23824589190259354,
+            "delta_wape": -0.000522668778459711,
+            "global_absolute_error": 60301.0,
+            "route_specific_absolute_error": 60169.0,
+            "delta_absolute_error": -132.0
+          }
+        },
+        "50": {
+          "2025-05": {
+            "rows": 744,
+            "actual_boardings": 588813.0,
+            "global_wape": 0.21842418560731505,
+            "route_specific_wape": 0.2138675606686673,
+            "delta_wape": -0.004556624938647754,
+            "global_absolute_error": 128611.0,
+            "route_specific_absolute_error": 125928.0,
+            "delta_absolute_error": -2683.0
+          },
+          "2025-06": {
+            "rows": 720,
+            "actual_boardings": 527410.0,
+            "global_wape": 0.24437155154433932,
+            "route_specific_wape": 0.2489107146242961,
+            "delta_wape": 0.00453916307995677,
+            "global_absolute_error": 128884.0,
+            "route_specific_absolute_error": 131278.0,
+            "delta_absolute_error": 2394.0
+          }
+        }
+      },
+      "route_week": {
+        "1": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 94110.0,
+            "global_wape": 0.3953033683986824,
+            "route_specific_wape": 0.396844118584635,
+            "delta_wape": 0.0015407501859526086,
+            "global_absolute_error": 37202.0,
+            "route_specific_absolute_error": 37347.0,
+            "delta_absolute_error": 145.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 99578.0,
+            "global_wape": 0.34628130711602967,
+            "route_specific_wape": 0.34703448552893207,
+            "delta_wape": 0.0007531784129024483,
+            "global_absolute_error": 34482.0,
+            "route_specific_absolute_error": 34557.0,
+            "delta_absolute_error": 75.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 130894.0,
+            "global_wape": 0.08943114275673446,
+            "route_specific_wape": 0.08574113404739712,
+            "delta_wape": -0.0036900087093373266,
+            "global_absolute_error": 11706.0,
+            "route_specific_absolute_error": 11223.0,
+            "delta_absolute_error": -483.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 127812.0,
+            "global_wape": 0.08606390636246988,
+            "route_specific_wape": 0.08597784245610741,
+            "delta_wape": -8.606390636246988e-05,
+            "global_absolute_error": 11000.0,
+            "route_specific_absolute_error": 10989.0,
+            "delta_absolute_error": -11.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 123625.0,
+            "global_wape": 0.09741557128412538,
+            "route_specific_wape": 0.09659858442871587,
+            "delta_wape": -0.0008169868554095045,
+            "global_absolute_error": 12043.0,
+            "route_specific_absolute_error": 11942.0,
+            "delta_absolute_error": -101.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 125348.0,
+            "global_wape": 0.1121677250534512,
+            "route_specific_wape": 0.1082187190860644,
+            "delta_wape": -0.003949005967386795,
+            "global_absolute_error": 14060.0,
+            "route_specific_absolute_error": 13565.0,
+            "delta_absolute_error": -495.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 89018.0,
+            "global_wape": 0.44040531128535804,
+            "route_specific_wape": 0.4387988946055854,
+            "delta_wape": -0.0016064166797726302,
+            "global_absolute_error": 39204.0,
+            "route_specific_absolute_error": 39061.0,
+            "delta_absolute_error": -143.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 110265.0,
+            "global_wape": 0.1623452591484152,
+            "route_specific_wape": 0.16142928399764203,
+            "delta_wape": -0.0009159751507731374,
+            "global_absolute_error": 17901.0,
+            "route_specific_absolute_error": 17800.0,
+            "delta_absolute_error": -101.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 72534.0,
+            "global_wape": 0.17047177875203354,
+            "route_specific_wape": 0.16712162572035183,
+            "delta_wape": -0.003350153031681694,
+            "global_absolute_error": 12365.0,
+            "route_specific_absolute_error": 12122.0,
+            "delta_absolute_error": -243.0
+          }
+        },
+        "5": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          }
+        },
+        "7": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 134868.0,
+            "global_wape": 0.31569386362962304,
+            "route_specific_wape": 0.3269863866892072,
+            "delta_wape": 0.011292523059584185,
+            "global_absolute_error": 42577.0,
+            "route_specific_absolute_error": 44100.0,
+            "delta_absolute_error": 1523.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 144205.0,
+            "global_wape": 0.28960160882077596,
+            "route_specific_wape": 0.2942824451301966,
+            "delta_wape": 0.004680836309420617,
+            "global_absolute_error": 41762.0,
+            "route_specific_absolute_error": 42437.0,
+            "delta_absolute_error": 675.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 172320.0,
+            "global_wape": 0.09019846796657381,
+            "route_specific_wape": 0.09409238625812442,
+            "delta_wape": 0.0038939182915506037,
+            "global_absolute_error": 15543.0,
+            "route_specific_absolute_error": 16214.0,
+            "delta_absolute_error": 671.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 179542.0,
+            "global_wape": 0.13644161254748194,
+            "route_specific_wape": 0.13003085628989317,
+            "delta_wape": -0.006410756257588753,
+            "global_absolute_error": 24497.0,
+            "route_specific_absolute_error": 23346.0,
+            "delta_absolute_error": -1151.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 178263.0,
+            "global_wape": 0.13214183537806498,
+            "route_specific_wape": 0.12673970481816194,
+            "delta_wape": -0.005402130559903065,
+            "global_absolute_error": 23556.0,
+            "route_specific_absolute_error": 22593.0,
+            "delta_absolute_error": -963.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 159861.0,
+            "global_wape": 0.158637816603174,
+            "route_specific_wape": 0.15243868110420927,
+            "delta_wape": -0.006199135498964726,
+            "global_absolute_error": 25360.0,
+            "route_specific_absolute_error": 24369.0,
+            "delta_absolute_error": -991.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 131053.0,
+            "global_wape": 0.34717251798890525,
+            "route_specific_wape": 0.3568708842987188,
+            "delta_wape": 0.009698366309813586,
+            "global_absolute_error": 45498.0,
+            "route_specific_absolute_error": 46769.0,
+            "delta_absolute_error": 1271.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 154043.0,
+            "global_wape": 0.1458813448193037,
+            "route_specific_wape": 0.1560668125133891,
+            "delta_wape": 0.010185467694085418,
+            "global_absolute_error": 22472.0,
+            "route_specific_absolute_error": 24041.0,
+            "delta_absolute_error": 1569.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 100172.0,
+            "global_wape": 0.20152337978676677,
+            "route_specific_wape": 0.2036597053068722,
+            "delta_wape": 0.0021363255201054185,
+            "global_absolute_error": 20187.0,
+            "route_specific_absolute_error": 20401.0,
+            "delta_absolute_error": 214.0
+          }
+        },
+        "11": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 174546.0,
+            "global_wape": 0.3077756007012478,
+            "route_specific_wape": 0.31218131610005384,
+            "delta_wape": 0.004405715398806046,
+            "global_absolute_error": 53721.0,
+            "route_specific_absolute_error": 54490.0,
+            "delta_absolute_error": 769.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 179234.0,
+            "global_wape": 0.2638394501043329,
+            "route_specific_wape": 0.26710333976812434,
+            "delta_wape": 0.0032638896637914683,
+            "global_absolute_error": 47289.0,
+            "route_specific_absolute_error": 47874.0,
+            "delta_absolute_error": 585.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 222572.0,
+            "global_wape": 0.08583739194507845,
+            "route_specific_wape": 0.08185216469277358,
+            "delta_wape": -0.003985227252304872,
+            "global_absolute_error": 19105.0,
+            "route_specific_absolute_error": 18218.0,
+            "delta_absolute_error": -887.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 218564.0,
+            "global_wape": 0.09252667410918541,
+            "route_specific_wape": 0.09397705020039897,
+            "delta_wape": 0.0014503760912135575,
+            "global_absolute_error": 20223.0,
+            "route_specific_absolute_error": 20540.0,
+            "delta_absolute_error": 317.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 211254.0,
+            "global_wape": 0.11514574871955087,
+            "route_specific_wape": 0.11727115226220569,
+            "delta_wape": 0.0021254035426548135,
+            "global_absolute_error": 24325.0,
+            "route_specific_absolute_error": 24774.0,
+            "delta_absolute_error": 449.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 215490.0,
+            "global_wape": 0.12096617012390366,
+            "route_specific_wape": 0.11629309944777019,
+            "delta_wape": -0.004673070676133463,
+            "global_absolute_error": 26067.0,
+            "route_specific_absolute_error": 25060.0,
+            "delta_absolute_error": -1007.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 175082.0,
+            "global_wape": 0.2947133343233456,
+            "route_specific_wape": 0.2978718543311134,
+            "delta_wape": 0.0031585200077677887,
+            "global_absolute_error": 51599.0,
+            "route_specific_absolute_error": 52152.0,
+            "delta_absolute_error": 553.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 198290.0,
+            "global_wape": 0.1436633213979525,
+            "route_specific_wape": 0.146916132936608,
+            "delta_wape": 0.0032528115386555047,
+            "global_absolute_error": 28487.0,
+            "route_specific_absolute_error": 29132.0,
+            "delta_absolute_error": 645.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 133465.0,
+            "global_wape": 0.1604840220282471,
+            "route_specific_wape": 0.16488967144944366,
+            "delta_wape": 0.004405649421196568,
+            "global_absolute_error": 21419.0,
+            "route_specific_absolute_error": 22007.0,
+            "delta_absolute_error": 588.0
+          }
+        },
+        "12": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 183980.0,
+            "global_wape": 0.3185291879552125,
+            "route_specific_wape": 0.32008914012392653,
+            "delta_wape": 0.0015599521687139906,
+            "global_absolute_error": 58603.0,
+            "route_specific_absolute_error": 58890.0,
+            "delta_absolute_error": 287.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 184912.0,
+            "global_wape": 0.30658367223327854,
+            "route_specific_wape": 0.30492342303365927,
+            "delta_wape": -0.0016602491996192783,
+            "global_absolute_error": 56691.0,
+            "route_specific_absolute_error": 56384.0,
+            "delta_absolute_error": -307.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 235570.0,
+            "global_wape": 0.08638196714352422,
+            "route_specific_wape": 0.08415333022031668,
+            "delta_wape": -0.002228636923207539,
+            "global_absolute_error": 20349.0,
+            "route_specific_absolute_error": 19824.0,
+            "delta_absolute_error": -525.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 237804.0,
+            "global_wape": 0.09837933760575937,
+            "route_specific_wape": 0.09504465862643185,
+            "delta_wape": -0.0033346789793275134,
+            "global_absolute_error": 23395.0,
+            "route_specific_absolute_error": 22602.0,
+            "delta_absolute_error": -793.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 230046.0,
+            "global_wape": 0.09406379593646488,
+            "route_specific_wape": 0.09245976891578206,
+            "delta_wape": -0.0016040270206828199,
+            "global_absolute_error": 21639.0,
+            "route_specific_absolute_error": 21270.0,
+            "delta_absolute_error": -369.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 219670.0,
+            "global_wape": 0.12043064596895343,
+            "route_specific_wape": 0.12127281831838667,
+            "delta_wape": 0.0008421723494332408,
+            "global_absolute_error": 26455.0,
+            "route_specific_absolute_error": 26640.0,
+            "delta_absolute_error": 185.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 162525.0,
+            "global_wape": 0.448595600676819,
+            "route_specific_wape": 0.4501768958621751,
+            "delta_wape": 0.001581295185356099,
+            "global_absolute_error": 72908.0,
+            "route_specific_absolute_error": 73165.0,
+            "delta_absolute_error": 257.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 212247.0,
+            "global_wape": 0.13486174127313932,
+            "route_specific_wape": 0.13483818381414106,
+            "delta_wape": -2.3557458998242614e-05,
+            "global_absolute_error": 28624.0,
+            "route_specific_absolute_error": 28619.0,
+            "delta_absolute_error": -5.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 135877.0,
+            "global_wape": 0.16272069592351907,
+            "route_specific_wape": 0.16014483687452621,
+            "delta_wape": -0.002575859048992839,
+            "global_absolute_error": 22110.0,
+            "route_specific_absolute_error": 21760.0,
+            "delta_absolute_error": -350.0
+          }
+        },
+        "17": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 277337.0,
+            "global_wape": 0.2604340567612688,
+            "route_specific_wape": 0.2707500261414813,
+            "delta_wape": 0.01031596938021252,
+            "global_absolute_error": 72228.0,
+            "route_specific_absolute_error": 75089.0,
+            "delta_absolute_error": 2861.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 283581.0,
+            "global_wape": 0.22833687729431804,
+            "route_specific_wape": 0.23340421255302718,
+            "delta_wape": 0.005067335258709152,
+            "global_absolute_error": 64752.0,
+            "route_specific_absolute_error": 66189.0,
+            "delta_absolute_error": 1437.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 353129.0,
+            "global_wape": 0.0660551809678616,
+            "route_specific_wape": 0.05659404920015065,
+            "delta_wape": -0.00946113176771095,
+            "global_absolute_error": 23326.0,
+            "route_specific_absolute_error": 19985.0,
+            "delta_absolute_error": -3341.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 353622.0,
+            "global_wape": 0.06996453840541596,
+            "route_specific_wape": 0.06952056150352637,
+            "delta_wape": -0.0004439769018895883,
+            "global_absolute_error": 24741.0,
+            "route_specific_absolute_error": 24584.0,
+            "delta_absolute_error": -157.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 342114.0,
+            "global_wape": 0.06932484493472936,
+            "route_specific_wape": 0.0736538113026652,
+            "delta_wape": 0.004328966367935835,
+            "global_absolute_error": 23717.0,
+            "route_specific_absolute_error": 25198.0,
+            "delta_absolute_error": 1481.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 335428.0,
+            "global_wape": 0.09101506135444865,
+            "route_specific_wape": 0.09438091035930214,
+            "delta_wape": 0.0033658490048535006,
+            "global_absolute_error": 30529.0,
+            "route_specific_absolute_error": 31658.0,
+            "delta_absolute_error": 1129.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 281665.0,
+            "global_wape": 0.24780501659773135,
+            "route_specific_wape": 0.25802637885431273,
+            "delta_wape": 0.0102213622565814,
+            "global_absolute_error": 69798.0,
+            "route_specific_absolute_error": 72677.0,
+            "delta_absolute_error": 2879.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 323686.0,
+            "global_wape": 0.10438820338229024,
+            "route_specific_wape": 0.10868557799843058,
+            "delta_wape": 0.004297374616140334,
+            "global_absolute_error": 33789.0,
+            "route_specific_absolute_error": 35180.0,
+            "delta_absolute_error": 1391.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 204442.0,
+            "global_wape": 0.1740004500053805,
+            "route_specific_wape": 0.18382230657105683,
+            "delta_wape": 0.009821856565676329,
+            "global_absolute_error": 35573.0,
+            "route_specific_absolute_error": 37581.0,
+            "delta_absolute_error": 2008.0
+          }
+        },
+        "25": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 38521.0,
+            "global_wape": 0.32452428545468703,
+            "route_specific_wape": 0.3333506399106981,
+            "delta_wape": 0.008826354456011007,
+            "global_absolute_error": 12501.0,
+            "route_specific_absolute_error": 12841.0,
+            "delta_absolute_error": 340.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 39239.0,
+            "global_wape": 0.27888070542062743,
+            "route_specific_wape": 0.27694385687708656,
+            "delta_wape": -0.001936848543540865,
+            "global_absolute_error": 10943.0,
+            "route_specific_absolute_error": 10867.0,
+            "delta_absolute_error": -76.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 50288.0,
+            "global_wape": 0.14671492204899778,
+            "route_specific_wape": 0.14190264078905504,
+            "delta_wape": -0.0048122812599427295,
+            "global_absolute_error": 7378.0,
+            "route_specific_absolute_error": 7136.0,
+            "delta_absolute_error": -242.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 55484.0,
+            "global_wape": 0.18088097469540768,
+            "route_specific_wape": 0.18070074255641266,
+            "delta_wape": -0.0001802321389950256,
+            "global_absolute_error": 10036.0,
+            "route_specific_absolute_error": 10026.0,
+            "delta_absolute_error": -10.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 49777.0,
+            "global_wape": 0.13558470779677362,
+            "route_specific_wape": 0.13598649978905922,
+            "delta_wape": 0.00040179199228559373,
+            "global_absolute_error": 6749.0,
+            "route_specific_absolute_error": 6769.0,
+            "delta_absolute_error": 20.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 49245.0,
+            "global_wape": 0.16714387247436288,
+            "route_specific_wape": 0.17018986699157274,
+            "delta_wape": 0.003045994517209869,
+            "global_absolute_error": 8231.0,
+            "route_specific_absolute_error": 8381.0,
+            "delta_absolute_error": 150.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 37519.0,
+            "global_wape": 0.31821210586636106,
+            "route_specific_wape": 0.3188517817639063,
+            "delta_wape": 0.0006396758975452438,
+            "global_absolute_error": 11939.0,
+            "route_specific_absolute_error": 11963.0,
+            "delta_absolute_error": 24.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 41529.0,
+            "global_wape": 0.19352741457776493,
+            "route_specific_wape": 0.19386452840183968,
+            "delta_wape": 0.00033711382407474296,
+            "global_absolute_error": 8037.0,
+            "route_specific_absolute_error": 8051.0,
+            "delta_absolute_error": 14.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 27895.0,
+            "global_wape": 0.24975802115074386,
+            "route_specific_wape": 0.25441835454382505,
+            "delta_wape": 0.004660333393081197,
+            "global_absolute_error": 6967.0,
+            "route_specific_absolute_error": 7097.0,
+            "delta_absolute_error": 130.0
+          }
+        },
+        "26": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 90155.0,
+            "global_wape": 0.38235261494093503,
+            "route_specific_wape": 0.38785425101214577,
+            "delta_wape": 0.005501636071210693,
+            "global_absolute_error": 34471.0,
+            "route_specific_absolute_error": 34967.0,
+            "delta_absolute_error": 496.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 89377.0,
+            "global_wape": 0.3993533011848686,
+            "route_specific_wape": 0.4046119247681171,
+            "delta_wape": 0.005258623583248486,
+            "global_absolute_error": 35693.0,
+            "route_specific_absolute_error": 36163.0,
+            "delta_absolute_error": 470.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 119733.0,
+            "global_wape": 0.07923463038594206,
+            "route_specific_wape": 0.0773136896260847,
+            "delta_wape": -0.0019209407598573492,
+            "global_absolute_error": 9487.0,
+            "route_specific_absolute_error": 9257.0,
+            "delta_absolute_error": -230.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 121548.0,
+            "global_wape": 0.09569881857373219,
+            "route_specific_wape": 0.0974594398920591,
+            "delta_wape": 0.001760621318326916,
+            "global_absolute_error": 11632.0,
+            "route_specific_absolute_error": 11846.0,
+            "delta_absolute_error": 214.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 118530.0,
+            "global_wape": 0.12638150679152957,
+            "route_specific_wape": 0.12778199611912597,
+            "delta_wape": 0.001400489327596389,
+            "global_absolute_error": 14980.0,
+            "route_specific_absolute_error": 15146.0,
+            "delta_absolute_error": 166.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 110920.0,
+            "global_wape": 0.16648034619545618,
+            "route_specific_wape": 0.17048323115759106,
+            "delta_wape": 0.004002884962134872,
+            "global_absolute_error": 18466.0,
+            "route_specific_absolute_error": 18910.0,
+            "delta_absolute_error": 444.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 82815.0,
+            "global_wape": 0.5012256233774075,
+            "route_specific_wape": 0.5085431383203526,
+            "delta_wape": 0.0073175149429451185,
+            "global_absolute_error": 41509.0,
+            "route_specific_absolute_error": 42115.0,
+            "delta_absolute_error": 606.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 100803.0,
+            "global_wape": 0.24335585250438976,
+            "route_specific_wape": 0.24976439193277977,
+            "delta_wape": 0.006408539428390028,
+            "global_absolute_error": 24531.0,
+            "route_specific_absolute_error": 25177.0,
+            "delta_absolute_error": 646.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 67437.0,
+            "global_wape": 0.2421074484333526,
+            "route_specific_wape": 0.24932900336610467,
+            "delta_wape": 0.00722155493275205,
+            "global_absolute_error": 16327.0,
+            "route_specific_absolute_error": 16814.0,
+            "delta_absolute_error": 487.0
+          }
+        },
+        "28": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 50191.0,
+            "global_wape": 0.4112291048195892,
+            "route_specific_wape": 0.41204598433982187,
+            "delta_wape": 0.000816879520232711,
+            "global_absolute_error": 20640.0,
+            "route_specific_absolute_error": 20681.0,
+            "delta_absolute_error": 41.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 54701.0,
+            "global_wape": 0.3357891080601817,
+            "route_specific_wape": 0.33266302261384617,
+            "delta_wape": -0.003126085446335533,
+            "global_absolute_error": 18368.0,
+            "route_specific_absolute_error": 18197.0,
+            "delta_absolute_error": -171.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 75454.0,
+            "global_wape": 0.15218543748509025,
+            "route_specific_wape": 0.14705648474567287,
+            "delta_wape": -0.005128952739417394,
+            "global_absolute_error": 11483.0,
+            "route_specific_absolute_error": 11096.0,
+            "delta_absolute_error": -387.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 73495.0,
+            "global_wape": 0.13560106129668684,
+            "route_specific_wape": 0.13977821620518402,
+            "delta_wape": 0.0041771549084971766,
+            "global_absolute_error": 9966.0,
+            "route_specific_absolute_error": 10273.0,
+            "delta_absolute_error": 307.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 71378.0,
+            "global_wape": 0.14269102524587407,
+            "route_specific_wape": 0.14589929670206506,
+            "delta_wape": 0.0032082714561909834,
+            "global_absolute_error": 10185.0,
+            "route_specific_absolute_error": 10414.0,
+            "delta_absolute_error": 229.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 61219.0,
+            "global_wape": 0.18350512095917934,
+            "route_specific_wape": 0.18309675100867379,
+            "delta_wape": -0.000408369950505562,
+            "global_absolute_error": 11234.0,
+            "route_specific_absolute_error": 11209.0,
+            "delta_absolute_error": -25.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 48641.0,
+            "global_wape": 0.45270450854217636,
+            "route_specific_wape": 0.4514093049073827,
+            "delta_wape": -0.0012952036347936926,
+            "global_absolute_error": 22020.0,
+            "route_specific_absolute_error": 21957.0,
+            "delta_absolute_error": -63.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 57097.0,
+            "global_wape": 0.24519677040825263,
+            "route_specific_wape": 0.24353293518048233,
+            "delta_wape": -0.0016638352277702857,
+            "global_absolute_error": 14000.0,
+            "route_specific_absolute_error": 13905.0,
+            "delta_absolute_error": -95.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 43051.0,
+            "global_wape": 0.15502543494924625,
+            "route_specific_wape": 0.1543982718171471,
+            "delta_wape": -0.0006271631320991382,
+            "global_absolute_error": 6674.0,
+            "route_specific_absolute_error": 6647.0,
+            "delta_absolute_error": -27.0
+          }
+        },
+        "50": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 107652.0,
+            "global_wape": 0.4397781741165979,
+            "route_specific_wape": 0.44266711254783936,
+            "delta_wape": 0.0028889384312414074,
+            "global_absolute_error": 47343.0,
+            "route_specific_absolute_error": 47654.0,
+            "delta_absolute_error": 311.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 114133.0,
+            "global_wape": 0.4067535243969755,
+            "route_specific_wape": 0.39630080695329134,
+            "delta_wape": -0.010452717443684123,
+            "global_absolute_error": 46424.0,
+            "route_specific_absolute_error": 45231.0,
+            "delta_absolute_error": -1193.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 154394.0,
+            "global_wape": 0.090385636747542,
+            "route_specific_wape": 0.09091026853375131,
+            "delta_wape": 0.0005246317862093086,
+            "global_absolute_error": 13955.0,
+            "route_specific_absolute_error": 14036.0,
+            "delta_absolute_error": 81.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 150885.0,
+            "global_wape": 0.09172548629751134,
+            "route_specific_wape": 0.08702654339397554,
+            "delta_wape": -0.004698942903535805,
+            "global_absolute_error": 13840.0,
+            "route_specific_absolute_error": 13131.0,
+            "delta_absolute_error": -709.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 144471.0,
+            "global_wape": 0.11563566390486672,
+            "route_specific_wape": 0.11643167140810266,
+            "delta_wape": 0.0007960075032359435,
+            "global_absolute_error": 16706.0,
+            "route_specific_absolute_error": 16821.0,
+            "delta_absolute_error": 115.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 127411.0,
+            "global_wape": 0.21781478836207235,
+            "route_specific_wape": 0.22173124769446909,
+            "delta_wape": 0.003916459332396731,
+            "global_absolute_error": 27752.0,
+            "route_specific_absolute_error": 28251.0,
+            "delta_absolute_error": 499.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 103912.0,
+            "global_wape": 0.47714412194934175,
+            "route_specific_wape": 0.48367849718992995,
+            "delta_wape": 0.00653437524058819,
+            "global_absolute_error": 49581.0,
+            "route_specific_absolute_error": 50260.0,
+            "delta_absolute_error": 679.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 129385.0,
+            "global_wape": 0.19193878734010897,
+            "route_specific_wape": 0.1967693318390849,
+            "delta_wape": 0.004830544498975925,
+            "global_absolute_error": 24834.0,
+            "route_specific_absolute_error": 25459.0,
+            "delta_absolute_error": 625.0
+          },
+          "week_09": {
+            "rows": 120,
+            "actual_boardings": 83980.0,
+            "global_wape": 0.2031436056203858,
+            "route_specific_wape": 0.1948440104786854,
+            "delta_wape": -0.008299595141700405,
+            "global_absolute_error": 17060.0,
+            "route_specific_absolute_error": 16363.0,
+            "delta_absolute_error": -697.0
+          }
+        }
+      }
+    },
+    "mar_jun_jul_aug": {
+      "periods": {
+        "train": [
+          "2025-03-01",
+          "2025-06-30"
+        ],
+        "validation": [
+          "2025-07-01",
+          "2025-08-31"
+        ]
+      },
+      "reference_reproduced": true,
+      "predictions_artifact": "ml/experiments/results/route_specific_mar_jun_jul_aug_predictions.csv.gz",
+      "week_definition": "Consecutive seven-day buckets from 2025-07-01; final bucket may be shorter",
+      "overall": {
+        "rows": 14880,
+        "actual_boardings": 10717653.0,
+        "global_wape": 0.25148714928538923,
+        "route_specific_wape": 0.2549355721817081,
+        "delta_wape": 0.0034484228963188117,
+        "global_absolute_error": 2695352.0,
+        "route_specific_absolute_error": 2732311.0,
+        "delta_absolute_error": 36959.0
+      },
+      "month": {
+        "2025-07": {
+          "rows": 7440,
+          "actual_boardings": 5407676.0,
+          "global_wape": 0.266844944112776,
+          "route_specific_wape": 0.2696751802437868,
+          "delta_wape": 0.0028302361310108075,
+          "global_absolute_error": 1443011.0,
+          "route_specific_absolute_error": 1458316.0,
+          "delta_absolute_error": 15305.0
+        },
+        "2025-08": {
+          "rows": 7440,
+          "actual_boardings": 5309977.0,
+          "global_wape": 0.23584678427044034,
+          "route_specific_wape": 0.2399247680357184,
+          "delta_wape": 0.004077983765278079,
+          "global_absolute_error": 1252341.0,
+          "route_specific_absolute_error": 1273995.0,
+          "delta_absolute_error": 21654.0
+        }
+      },
+      "week": {
+        "week_01": {
+          "start": "2025-07-01",
+          "end": "2025-07-07",
+          "rows": 1680,
+          "actual_boardings": 1300961.0,
+          "global_wape": 0.15696704205583412,
+          "route_specific_wape": 0.15864887571572092,
+          "delta_wape": 0.0016818336598868069,
+          "global_absolute_error": 204208.0,
+          "route_specific_absolute_error": 206396.0,
+          "delta_absolute_error": 2188.0
+        },
+        "week_02": {
+          "start": "2025-07-08",
+          "end": "2025-07-14",
+          "rows": 1680,
+          "actual_boardings": 1188478.0,
+          "global_wape": 0.2816972632223735,
+          "route_specific_wape": 0.2858521571286974,
+          "delta_wape": 0.004154893906323886,
+          "global_absolute_error": 334791.0,
+          "route_specific_absolute_error": 339729.0,
+          "delta_absolute_error": 4938.0
+        },
+        "week_03": {
+          "start": "2025-07-15",
+          "end": "2025-07-21",
+          "rows": 1680,
+          "actual_boardings": 1154589.0,
+          "global_wape": 0.3235471670005517,
+          "route_specific_wape": 0.3266790173819428,
+          "delta_wape": 0.0031318503813911273,
+          "global_absolute_error": 373564.0,
+          "route_specific_absolute_error": 377180.0,
+          "delta_absolute_error": 3616.0
+        },
+        "week_04": {
+          "start": "2025-07-22",
+          "end": "2025-07-28",
+          "rows": 1680,
+          "actual_boardings": 1188715.0,
+          "global_wape": 0.2983473751067329,
+          "route_specific_wape": 0.30106459496178645,
+          "delta_wape": 0.002717219855053566,
+          "global_absolute_error": 354650.0,
+          "route_specific_absolute_error": 357880.0,
+          "delta_absolute_error": 3230.0
+        },
+        "week_05": {
+          "start": "2025-07-29",
+          "end": "2025-08-04",
+          "rows": 1680,
+          "actual_boardings": 1163967.0,
+          "global_wape": 0.3174729180466456,
+          "route_specific_wape": 0.3188853292232512,
+          "delta_wape": 0.0014124111766055222,
+          "global_absolute_error": 369528.0,
+          "route_specific_absolute_error": 371172.0,
+          "delta_absolute_error": 1644.0
+        },
+        "week_06": {
+          "start": "2025-08-05",
+          "end": "2025-08-11",
+          "rows": 1680,
+          "actual_boardings": 1178648.0,
+          "global_wape": 0.29018587398442963,
+          "route_specific_wape": 0.29507622292660746,
+          "delta_wape": 0.004890348942177818,
+          "global_absolute_error": 342027.0,
+          "route_specific_absolute_error": 347791.0,
+          "delta_absolute_error": 5764.0
+        },
+        "week_07": {
+          "start": "2025-08-12",
+          "end": "2025-08-18",
+          "rows": 1680,
+          "actual_boardings": 1199982.0,
+          "global_wape": 0.23291099366490498,
+          "route_specific_wape": 0.23768273190764527,
+          "delta_wape": 0.004771738242740308,
+          "global_absolute_error": 279489.0,
+          "route_specific_absolute_error": 285215.0,
+          "delta_absolute_error": 5726.0
+        },
+        "week_08": {
+          "start": "2025-08-19",
+          "end": "2025-08-25",
+          "rows": 1680,
+          "actual_boardings": 1222207.0,
+          "global_wape": 0.2132224737708097,
+          "route_specific_wape": 0.2173870710935218,
+          "delta_wape": 0.00416459732271211,
+          "global_absolute_error": 260602.0,
+          "route_specific_absolute_error": 265692.0,
+          "delta_absolute_error": 5090.0
+        },
+        "week_09": {
+          "start": "2025-08-26",
+          "end": "2025-08-31",
+          "rows": 1440,
+          "actual_boardings": 1120106.0,
+          "global_wape": 0.15756812301692877,
+          "route_specific_wape": 0.1618203991407956,
+          "delta_wape": 0.004252276123866848,
+          "global_absolute_error": 176493.0,
+          "route_specific_absolute_error": 181256.0,
+          "delta_absolute_error": 4763.0
+        }
+      },
+      "route_month": {
+        "1": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 460157.0,
+            "global_wape": 0.23693000432461095,
+            "route_specific_wape": 0.24162840074148606,
+            "delta_wape": 0.00469839641687511,
+            "global_absolute_error": 109025.0,
+            "route_specific_absolute_error": 111187.0,
+            "delta_absolute_error": 2162.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 451070.0,
+            "global_wape": 0.20727603254483784,
+            "route_specific_wape": 0.21217327687498613,
+            "delta_wape": 0.004897244330148314,
+            "global_absolute_error": 93496.0,
+            "route_specific_absolute_error": 95705.0,
+            "delta_absolute_error": 2209.0
+          }
+        },
+        "5": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          }
+        },
+        "7": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 402937.0,
+            "global_wape": 0.92049377446102,
+            "route_specific_wape": 0.9307732970662908,
+            "delta_wape": 0.0102795226052708,
+            "global_absolute_error": 370901.0,
+            "route_specific_absolute_error": 375043.0,
+            "delta_absolute_error": 4142.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 471560.0,
+            "global_wape": 0.583372211383493,
+            "route_specific_wape": 0.5909216218508779,
+            "delta_wape": 0.00754941046738485,
+            "global_absolute_error": 275095.0,
+            "route_specific_absolute_error": 278655.0,
+            "delta_absolute_error": 3560.0
+          }
+        },
+        "11": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 839193.0,
+            "global_wape": 0.18156371657056244,
+            "route_specific_wape": 0.18286973318414237,
+            "delta_wape": 0.0013060166135799513,
+            "global_absolute_error": 152367.0,
+            "route_specific_absolute_error": 153463.0,
+            "delta_absolute_error": 1096.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 828084.0,
+            "global_wape": 0.17557880601484874,
+            "route_specific_wape": 0.17867511025451524,
+            "delta_wape": 0.0030963042396665074,
+            "global_absolute_error": 145394.0,
+            "route_specific_absolute_error": 147958.0,
+            "delta_absolute_error": 2564.0
+          }
+        },
+        "12": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 876958.0,
+            "global_wape": 0.20113962128174895,
+            "route_specific_wape": 0.2025114087561776,
+            "delta_wape": 0.00137178747442865,
+            "global_absolute_error": 176391.0,
+            "route_specific_absolute_error": 177594.0,
+            "delta_absolute_error": 1203.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 864558.0,
+            "global_wape": 0.1770581036784114,
+            "route_specific_wape": 0.17703381381006247,
+            "delta_wape": -2.428986834891355e-05,
+            "global_absolute_error": 153077.0,
+            "route_specific_absolute_error": 153056.0,
+            "delta_absolute_error": -21.0
+          }
+        },
+        "17": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 1332743.0,
+            "global_wape": 0.16183165096346408,
+            "route_specific_wape": 0.16533420171781055,
+            "delta_wape": 0.003502550754346487,
+            "global_absolute_error": 215680.0,
+            "route_specific_absolute_error": 220348.0,
+            "delta_absolute_error": 4668.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 1362277.0,
+            "global_wape": 0.11559249697381663,
+            "route_specific_wape": 0.11910940286006444,
+            "delta_wape": 0.003516905886247804,
+            "global_absolute_error": 157469.0,
+            "route_specific_absolute_error": 162260.0,
+            "delta_absolute_error": 4791.0
+          }
+        },
+        "25": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 167540.0,
+            "global_wape": 0.3422943774620986,
+            "route_specific_wape": 0.34407305718037484,
+            "delta_wape": 0.0017786797182762326,
+            "global_absolute_error": 57348.0,
+            "route_specific_absolute_error": 57646.0,
+            "delta_absolute_error": 298.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 171113.0,
+            "global_wape": 0.3132549835488829,
+            "route_specific_wape": 0.31171214343737763,
+            "delta_wape": -0.0015428401115052627,
+            "global_absolute_error": 53602.0,
+            "route_specific_absolute_error": 53338.0,
+            "delta_absolute_error": -264.0
+          }
+        },
+        "26": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 403827.0,
+            "global_wape": 0.36141466519078713,
+            "route_specific_wape": 0.3651514138480092,
+            "delta_wape": 0.0037367486572220283,
+            "global_absolute_error": 145949.0,
+            "route_specific_absolute_error": 147458.0,
+            "delta_absolute_error": 1509.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 398427.0,
+            "global_wape": 0.33179980272421294,
+            "route_specific_wape": 0.3361694865056836,
+            "delta_wape": 0.004369683781470633,
+            "global_absolute_error": 132198.0,
+            "route_specific_absolute_error": 133939.0,
+            "delta_absolute_error": 1741.0
+          }
+        },
+        "28": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 234229.0,
+            "global_wape": 0.32228289409082567,
+            "route_specific_wape": 0.32162541786029913,
+            "delta_wape": -0.000657476230526536,
+            "global_absolute_error": 75488.0,
+            "route_specific_absolute_error": 75334.0,
+            "delta_absolute_error": -154.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 230191.0,
+            "global_wape": 0.30963851757888017,
+            "route_specific_wape": 0.3083700057778106,
+            "delta_wape": -0.0012685118010695466,
+            "global_absolute_error": 71276.0,
+            "route_specific_absolute_error": 70984.0,
+            "delta_absolute_error": -292.0
+          }
+        },
+        "50": {
+          "2025-07": {
+            "rows": 744,
+            "actual_boardings": 690092.0,
+            "global_wape": 0.2026715278542571,
+            "route_specific_wape": 0.2032236281539273,
+            "delta_wape": 0.0005521002996701889,
+            "global_absolute_error": 139862.0,
+            "route_specific_absolute_error": 140243.0,
+            "delta_absolute_error": 381.0
+          },
+          "2025-08": {
+            "rows": 744,
+            "actual_boardings": 532697.0,
+            "global_wape": 0.32050865689125335,
+            "route_specific_wape": 0.3343364051233628,
+            "delta_wape": 0.013827748232109435,
+            "global_absolute_error": 170734.0,
+            "route_specific_absolute_error": 178100.0,
+            "delta_absolute_error": 7366.0
+          }
+        }
+      },
+      "route_week": {
+        "1": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 107646.0,
+            "global_wape": 0.169277074856474,
+            "route_specific_wape": 0.1721011463500734,
+            "delta_wape": 0.0028240714935993906,
+            "global_absolute_error": 18222.0,
+            "route_specific_absolute_error": 18526.0,
+            "delta_absolute_error": 304.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 98076.0,
+            "global_wape": 0.28068028875565887,
+            "route_specific_wape": 0.28798074962274156,
+            "delta_wape": 0.00730046086708267,
+            "global_absolute_error": 27528.0,
+            "route_specific_absolute_error": 28244.0,
+            "delta_absolute_error": 716.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 98544.0,
+            "global_wape": 0.2773583373924338,
+            "route_specific_wape": 0.28257428153921094,
+            "delta_wape": 0.005215944146777074,
+            "global_absolute_error": 27332.0,
+            "route_specific_absolute_error": 27846.0,
+            "delta_absolute_error": 514.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 101166.0,
+            "global_wape": 0.24460787221003102,
+            "route_specific_wape": 0.2508154913706186,
+            "delta_wape": 0.0062076191605875495,
+            "global_absolute_error": 24746.0,
+            "route_specific_absolute_error": 25374.0,
+            "delta_absolute_error": 628.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 101558.0,
+            "global_wape": 0.24707063943756277,
+            "route_specific_wape": 0.248527934776187,
+            "delta_wape": 0.0014572953386242345,
+            "global_absolute_error": 25092.0,
+            "route_specific_absolute_error": 25240.0,
+            "delta_absolute_error": 148.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 100522.0,
+            "global_wape": 0.24502099042995562,
+            "route_specific_wape": 0.25180557489902705,
+            "delta_wape": 0.006784584469071447,
+            "global_absolute_error": 24630.0,
+            "route_specific_absolute_error": 25312.0,
+            "delta_absolute_error": 682.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 104276.0,
+            "global_wape": 0.20802485710997737,
+            "route_specific_wape": 0.21310752234454716,
+            "delta_wape": 0.005082665234569795,
+            "global_absolute_error": 21692.0,
+            "route_specific_absolute_error": 22222.0,
+            "delta_absolute_error": 530.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 105454.0,
+            "global_wape": 0.1899975344700059,
+            "route_specific_wape": 0.19432169476738673,
+            "delta_wape": 0.004324160297380849,
+            "global_absolute_error": 20036.0,
+            "route_specific_absolute_error": 20492.0,
+            "delta_absolute_error": 456.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 93985.0,
+            "global_wape": 0.14090546363781453,
+            "route_specific_wape": 0.14508698196520722,
+            "delta_wape": 0.004181518327392669,
+            "global_absolute_error": 13243.0,
+            "route_specific_absolute_error": 13636.0,
+            "delta_absolute_error": 393.0
+          }
+        },
+        "5": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 0.0,
+            "global_wape": null,
+            "route_specific_wape": null,
+            "delta_wape": null,
+            "global_absolute_error": 0.0,
+            "route_specific_absolute_error": 0.0,
+            "delta_absolute_error": 0.0
+          }
+        },
+        "7": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 141041.0,
+            "global_wape": 0.2271041753816266,
+            "route_specific_wape": 0.23179784601640657,
+            "delta_wape": 0.004693670634779957,
+            "global_absolute_error": 32031.0,
+            "route_specific_absolute_error": 32693.0,
+            "delta_absolute_error": 662.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 93990.0,
+            "global_wape": 0.8309820193637621,
+            "route_specific_wape": 0.84006809235025,
+            "delta_wape": 0.009086072986487925,
+            "global_absolute_error": 78104.0,
+            "route_specific_absolute_error": 78958.0,
+            "delta_absolute_error": 854.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 68401.0,
+            "global_wape": 1.511571468253388,
+            "route_specific_wape": 1.5231210070028216,
+            "delta_wape": 0.011549538749433487,
+            "global_absolute_error": 103393.0,
+            "route_specific_absolute_error": 104183.0,
+            "delta_absolute_error": 790.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 68641.0,
+            "global_wape": 1.5027316035605542,
+            "route_specific_wape": 1.514299034104981,
+            "delta_wape": 0.0115674305444268,
+            "global_absolute_error": 103149.0,
+            "route_specific_absolute_error": 103943.0,
+            "delta_absolute_error": 794.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 65404.0,
+            "global_wape": 1.6265366032658553,
+            "route_specific_wape": 1.6386765335453488,
+            "delta_wape": 0.012139930279493609,
+            "global_absolute_error": 106382.0,
+            "route_specific_absolute_error": 107176.0,
+            "delta_absolute_error": 794.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 74200.0,
+            "global_wape": 1.314878706199461,
+            "route_specific_wape": 1.3254986522911052,
+            "delta_wape": 0.010619946091644204,
+            "global_absolute_error": 97564.0,
+            "route_specific_absolute_error": 98352.0,
+            "delta_absolute_error": 788.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 122911.0,
+            "global_wape": 0.39907738119452285,
+            "route_specific_wape": 0.4056349716461505,
+            "delta_wape": 0.0065575904516276,
+            "global_absolute_error": 49051.0,
+            "route_specific_absolute_error": 49857.0,
+            "delta_absolute_error": 806.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 127305.0,
+            "global_wape": 0.35039472133851773,
+            "route_specific_wape": 0.3569459172852598,
+            "delta_wape": 0.006551195946742076,
+            "global_absolute_error": 44607.0,
+            "route_specific_absolute_error": 45441.0,
+            "delta_absolute_error": 834.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 112604.0,
+            "global_wape": 0.2816507406486448,
+            "route_specific_wape": 0.2939060779368406,
+            "delta_wape": 0.0122553372881958,
+            "global_absolute_error": 31715.0,
+            "route_specific_absolute_error": 33095.0,
+            "delta_absolute_error": 1380.0
+          }
+        },
+        "11": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 193815.0,
+            "global_wape": 0.13695534401362125,
+            "route_specific_wape": 0.13573768800144467,
+            "delta_wape": -0.0012176560121765602,
+            "global_absolute_error": 26544.0,
+            "route_specific_absolute_error": 26308.0,
+            "delta_absolute_error": -236.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 181170.0,
+            "global_wape": 0.2122702434177844,
+            "route_specific_wape": 0.21423524866147817,
+            "delta_wape": 0.0019650052436937684,
+            "global_absolute_error": 38457.0,
+            "route_specific_absolute_error": 38813.0,
+            "delta_absolute_error": 356.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 184724.0,
+            "global_wape": 0.18842705874710378,
+            "route_specific_wape": 0.18991035274246984,
+            "delta_wape": 0.0014832939953660597,
+            "global_absolute_error": 34807.0,
+            "route_specific_absolute_error": 35081.0,
+            "delta_absolute_error": 274.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 190133.0,
+            "global_wape": 0.18619597860445056,
+            "route_specific_wape": 0.18903609578558167,
+            "delta_wape": 0.002840117181131103,
+            "global_absolute_error": 35402.0,
+            "route_specific_absolute_error": 35942.0,
+            "delta_absolute_error": 540.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 184460.0,
+            "global_wape": 0.21649680147457442,
+            "route_specific_wape": 0.2172991434457335,
+            "delta_wape": 0.0008023419711590589,
+            "global_absolute_error": 39935.0,
+            "route_specific_absolute_error": 40083.0,
+            "delta_absolute_error": 148.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 186524.0,
+            "global_wape": 0.17311981299993567,
+            "route_specific_wape": 0.1793281293560078,
+            "delta_wape": 0.006208316356072141,
+            "global_absolute_error": 32291.0,
+            "route_specific_absolute_error": 33449.0,
+            "delta_absolute_error": 1158.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 192049.0,
+            "global_wape": 0.14759774849127047,
+            "route_specific_wape": 0.1524610906591547,
+            "delta_wape": 0.004863342167884238,
+            "global_absolute_error": 28346.0,
+            "route_specific_absolute_error": 29280.0,
+            "delta_absolute_error": 934.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 183524.0,
+            "global_wape": 0.20385889583923628,
+            "route_specific_wape": 0.20637627776203657,
+            "delta_wape": 0.0025173819228002875,
+            "global_absolute_error": 37413.0,
+            "route_specific_absolute_error": 37875.0,
+            "delta_absolute_error": 462.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 170878.0,
+            "global_wape": 0.14376338674375871,
+            "route_specific_wape": 0.14390383782581725,
+            "delta_wape": 0.00014045108205854468,
+            "global_absolute_error": 24566.0,
+            "route_specific_absolute_error": 24590.0,
+            "delta_absolute_error": 24.0
+          }
+        },
+        "12": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 205948.0,
+            "global_wape": 0.13983141375492844,
+            "route_specific_wape": 0.13899139588634024,
+            "delta_wape": -0.0008400178685881874,
+            "global_absolute_error": 28798.0,
+            "route_specific_absolute_error": 28625.0,
+            "delta_absolute_error": -173.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 192511.0,
+            "global_wape": 0.21387349294326038,
+            "route_specific_wape": 0.21543703996135286,
+            "delta_wape": 0.0015635470180924726,
+            "global_absolute_error": 41173.0,
+            "route_specific_absolute_error": 41474.0,
+            "delta_absolute_error": 301.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 186743.0,
+            "global_wape": 0.24572273124026067,
+            "route_specific_wape": 0.24661700840192136,
+            "delta_wape": 0.0008942771616606781,
+            "global_absolute_error": 45887.0,
+            "route_specific_absolute_error": 46054.0,
+            "delta_absolute_error": 167.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 191982.0,
+            "global_wape": 0.2203748268066798,
+            "route_specific_wape": 0.22097384129762165,
+            "delta_wape": 0.0005990144909418591,
+            "global_absolute_error": 42308.0,
+            "route_specific_absolute_error": 42423.0,
+            "delta_absolute_error": 115.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 195052.0,
+            "global_wape": 0.2052888460513094,
+            "route_specific_wape": 0.20474027438836823,
+            "delta_wape": -0.0005485716629411644,
+            "global_absolute_error": 40042.0,
+            "route_specific_absolute_error": 39935.0,
+            "delta_absolute_error": -107.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 191869.0,
+            "global_wape": 0.2164654008724703,
+            "route_specific_wape": 0.21725239616613418,
+            "delta_wape": 0.0007869952936639061,
+            "global_absolute_error": 41533.0,
+            "route_specific_absolute_error": 41684.0,
+            "delta_absolute_error": 151.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 196587.0,
+            "global_wape": 0.18026115663802794,
+            "route_specific_wape": 0.18097839633343,
+            "delta_wape": 0.0007172396954020357,
+            "global_absolute_error": 35437.0,
+            "route_specific_absolute_error": 35578.0,
+            "delta_absolute_error": 141.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 199243.0,
+            "global_wape": 0.17544907474792087,
+            "route_specific_wape": 0.17688952685916193,
+            "delta_wape": 0.0014404521112410475,
+            "global_absolute_error": 34957.0,
+            "route_specific_absolute_error": 35244.0,
+            "delta_absolute_error": 287.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 181581.0,
+            "global_wape": 0.10647039062456976,
+            "route_specific_wape": 0.10812254586107577,
+            "delta_wape": 0.001652155236506022,
+            "global_absolute_error": 19333.0,
+            "route_specific_absolute_error": 19633.0,
+            "delta_absolute_error": 300.0
+          }
+        },
+        "17": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 328996.0,
+            "global_wape": 0.0867518146117278,
+            "route_specific_wape": 0.0865299274155309,
+            "delta_wape": -0.00022188719619691425,
+            "global_absolute_error": 28541.0,
+            "route_specific_absolute_error": 28468.0,
+            "delta_absolute_error": -73.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 295280.0,
+            "global_wape": 0.17356746139257653,
+            "route_specific_wape": 0.1792603630452452,
+            "delta_wape": 0.005692901652668654,
+            "global_absolute_error": 51251.0,
+            "route_specific_absolute_error": 52932.0,
+            "delta_absolute_error": 1681.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 280600.0,
+            "global_wape": 0.2051568068424804,
+            "route_specific_wape": 0.21198859586600144,
+            "delta_wape": 0.006831789023521027,
+            "global_absolute_error": 57567.0,
+            "route_specific_absolute_error": 59484.0,
+            "delta_absolute_error": 1917.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 291320.0,
+            "global_wape": 0.17685363174515997,
+            "route_specific_wape": 0.1812783193738844,
+            "delta_wape": 0.004424687628724427,
+            "global_absolute_error": 51521.0,
+            "route_specific_absolute_error": 52810.0,
+            "delta_absolute_error": 1289.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 286034.0,
+            "global_wape": 0.19017669228133718,
+            "route_specific_wape": 0.19214498975646252,
+            "delta_wape": 0.001968297475125335,
+            "global_absolute_error": 54397.0,
+            "route_specific_absolute_error": 54960.0,
+            "delta_absolute_error": 563.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 305206.0,
+            "global_wape": 0.12621311507637464,
+            "route_specific_wape": 0.13128182276888398,
+            "delta_wape": 0.005068707692509321,
+            "global_absolute_error": 38521.0,
+            "route_specific_absolute_error": 40068.0,
+            "delta_absolute_error": 1547.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 305387.0,
+            "global_wape": 0.11277493802945115,
+            "route_specific_wape": 0.11557466427844014,
+            "delta_wape": 0.0027997262489889876,
+            "global_absolute_error": 34440.0,
+            "route_specific_absolute_error": 35295.0,
+            "delta_absolute_error": 855.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 314298.0,
+            "global_wape": 0.09313772279810881,
+            "route_specific_wape": 0.0956671693742881,
+            "delta_wape": 0.0025294465761792947,
+            "global_absolute_error": 29273.0,
+            "route_specific_absolute_error": 30068.0,
+            "delta_absolute_error": 795.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 287899.0,
+            "global_wape": 0.09599894407413712,
+            "route_specific_wape": 0.09907293877366716,
+            "delta_wape": 0.0030739946995300437,
+            "global_absolute_error": 27638.0,
+            "route_specific_absolute_error": 28523.0,
+            "delta_absolute_error": 885.0
+          }
+        },
+        "25": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 41529.0,
+            "global_wape": 0.25018661658118424,
+            "route_specific_wape": 0.25603794938476726,
+            "delta_wape": 0.0058513328035830385,
+            "global_absolute_error": 10390.0,
+            "route_specific_absolute_error": 10633.0,
+            "delta_absolute_error": 243.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 37689.0,
+            "global_wape": 0.35267584706413013,
+            "route_specific_wape": 0.35031441534665286,
+            "delta_wape": -0.002361431717477248,
+            "global_absolute_error": 13292.0,
+            "route_specific_absolute_error": 13203.0,
+            "delta_absolute_error": -89.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 34267.0,
+            "global_wape": 0.42822540636764234,
+            "route_specific_wape": 0.43035573583914555,
+            "delta_wape": 0.0021303294715031957,
+            "global_absolute_error": 14674.0,
+            "route_specific_absolute_error": 14747.0,
+            "delta_absolute_error": 73.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 38051.0,
+            "global_wape": 0.31131901921105887,
+            "route_specific_wape": 0.31334261911644895,
+            "delta_wape": 0.0020235999053901344,
+            "global_absolute_error": 11846.0,
+            "route_specific_absolute_error": 11923.0,
+            "delta_absolute_error": 77.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 33895.0,
+            "global_wape": 0.45882873580174066,
+            "route_specific_wape": 0.45761911786399173,
+            "delta_wape": -0.0012096179377489304,
+            "global_absolute_error": 15552.0,
+            "route_specific_absolute_error": 15511.0,
+            "delta_absolute_error": -41.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 35286.0,
+            "global_wape": 0.39060817321317237,
+            "route_specific_wape": 0.3902964348466814,
+            "delta_wape": -0.0003117383664909596,
+            "global_absolute_error": 13783.0,
+            "route_specific_absolute_error": 13772.0,
+            "delta_absolute_error": -11.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 41316.0,
+            "global_wape": 0.28993610223642174,
+            "route_specific_wape": 0.28947623196824473,
+            "delta_wape": -0.00045987026817697745,
+            "global_absolute_error": 11979.0,
+            "route_specific_absolute_error": 11960.0,
+            "delta_absolute_error": -19.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 38986.0,
+            "global_wape": 0.2942851279946648,
+            "route_specific_wape": 0.290206740881342,
+            "delta_wape": -0.0040783871133227316,
+            "global_absolute_error": 11473.0,
+            "route_specific_absolute_error": 11314.0,
+            "delta_absolute_error": -159.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 37634.0,
+            "global_wape": 0.21153743954934368,
+            "route_specific_wape": 0.2104745708667694,
+            "delta_wape": -0.001062868682574268,
+            "global_absolute_error": 7961.0,
+            "route_specific_absolute_error": 7921.0,
+            "delta_absolute_error": -40.0
+          }
+        },
+        "26": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 95897.0,
+            "global_wape": 0.28050929643263084,
+            "route_specific_wape": 0.2831162601541237,
+            "delta_wape": 0.002606963721492852,
+            "global_absolute_error": 26900.0,
+            "route_specific_absolute_error": 27150.0,
+            "delta_absolute_error": 250.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 87680.0,
+            "global_wape": 0.38983804744525546,
+            "route_specific_wape": 0.3953125,
+            "delta_wape": 0.005474452554744526,
+            "global_absolute_error": 34181.0,
+            "route_specific_absolute_error": 34661.0,
+            "delta_absolute_error": 480.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 85556.0,
+            "global_wape": 0.42364065641217447,
+            "route_specific_wape": 0.42831595680022444,
+            "delta_wape": 0.004675300388049932,
+            "global_absolute_error": 36245.0,
+            "route_specific_absolute_error": 36645.0,
+            "delta_absolute_error": 400.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 90448.0,
+            "global_wape": 0.35183751990093753,
+            "route_specific_wape": 0.3577193525561649,
+            "delta_wape": 0.0058818326552273125,
+            "global_absolute_error": 31823.0,
+            "route_specific_absolute_error": 32355.0,
+            "delta_absolute_error": 532.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 87533.0,
+            "global_wape": 0.40003198793597844,
+            "route_specific_wape": 0.40430466224166883,
+            "delta_wape": 0.004272674305690425,
+            "global_absolute_error": 35016.0,
+            "route_specific_absolute_error": 35390.0,
+            "delta_absolute_error": 374.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 86681.0,
+            "global_wape": 0.4023026960925693,
+            "route_specific_wape": 0.4069634637348439,
+            "delta_wape": 0.004660767642274547,
+            "global_absolute_error": 34872.0,
+            "route_specific_absolute_error": 35276.0,
+            "delta_absolute_error": 404.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 91254.0,
+            "global_wape": 0.3322703662305214,
+            "route_specific_wape": 0.3361496482345979,
+            "delta_wape": 0.0038792820040765338,
+            "global_absolute_error": 30321.0,
+            "route_specific_absolute_error": 30675.0,
+            "delta_absolute_error": 354.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 90825.0,
+            "global_wape": 0.33783649876135424,
+            "route_specific_wape": 0.3418221855216075,
+            "delta_wape": 0.003985686760253234,
+            "global_absolute_error": 30684.0,
+            "route_specific_absolute_error": 31046.0,
+            "delta_absolute_error": 362.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 86380.0,
+            "global_wape": 0.2095971289650382,
+            "route_specific_wape": 0.21068534382959017,
+            "delta_wape": 0.0010882148645519796,
+            "global_absolute_error": 18105.0,
+            "route_specific_absolute_error": 18199.0,
+            "delta_absolute_error": 94.0
+          }
+        },
+        "28": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 58060.0,
+            "global_wape": 0.20585601102307957,
+            "route_specific_wape": 0.20390974853599725,
+            "delta_wape": -0.0019462624870823287,
+            "global_absolute_error": 11952.0,
+            "route_specific_absolute_error": 11839.0,
+            "delta_absolute_error": -113.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 51660.0,
+            "global_wape": 0.33399148277197055,
+            "route_specific_wape": 0.33261711188540455,
+            "delta_wape": -0.0013743708865660085,
+            "global_absolute_error": 17254.0,
+            "route_specific_absolute_error": 17183.0,
+            "delta_absolute_error": -71.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 50716.0,
+            "global_wape": 0.35105292215474404,
+            "route_specific_wape": 0.35170360438520387,
+            "delta_wape": 0.0006506822304598155,
+            "global_absolute_error": 17804.0,
+            "route_specific_absolute_error": 17837.0,
+            "delta_absolute_error": 33.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 49521.0,
+            "global_wape": 0.3885826215141051,
+            "route_specific_wape": 0.3855334100684558,
+            "delta_wape": -0.0030492114456493204,
+            "global_absolute_error": 19243.0,
+            "route_specific_absolute_error": 19092.0,
+            "delta_absolute_error": -151.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 49556.0,
+            "global_wape": 0.3785616272499798,
+            "route_specific_wape": 0.37724997982080877,
+            "delta_wape": -0.0013116474291710388,
+            "global_absolute_error": 18760.0,
+            "route_specific_absolute_error": 18695.0,
+            "delta_absolute_error": -65.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 49640.0,
+            "global_wape": 0.3734085414987913,
+            "route_specific_wape": 0.37121273166800967,
+            "delta_wape": -0.002195809830781628,
+            "global_absolute_error": 18536.0,
+            "route_specific_absolute_error": 18427.0,
+            "delta_absolute_error": -109.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 49689.0,
+            "global_wape": 0.37760872627744574,
+            "route_specific_wape": 0.37698484574050595,
+            "delta_wape": -0.0006238805369397654,
+            "global_absolute_error": 18763.0,
+            "route_specific_absolute_error": 18732.0,
+            "delta_absolute_error": -31.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 52841.0,
+            "global_wape": 0.2943358377017846,
+            "route_specific_wape": 0.2939384190306769,
+            "delta_wape": -0.00039741867110766263,
+            "global_absolute_error": 15553.0,
+            "route_specific_absolute_error": 15532.0,
+            "delta_absolute_error": -21.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 52737.0,
+            "global_wape": 0.1687430077554658,
+            "route_specific_wape": 0.17029789331968068,
+            "delta_wape": 0.0015548855642148775,
+            "global_absolute_error": 8899.0,
+            "route_specific_absolute_error": 8981.0,
+            "delta_absolute_error": 82.0
+          }
+        },
+        "50": {
+          "week_01": {
+            "rows": 168,
+            "actual_boardings": 128029.0,
+            "global_wape": 0.1626975138445196,
+            "route_specific_wape": 0.1730389208694905,
+            "delta_wape": 0.010341407024970904,
+            "global_absolute_error": 20830.0,
+            "route_specific_absolute_error": 22154.0,
+            "delta_absolute_error": 1324.0
+          },
+          "week_02": {
+            "rows": 168,
+            "actual_boardings": 150422.0,
+            "global_wape": 0.22304583106194573,
+            "route_specific_wape": 0.22776588530932976,
+            "delta_wape": 0.004720054247384026,
+            "global_absolute_error": 33551.0,
+            "route_specific_absolute_error": 34261.0,
+            "delta_absolute_error": 710.0
+          },
+          "week_03": {
+            "rows": 168,
+            "actual_boardings": 165038.0,
+            "global_wape": 0.2172529962796447,
+            "route_specific_wape": 0.21390831202510938,
+            "delta_wape": -0.003344684254535319,
+            "global_absolute_error": 35855.0,
+            "route_specific_absolute_error": 35303.0,
+            "delta_absolute_error": -552.0
+          },
+          "week_04": {
+            "rows": 168,
+            "actual_boardings": 167453.0,
+            "global_wape": 0.20669680447647998,
+            "route_specific_wape": 0.20314954046807163,
+            "delta_wape": -0.0035472640084083296,
+            "global_absolute_error": 34612.0,
+            "route_specific_absolute_error": 34018.0,
+            "delta_absolute_error": -594.0
+          },
+          "week_05": {
+            "rows": 168,
+            "actual_boardings": 160475.0,
+            "global_wape": 0.2140644960274186,
+            "route_specific_wape": 0.2130051409876928,
+            "delta_wape": -0.0010593550397258139,
+            "global_absolute_error": 34352.0,
+            "route_specific_absolute_error": 34182.0,
+            "delta_absolute_error": -170.0
+          },
+          "week_06": {
+            "rows": 168,
+            "actual_boardings": 148720.0,
+            "global_wape": 0.2709588488434642,
+            "route_specific_wape": 0.27871839698762774,
+            "delta_wape": 0.007759548144163529,
+            "global_absolute_error": 40297.0,
+            "route_specific_absolute_error": 41451.0,
+            "delta_absolute_error": 1154.0
+          },
+          "week_07": {
+            "rows": 168,
+            "actual_boardings": 96513.0,
+            "global_wape": 0.5124698227181831,
+            "route_specific_wape": 0.5348087822365899,
+            "delta_wape": 0.022338959518406847,
+            "global_absolute_error": 49460.0,
+            "route_specific_absolute_error": 51616.0,
+            "delta_absolute_error": 2156.0
+          },
+          "week_08": {
+            "rows": 168,
+            "actual_boardings": 109731.0,
+            "global_wape": 0.3335976159881893,
+            "route_specific_wape": 0.3524983824078884,
+            "delta_wape": 0.018900766419699084,
+            "global_absolute_error": 36606.0,
+            "route_specific_absolute_error": 38680.0,
+            "delta_absolute_error": 2074.0
+          },
+          "week_09": {
+            "rows": 144,
+            "actual_boardings": 96408.0,
+            "global_wape": 0.2596568749481371,
+            "route_specific_wape": 0.2767197742925898,
+            "delta_wape": 0.017062899344452744,
+            "global_absolute_error": 25033.0,
+            "route_specific_absolute_error": 26678.0,
+            "delta_absolute_error": 1645.0
+          }
+        }
+      }
+    }
+  },
+  "decision": "ROUTE_SIGN_REVERSAL",
+  "decision_rationale": "Jan-Apr to May-Jun loses overall from week 1 but has three local winning weeks; 14305 of 14710 excess absolute error occurs in June. Mar-Jun to Jul-Aug loses in all nine weeks. In both early holdouts routes 17, 7 and 26 add error, while all three improve on Sep-Oct; route 50 adds substantial error on Jul-Aug but improves every Sep-Oct week. Route 28 shows the opposite direction. These route-level reversals account for much of the overall architecture sign change, but this is descriptive rather than a causal mechanism.",
+  "next_minimal_experiment": "Without tuning, compare signed prediction bias and weekday/weekend errors for routes 17, 7, 26 and 50 across the three saved holdout predictions."
+}

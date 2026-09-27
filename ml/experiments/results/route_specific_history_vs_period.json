@@ -1,0 +1,2010 @@
+{
+  "experiment_class": "model_architecture_history_vs_period_diagnostic",
+  "name": "route_specific_history_vs_period",
+  "reference_artifacts": [
+    "ml/experiments/results/route_specific_lightgbm_temporal_stability.json",
+    "ml/experiments/results/route_specific_lightgbm_v1.json"
+  ],
+  "comparisons": {
+    "fixed_four_month_windows": [
+      "jan_apr_may_jun",
+      "mar_jun_jul_aug",
+      "may_aug_sep_oct"
+    ],
+    "sep_oct_history_lengths": [
+      "may_aug_sep_oct",
+      "mar_aug_sep_oct",
+      "jan_aug_sep_oct"
+    ]
+  },
+  "runs": {
+    "jan_apr_may_jun": {
+      "fold": "fold_1",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_train.csv"
+      ],
+      "grid_rows": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "periods": {
+        "train": [
+          "2025-01-01",
+          "2025-04-30"
+        ],
+        "validation": [
+          "2025-05-01",
+          "2025-06-30"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.18387295918243723,
+        "candidate_wape": 0.1851459011269387,
+        "delta_wape_absolute": 0.0012729419445014767,
+        "delta_wape_relative": 0.006922942612994411,
+        "baseline_wape_score": 0.8161270408175627,
+        "candidate_wape_score": 0.8148540988730613,
+        "total_actual_boardings": 11555908.0,
+        "routes_improved": 4,
+        "routes_worsened": 5
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.19519741384979614,
+          "candidate_wape": 0.19380302183348677,
+          "actual_boardings": 973184.0,
+          "baseline_absolute_error": 189963.0,
+          "candidate_absolute_error": 188606.0,
+          "delta_absolute_error": -1357.0,
+          "delta_overall_wape_contribution": -0.00011742911071981536
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.19304938910617597,
+          "candidate_wape": 0.1951301273621511,
+          "actual_boardings": 1354327.0,
+          "baseline_absolute_error": 261452.0,
+          "candidate_absolute_error": 264270.0,
+          "delta_absolute_error": 2818.0,
+          "delta_overall_wape_contribution": 0.0002438579469480027
+        },
+        "11": {
+          "baseline_wape": 0.16906884998932598,
+          "candidate_wape": 0.17023286705154825,
+          "actual_boardings": 1728497.0,
+          "baseline_absolute_error": 292235.0,
+          "candidate_absolute_error": 294247.0,
+          "delta_absolute_error": 2012.0,
+          "delta_overall_wape_contribution": 0.00017411007425811975
+        },
+        "12": {
+          "baseline_wape": 0.1834951246261714,
+          "candidate_wape": 0.18259643820615534,
+          "actual_boardings": 1802631.0,
+          "baseline_absolute_error": 330774.0,
+          "candidate_absolute_error": 329154.0,
+          "delta_absolute_error": -1620.0,
+          "delta_overall_wape_contribution": -0.00014018803195733299
+        },
+        "17": {
+          "baseline_wape": 0.13736931053457635,
+          "candidate_wape": 0.14088582085543253,
+          "actual_boardings": 2755004.0,
+          "baseline_absolute_error": 378453.0,
+          "candidate_absolute_error": 388141.0,
+          "delta_absolute_error": 9688.0,
+          "delta_overall_wape_contribution": 0.0008383590454337297
+        },
+        "25": {
+          "baseline_wape": 0.21253308754624553,
+          "candidate_wape": 0.21343168240063468,
+          "actual_boardings": 389497.0,
+          "baseline_absolute_error": 82781.0,
+          "candidate_absolute_error": 83131.0,
+          "delta_absolute_error": 350.0,
+          "delta_overall_wape_contribution": 3.02875377685596e-05
+        },
+        "26": {
+          "baseline_wape": 0.22977018100159988,
+          "candidate_wape": 0.2334303764043323,
+          "actual_boardings": 901318.0,
+          "baseline_absolute_error": 207096.0,
+          "candidate_absolute_error": 210395.0,
+          "delta_absolute_error": 3299.0,
+          "delta_overall_wape_contribution": 0.0002854816774242232
+        },
+        "28": {
+          "baseline_wape": 0.23274236912562332,
+          "candidate_wape": 0.2323855111943157,
+          "actual_boardings": 535227.0,
+          "baseline_absolute_error": 124570.0,
+          "candidate_absolute_error": 124379.0,
+          "delta_absolute_error": -191.0,
+          "delta_overall_wape_contribution": -1.652834203941395e-05
+        },
+        "50": {
+          "baseline_wape": 0.2306841912413559,
+          "candidate_wape": 0.2304252824032474,
+          "actual_boardings": 1116223.0,
+          "baseline_absolute_error": 257495.0,
+          "candidate_absolute_error": 257206.0,
+          "delta_absolute_error": -289.0,
+          "delta_overall_wape_contribution": -2.500885261461064e-05
+        }
+      },
+      "decision": null,
+      "target_shift_diagnostics": {
+        "1": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 729.7,
+          "validation_mean_target": 664.7431693989071,
+          "mean_target_change": -64.95683060109297,
+          "mean_target_relative_change": -0.0890185426902741,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 856.8963178294574,
+              "validation_mean": 787.8362403100775,
+              "change": -69.06007751937989,
+              "relative_change": -0.08059327141737638
+            },
+            "weekend": {
+              "train_mean": 407.96813725490193,
+              "validation_mean": 370.6875,
+              "change": -37.28063725490193,
+              "relative_change": -0.09138124733405018
+            }
+          }
+        },
+        "5": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 0.0,
+          "validation_mean_target": 0.0,
+          "mean_target_change": 0.0,
+          "mean_target_relative_change": null,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            },
+            "weekend": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            }
+          }
+        },
+        "7": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 1011.9052083333333,
+          "validation_mean_target": 925.0867486338798,
+          "mean_target_change": -86.81845969945357,
+          "mean_target_relative_change": -0.08579702820430046,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1146.452519379845,
+              "validation_mean": 1057.7606589147288,
+              "change": -88.69186046511618,
+              "relative_change": -0.07736200057643261
+            },
+            "weekend": {
+              "train_mean": 671.5796568627451,
+              "validation_mean": 608.1435185185185,
+              "change": -63.436138344226606,
+              "relative_change": -0.09445809993793697
+            }
+          }
+        },
+        "11": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 1263.759375,
+          "validation_mean_target": 1180.667349726776,
+          "mean_target_change": -83.09202527322418,
+          "mean_target_relative_change": -0.06574987843174196,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1420.828972868217,
+              "validation_mean": 1320.1521317829458,
+              "change": -100.67684108527123,
+              "relative_change": -0.07085781822286152
+            },
+            "weekend": {
+              "train_mean": 866.4656862745098,
+              "validation_mean": 847.4537037037037,
+              "change": -19.01198257080614,
+              "relative_change": -0.021941991324031296
+            }
+          }
+        },
+        "12": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 1323.4305555555557,
+          "validation_mean_target": 1231.3053278688524,
+          "mean_target_change": -92.12522768670328,
+          "mean_target_relative_change": -0.06961092692017412,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1517.235465116279,
+              "validation_mean": 1431.9457364341085,
+              "change": -85.28972868217056,
+              "relative_change": -0.05621390393457093
+            },
+            "weekend": {
+              "train_mean": 833.218137254902,
+              "validation_mean": 751.9976851851852,
+              "change": -81.22045206971677,
+              "relative_change": -0.09747801738606354
+            }
+          }
+        },
+        "17": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 1939.6989583333334,
+          "validation_mean_target": 1881.8333333333333,
+          "mean_target_change": -57.865625000000136,
+          "mean_target_relative_change": -0.029832271008549016,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 2176.985949612403,
+              "validation_mean": 2086.0697674418607,
+              "change": -90.91618217054247,
+              "relative_change": -0.04176241109260692
+            },
+            "weekend": {
+              "train_mean": 1339.5024509803923,
+              "validation_mean": 1393.9351851851852,
+              "change": 54.43273420479295,
+              "relative_change": 0.04063653199361683
+            }
+          }
+        },
+        "25": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 276.21527777777777,
+          "validation_mean_target": 266.0498633879781,
+          "mean_target_change": -10.16541438979965,
+          "mean_target_relative_change": -0.03680250589896039,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 303.94428294573646,
+              "validation_mean": 289.3003875968992,
+              "change": -14.643895348837248,
+              "relative_change": -0.04817953871977132
+            },
+            "weekend": {
+              "train_mean": 206.07720588235293,
+              "validation_mean": 210.50694444444446,
+              "change": 4.429738562091529,
+              "relative_change": 0.021495529033038308
+            }
+          }
+        },
+        "26": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 724.3489583333334,
+          "validation_mean_target": 615.6543715846994,
+          "mean_target_change": -108.69458674863392,
+          "mean_target_relative_change": -0.15005831857442176,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 823.1065891472869,
+              "validation_mean": 700.7238372093024,
+              "change": -122.3827519379845,
+              "relative_change": -0.1486839657847585
+            },
+            "weekend": {
+              "train_mean": 474.5502450980392,
+              "validation_mean": 412.4328703703704,
+              "change": -62.117374727668846,
+              "relative_change": -0.13089736096298032
+            }
+          }
+        },
+        "28": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 407.4458333333333,
+          "validation_mean_target": 365.5922131147541,
+          "mean_target_change": -41.85362021857924,
+          "mean_target_relative_change": -0.10272192471861308,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 462.5668604651163,
+              "validation_mean": 413.9418604651163,
+              "change": -48.625,
+              "relative_change": -0.10511993866380098
+            },
+            "weekend": {
+              "train_mean": 268.0220588235294,
+              "validation_mean": 250.09027777777777,
+              "change": -17.93178104575162,
+              "relative_change": -0.06690412395331324
+            }
+          }
+        },
+        "50": {
+          "train_rows": 2880,
+          "train_days": 120,
+          "train_mean_target": 878.7559027777778,
+          "validation_mean_target": 762.4474043715848,
+          "mean_target_change": -116.30849840619305,
+          "mean_target_relative_change": -0.13235586587644854,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1056.1419573643411,
+              "validation_mean": 919.7635658914729,
+              "change": -136.3783914728682,
+              "relative_change": -0.12912884534310876
+            },
+            "weekend": {
+              "train_mean": 430.0735294117647,
+              "validation_mean": 386.6365740740741,
+              "change": -43.43695533769062,
+              "relative_change": -0.1009989045294225
+            }
+          }
+        }
+      }
+    },
+    "mar_jun_jul_aug": {
+      "fold": "mar_jun_jul_aug",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_train.csv"
+      ],
+      "grid_rows": {
+        "train": 29280,
+        "validation": 14880
+      },
+      "periods": {
+        "train": [
+          "2025-03-01",
+          "2025-06-30"
+        ],
+        "validation": [
+          "2025-07-01",
+          "2025-08-31"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.25148714928538923,
+        "candidate_wape": 0.2549355721817081,
+        "delta_wape_absolute": 0.003448422896318859,
+        "delta_wape_relative": 0.013712123685515106,
+        "baseline_wape_score": 0.7485128507146108,
+        "candidate_wape_score": 0.7450644278182919,
+        "total_actual_boardings": 10717653.0,
+        "routes_improved": 1,
+        "routes_worsened": 8
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.22225087711404512,
+          "candidate_wape": 0.22704770600519958,
+          "actual_boardings": 911227.0,
+          "baseline_absolute_error": 202521.0,
+          "candidate_absolute_error": 206892.0,
+          "delta_absolute_error": 4371.0,
+          "delta_overall_wape_contribution": 0.0004078318266135319
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.7387057931588101,
+          "candidate_wape": 0.7475131418403951,
+          "actual_boardings": 874497.0,
+          "baseline_absolute_error": 645996.0,
+          "candidate_absolute_error": 653698.0,
+          "delta_absolute_error": 7702.0,
+          "delta_overall_wape_contribution": 0.0007186274830879484
+        },
+        "11": {
+          "baseline_wape": 0.17859119990259567,
+          "candidate_wape": 0.18078639602177682,
+          "actual_boardings": 1667277.0,
+          "baseline_absolute_error": 297761.0,
+          "candidate_absolute_error": 301421.0,
+          "delta_absolute_error": 3660.0,
+          "delta_overall_wape_contribution": 0.0003414926756818867
+        },
+        "12": {
+          "baseline_wape": 0.18918459549036587,
+          "candidate_wape": 0.189863314491512,
+          "actual_boardings": 1741516.0,
+          "baseline_absolute_error": 329468.0,
+          "candidate_absolute_error": 330650.0,
+          "delta_absolute_error": 1182.0,
+          "delta_overall_wape_contribution": 0.00011028533952349456
+        },
+        "17": {
+          "baseline_wape": 0.1384587127368257,
+          "candidate_wape": 0.1419685197141394,
+          "actual_boardings": 2695020.0,
+          "baseline_absolute_error": 373149.0,
+          "candidate_absolute_error": 382608.0,
+          "delta_absolute_error": 9459.0,
+          "delta_overall_wape_contribution": 0.0008825626282172039
+        },
+        "25": {
+          "baseline_wape": 0.3276214886624362,
+          "candidate_wape": 0.3277218864147077,
+          "actual_boardings": 338653.0,
+          "baseline_absolute_error": 110950.0,
+          "candidate_absolute_error": 110984.0,
+          "delta_absolute_error": 34.0,
+          "delta_overall_wape_contribution": 3.1723363314710785e-06
+        },
+        "26": {
+          "baseline_wape": 0.3467069032999524,
+          "candidate_wape": 0.3507579893649642,
+          "actual_boardings": 802254.0,
+          "baseline_absolute_error": 278147.0,
+          "candidate_absolute_error": 281397.0,
+          "delta_absolute_error": 3250.0,
+          "delta_overall_wape_contribution": 0.00030323803168473546
+        },
+        "28": {
+          "baseline_wape": 0.3160156754661729,
+          "candidate_wape": 0.3150553378407476,
+          "actual_boardings": 464420.0,
+          "baseline_absolute_error": 146764.0,
+          "candidate_absolute_error": 146318.0,
+          "delta_absolute_error": -446.0,
+          "delta_overall_wape_contribution": -4.161358834812062e-05
+        },
+        "50": {
+          "baseline_wape": 0.25400621039279875,
+          "candidate_wape": 0.26034172698642205,
+          "actual_boardings": 1222789.0,
+          "baseline_absolute_error": 310596.0,
+          "candidate_absolute_error": 318343.0,
+          "delta_absolute_error": 7747.0,
+          "delta_overall_wape_contribution": 0.0007228261635266602
+        }
+      },
+      "decision": null,
+      "target_shift_diagnostics": {
+        "1": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 720.9429644808744,
+          "validation_mean_target": 612.3837365591398,
+          "mean_target_change": -108.55922792173453,
+          "mean_target_relative_change": -0.1505794955637083,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 855.2902131782946,
+              "validation_mean": 721.0729166666666,
+              "change": -134.21729651162798,
+              "relative_change": -0.15692602866677363
+            },
+            "weekend": {
+              "train_mean": 400.00231481481484,
+              "validation_mean": 346.6990740740741,
+              "change": -53.30324074074076,
+              "relative_change": -0.13325733068674372
+            }
+          }
+        },
+        "5": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 0.0,
+          "validation_mean_target": 0.0,
+          "mean_target_change": 0.0,
+          "mean_target_relative_change": null,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            },
+            "weekend": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            }
+          }
+        },
+        "7": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 1015.82206284153,
+          "validation_mean_target": 587.6995967741935,
+          "mean_target_change": -428.1224660673365,
+          "mean_target_relative_change": -0.42145419136670625,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1164.6676356589148,
+              "validation_mean": 671.3910984848485,
+              "change": -493.27653717406633,
+              "relative_change": -0.42353416723475223
+            },
+            "weekend": {
+              "train_mean": 660.2465277777778,
+              "validation_mean": 383.1203703703704,
+              "change": -277.12615740740745,
+              "relative_change": -0.4197313363239391
+            }
+          }
+        },
+        "11": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 1249.549180327869,
+          "validation_mean_target": 1120.4818548387098,
+          "mean_target_change": -129.0673254891592,
+          "mean_target_relative_change": -0.10329111292385729,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1405.015503875969,
+              "validation_mean": 1229.1041666666667,
+              "change": -175.91133720930225,
+              "relative_change": -0.12520241714345615
+            },
+            "weekend": {
+              "train_mean": 878.1574074074074,
+              "validation_mean": 854.9606481481482,
+              "change": -23.196759259259238,
+              "relative_change": -0.026415263440916825
+            }
+          }
+        },
+        "12": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 1304.938524590164,
+          "validation_mean_target": 1170.3736559139784,
+          "mean_target_change": -134.5648686761856,
+          "mean_target_relative_change": -0.10311969961837686,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1512.5896317829458,
+              "validation_mean": 1334.4232954545455,
+              "change": -178.16633632840035,
+              "relative_change": -0.11778894459192413
+            },
+            "weekend": {
+              "train_mean": 808.8831018518518,
+              "validation_mean": 769.363425925926,
+              "change": -39.51967592592587,
+              "relative_change": -0.04885709175460551
+            }
+          }
+        },
+        "17": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 1903.4381830601094,
+          "validation_mean_target": 1811.1693548387098,
+          "mean_target_change": -92.26882822139964,
+          "mean_target_relative_change": -0.048474822582922794,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 2164.499031007752,
+              "validation_mean": 1980.0984848484848,
+              "change": -184.40054615926715,
+              "relative_change": -0.08519317565756246
+            },
+            "weekend": {
+              "train_mean": 1279.7928240740741,
+              "validation_mean": 1398.2314814814815,
+              "change": 118.43865740740739,
+              "relative_change": 0.09254518010998947
+            }
+          }
+        },
+        "25": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 285.03381147540983,
+          "validation_mean_target": 227.5893817204301,
+          "mean_target_change": -57.44442975497972,
+          "mean_target_relative_change": -0.20153549313196306,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 311.55426356589146,
+              "validation_mean": 240.22727272727272,
+              "change": -71.32699083861874,
+              "relative_change": -0.22893922240782816
+            },
+            "weekend": {
+              "train_mean": 221.67939814814815,
+              "validation_mean": 196.69675925925927,
+              "change": -24.982638888888886,
+              "relative_change": -0.11269716129503837
+            }
+          }
+        },
+        "26": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 711.4542349726776,
+          "validation_mean_target": 539.1491935483871,
+          "mean_target_change": -172.3050414242905,
+          "mean_target_relative_change": -0.24218710488230866,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 813.4035852713179,
+              "validation_mean": 604.2689393939394,
+              "change": -209.1346458773785,
+              "relative_change": -0.25711055331483423
+            },
+            "weekend": {
+              "train_mean": 467.90856481481484,
+              "validation_mean": 379.9675925925926,
+              "change": -87.94097222222223,
+              "relative_change": -0.1879447798888375
+            }
+          }
+        },
+        "28": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 397.6075819672131,
+          "validation_mean_target": 312.11021505376345,
+          "mean_target_change": -85.49736691344964,
+          "mean_target_relative_change": -0.2150295185278931,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 453.1235465116279,
+              "validation_mean": 347.9261363636364,
+              "change": -105.19741014799155,
+              "relative_change": -0.2321605464069434
+            },
+            "weekend": {
+              "train_mean": 264.9861111111111,
+              "validation_mean": 224.5601851851852,
+              "change": -40.425925925925895,
+              "relative_change": -0.15255865960829518
+            }
+          }
+        },
+        "50": {
+          "train_rows": 2928,
+          "train_days": 122,
+          "train_mean_target": 844.6017759562842,
+          "validation_mean_target": 821.7668010752689,
+          "mean_target_change": -22.83497488101534,
+          "mean_target_relative_change": -0.027036380376019076,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1023.3468992248062,
+              "validation_mean": 948.4090909090909,
+              "change": -74.9378083157153,
+              "relative_change": -0.07322815789296999
+            },
+            "weekend": {
+              "train_mean": 417.599537037037,
+              "validation_mean": 512.1967592592592,
+              "change": 94.59722222222223,
+              "relative_change": 0.2265261664163014
+            }
+          }
+        }
+      }
+    },
+    "may_aug_sep_oct": {
+      "fold": "may_aug_sep_oct",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_test.csv"
+      ],
+      "grid_rows": {
+        "train": 29520,
+        "validation": 14640
+      },
+      "periods": {
+        "train": [
+          "2025-05-01",
+          "2025-08-31"
+        ],
+        "validation": [
+          "2025-09-01",
+          "2025-10-31"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.1778656458071481,
+        "candidate_wape": 0.17610046226106732,
+        "delta_wape_absolute": -0.0017651835460807674,
+        "delta_wape_relative": -0.00992425230892917,
+        "baseline_wape_score": 0.8221343541928519,
+        "candidate_wape_score": 0.8238995377389327,
+        "total_actual_boardings": 12754481.0,
+        "routes_improved": 5,
+        "routes_worsened": 4
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.16793783607503962,
+          "candidate_wape": 0.16905746272532265,
+          "actual_boardings": 1136093.0,
+          "baseline_absolute_error": 190793.0,
+          "candidate_absolute_error": 192065.0,
+          "delta_absolute_error": 1272.0,
+          "delta_overall_wape_contribution": 9.97296557970489e-05
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.20939186552670608,
+          "candidate_wape": 0.20805317446742974,
+          "actual_boardings": 1350573.0,
+          "baseline_absolute_error": 282799.0,
+          "candidate_absolute_error": 280991.0,
+          "delta_absolute_error": -1808.0,
+          "delta_overall_wape_contribution": -0.00014175410195052234
+        },
+        "11": {
+          "baseline_wape": 0.15125525612447635,
+          "candidate_wape": 0.15165482383625903,
+          "actual_boardings": 1907061.0,
+          "baseline_absolute_error": 288453.0,
+          "candidate_absolute_error": 289215.0,
+          "delta_absolute_error": 762.0,
+          "delta_overall_wape_contribution": 5.9743708897288724e-05
+        },
+        "12": {
+          "baseline_wape": 0.13206365786719526,
+          "candidate_wape": 0.130980780438031,
+          "actual_boardings": 1983604.0,
+          "baseline_absolute_error": 261962.0,
+          "candidate_absolute_error": 259814.0,
+          "delta_absolute_error": -2148.0,
+          "delta_overall_wape_contribution": -0.00016841139988369577
+        },
+        "17": {
+          "baseline_wape": 0.13231005297051118,
+          "candidate_wape": 0.12839562197500837,
+          "actual_boardings": 3063025.0,
+          "baseline_absolute_error": 405269.0,
+          "candidate_absolute_error": 393279.0,
+          "delta_absolute_error": -11990.0,
+          "delta_overall_wape_contribution": -0.0009400617712316166
+        },
+        "25": {
+          "baseline_wape": 0.26430833281310206,
+          "candidate_wape": 0.2691002008451426,
+          "actual_boardings": 464537.0,
+          "baseline_absolute_error": 122781.0,
+          "candidate_absolute_error": 125007.0,
+          "delta_absolute_error": 2226.0,
+          "delta_overall_wape_contribution": 0.00017452689764483557
+        },
+        "26": {
+          "baseline_wape": 0.23761426982909528,
+          "candidate_wape": 0.23724820269293298,
+          "actual_boardings": 1089964.0,
+          "baseline_absolute_error": 258991.0,
+          "candidate_absolute_error": 258592.0,
+          "delta_absolute_error": -399.0,
+          "delta_overall_wape_contribution": -3.128312316275355e-05
+        },
+        "28": {
+          "baseline_wape": 0.2263353505025209,
+          "candidate_wape": 0.22847430268166147,
+          "actual_boardings": 602164.0,
+          "baseline_absolute_error": 136291.0,
+          "candidate_absolute_error": 137579.0,
+          "delta_absolute_error": 1288.0,
+          "delta_overall_wape_contribution": 0.00010098411687625705
+        },
+        "50": {
+          "baseline_wape": 0.27754306844296994,
+          "candidate_wape": 0.2674200404333627,
+          "actual_boardings": 1157460.0,
+          "baseline_absolute_error": 321245.0,
+          "candidate_absolute_error": 309528.0,
+          "delta_absolute_error": -11717.0,
+          "delta_overall_wape_contribution": -0.0009186575290676273
+        }
+      },
+      "decision": null,
+      "target_shift_diagnostics": {
+        "1": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 638.3506097560976,
+          "validation_mean_target": 776.0198087431694,
+          "mean_target_change": 137.6691989870718,
+          "mean_target_relative_change": 0.2156639265053304,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 754.0708812260536,
+              "validation_mean": 907.9861111111111,
+              "change": 153.91522988505744,
+              "relative_change": 0.2041124166402033
+            },
+            "weekend": {
+              "train_mean": 358.693287037037,
+              "validation_mean": 404.8645833333333,
+              "change": 46.171296296296305,
+              "relative_change": 0.12872082630174475
+            }
+          }
+        },
+        "5": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 0.0,
+          "validation_mean_target": 0.0,
+          "mean_target_change": 0.0,
+          "mean_target_relative_change": null,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            },
+            "weekend": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            }
+          }
+        },
+        "7": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 755.0216802168022,
+          "validation_mean_target": 922.5225409836065,
+          "mean_target_change": 167.5008607668043,
+          "mean_target_relative_change": 0.22184907421295108,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 862.3553639846743,
+              "validation_mean": 1112.0518518518518,
+              "change": 249.69648786717744,
+              "relative_change": 0.28955173040660176
+            },
+            "weekend": {
+              "train_mean": 495.63194444444446,
+              "validation_mean": 389.4713541666667,
+              "change": -106.16059027777777,
+              "relative_change": -0.2141923890655868
+            }
+          }
+        },
+        "11": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 1150.329945799458,
+          "validation_mean_target": 1302.6372950819673,
+          "mean_target_change": 152.30734928250922,
+          "mean_target_relative_change": 0.13240318557182174,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1274.1048850574712,
+              "validation_mean": 1433.4185185185186,
+              "change": 159.3136334610474,
+              "relative_change": 0.125039653586966
+            },
+            "weekend": {
+              "train_mean": 851.207175925926,
+              "validation_mean": 934.8151041666666,
+              "change": 83.60792824074065,
+              "relative_change": 0.09822277185315498
+            }
+          }
+        },
+        "12": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 1200.5918021680218,
+          "validation_mean_target": 1354.9207650273224,
+          "mean_target_change": 154.32896285930065,
+          "mean_target_relative_change": 0.12854407516411004,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1382.6240421455939,
+              "validation_mean": 1532.098148148148,
+              "change": 149.4741060025542,
+              "relative_change": 0.108109002480961
+            },
+            "weekend": {
+              "train_mean": 760.6805555555555,
+              "validation_mean": 856.609375,
+              "change": 95.92881944444446,
+              "relative_change": 0.12610920411181503
+            }
+          }
+        },
+        "17": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 1846.2140921409214,
+          "validation_mean_target": 2092.2301912568305,
+          "mean_target_change": 246.01609911590913,
+          "mean_target_relative_change": 0.13325437183215416,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 2032.4750957854405,
+              "validation_mean": 2266.0925925925926,
+              "change": 233.61749680715207,
+              "relative_change": 0.11494236622706144
+            },
+            "weekend": {
+              "train_mean": 1396.0833333333333,
+              "validation_mean": 1603.2421875,
+              "change": 207.15885416666674,
+              "relative_change": 0.14838573688294643
+            }
+          }
+        },
+        "25": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 246.66327913279133,
+          "validation_mean_target": 317.30669398907105,
+          "mean_target_change": 70.64341485627972,
+          "mean_target_relative_change": 0.2863961555390204,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 264.4818007662835,
+              "validation_mean": 339.73148148148147,
+              "change": 75.24968071519794,
+              "relative_change": 0.2845174242506552
+            },
+            "weekend": {
+              "train_mean": 203.60185185185185,
+              "validation_mean": 254.23697916666666,
+              "change": 50.63512731481481,
+              "relative_change": 0.24869679157760705
+            }
+          }
+        },
+        "26": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 577.0907859078591,
+          "validation_mean_target": 744.5109289617486,
+          "mean_target_change": 167.42014305388955,
+          "mean_target_relative_change": 0.29011058076505236,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 651.9420498084291,
+              "validation_mean": 840.287962962963,
+              "change": 188.34591315453383,
+              "relative_change": 0.28889977753372187
+            },
+            "weekend": {
+              "train_mean": 396.20023148148147,
+              "validation_mean": 475.1380208333333,
+              "change": 78.93778935185185,
+              "relative_change": 0.19923711063137395
+            }
+          }
+        },
+        "28": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 338.63380758807585,
+          "validation_mean_target": 411.3142076502732,
+          "mean_target_change": 72.68040006219735,
+          "mean_target_relative_change": 0.21462830477519224,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 380.5545977011494,
+              "validation_mean": 460.98425925925926,
+              "change": 80.42966155810984,
+              "relative_change": 0.21134854773524903
+            },
+            "weekend": {
+              "train_mean": 237.3252314814815,
+              "validation_mean": 271.6171875,
+              "change": 34.291956018518505,
+              "relative_change": 0.14449351130705335
+            }
+          }
+        },
+        "50": {
+          "train_rows": 2952,
+          "train_days": 123,
+          "train_mean_target": 792.3482384823848,
+          "validation_mean_target": 790.6147540983607,
+          "mean_target_change": -1.7334843840241092,
+          "mean_target_relative_change": -0.002187780952658258,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 934.2509578544061,
+              "validation_mean": 1062.6212962962964,
+              "change": 128.37033844189023,
+              "relative_change": 0.13740455641244886
+            },
+            "weekend": {
+              "train_mean": 449.4166666666667,
+              "validation_mean": 25.596354166666668,
+              "change": -423.8203125,
+              "relative_change": -0.9430453829037642
+            }
+          }
+        }
+      }
+    },
+    "mar_aug_sep_oct": {
+      "fold": "mar_aug_sep_oct",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_test.csv"
+      ],
+      "grid_rows": {
+        "train": 44160,
+        "validation": 14640
+      },
+      "periods": {
+        "train": [
+          "2025-03-01",
+          "2025-08-31"
+        ],
+        "validation": [
+          "2025-09-01",
+          "2025-10-31"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.1372997458697065,
+        "candidate_wape": 0.13490545009240282,
+        "delta_wape_absolute": -0.0023942957773036844,
+        "delta_wape_relative": -0.01743845745771301,
+        "baseline_wape_score": 0.8627002541302935,
+        "candidate_wape_score": 0.8650945499075972,
+        "total_actual_boardings": 12754481.0,
+        "routes_improved": 5,
+        "routes_worsened": 4
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.12484717360286526,
+          "candidate_wape": 0.12396608376250888,
+          "actual_boardings": 1136093.0,
+          "baseline_absolute_error": 141838.0,
+          "candidate_absolute_error": 140837.0,
+          "delta_absolute_error": -1001.0,
+          "delta_overall_wape_contribution": -7.848222126796064e-05
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.15941233831862475,
+          "candidate_wape": 0.1573820889355851,
+          "actual_boardings": 1350573.0,
+          "baseline_absolute_error": 215298.0,
+          "candidate_absolute_error": 212556.0,
+          "delta_absolute_error": -2742.0,
+          "delta_overall_wape_contribution": -0.0002149832674492988
+        },
+        "11": {
+          "baseline_wape": 0.12059131826407231,
+          "candidate_wape": 0.11583006521553323,
+          "actual_boardings": 1907061.0,
+          "baseline_absolute_error": 229975.0,
+          "candidate_absolute_error": 220895.0,
+          "delta_absolute_error": -9080.0,
+          "delta_overall_wape_contribution": -0.0007119066624506321
+        },
+        "12": {
+          "baseline_wape": 0.10098235333262083,
+          "candidate_wape": 0.10179753620178221,
+          "actual_boardings": 1983604.0,
+          "baseline_absolute_error": 200309.0,
+          "candidate_absolute_error": 201926.0,
+          "delta_absolute_error": 1617.0,
+          "delta_overall_wape_contribution": 0.0001267789728174749
+        },
+        "17": {
+          "baseline_wape": 0.10347940353082329,
+          "candidate_wape": 0.09798940589776446,
+          "actual_boardings": 3063025.0,
+          "baseline_absolute_error": 316960.0,
+          "candidate_absolute_error": 300144.0,
+          "delta_absolute_error": -16816.0,
+          "delta_overall_wape_contribution": -0.0013184385942477785
+        },
+        "25": {
+          "baseline_wape": 0.19524817183561266,
+          "candidate_wape": 0.19726308130461082,
+          "actual_boardings": 464537.0,
+          "baseline_absolute_error": 90700.0,
+          "candidate_absolute_error": 91636.0,
+          "delta_absolute_error": 936.0,
+          "delta_overall_wape_contribution": 7.338597313367748e-05
+        },
+        "26": {
+          "baseline_wape": 0.15050130096039868,
+          "candidate_wape": 0.15117655262008653,
+          "actual_boardings": 1089964.0,
+          "baseline_absolute_error": 164041.0,
+          "candidate_absolute_error": 164777.0,
+          "delta_absolute_error": 736.0,
+          "delta_overall_wape_contribution": 5.770520964357546e-05
+        },
+        "28": {
+          "baseline_wape": 0.17150975481762443,
+          "candidate_wape": 0.176061670906929,
+          "actual_boardings": 602164.0,
+          "baseline_absolute_error": 103277.0,
+          "candidate_absolute_error": 106018.0,
+          "delta_absolute_error": 2741.0,
+          "delta_overall_wape_contribution": 0.0002149048636318483
+        },
+        "50": {
+          "baseline_wape": 0.24950235861282463,
+          "candidate_wape": 0.24351597463411262,
+          "actual_boardings": 1157460.0,
+          "baseline_absolute_error": 288789.0,
+          "candidate_absolute_error": 281860.0,
+          "delta_absolute_error": -6929.0,
+          "delta_overall_wape_contribution": -0.0005432600511145847
+        }
+      },
+      "decision": null,
+      "target_shift_diagnostics": {
+        "1": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 684.3632246376811,
+          "validation_mean_target": 776.0198087431694,
+          "mean_target_change": 91.65658410548826,
+          "mean_target_relative_change": 0.13392973322611468,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 809.8628205128205,
+              "validation_mean": 907.9861111111111,
+              "change": 98.12329059829062,
+              "relative_change": 0.1211603843428164
+            },
+            "weekend": {
+              "train_mean": 382.2345679012346,
+              "validation_mean": 404.8645833333333,
+              "change": 22.63001543209873,
+              "relative_change": 0.05920452343270566
+            }
+          }
+        },
+        "5": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 0.0,
+          "validation_mean_target": 0.0,
+          "mean_target_change": 0.0,
+          "mean_target_relative_change": null,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            },
+            "weekend": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            }
+          }
+        },
+        "7": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 871.5634057971015,
+          "validation_mean_target": 922.5225409836065,
+          "mean_target_change": 50.95913518650502,
+          "mean_target_relative_change": 0.05846864938059171,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 997.7125,
+              "validation_mean": 1112.0518518518518,
+              "change": 114.3393518518518,
+              "relative_change": 0.11460150278948267
+            },
+            "weekend": {
+              "train_mean": 567.8711419753087,
+              "validation_mean": 389.4713541666667,
+              "change": -178.39978780864197,
+              "relative_change": -0.31415540361513716
+            }
+          }
+        },
+        "11": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 1206.0591032608695,
+          "validation_mean_target": 1302.6372950819673,
+          "mean_target_change": 96.57819182109779,
+          "mean_target_relative_change": 0.08007749500830896,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1345.476282051282,
+              "validation_mean": 1433.4185185185186,
+              "change": 87.94223646723663,
+              "relative_change": 0.06536141709845822
+            },
+            "weekend": {
+              "train_mean": 870.4251543209876,
+              "validation_mean": 934.8151041666666,
+              "change": 64.38994984567898,
+              "relative_change": 0.07397528613003956
+            }
+          }
+        },
+        "12": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 1259.5960144927535,
+          "validation_mean_target": 1354.9207650273224,
+          "mean_target_change": 95.32475053456892,
+          "mean_target_relative_change": 0.07567882832096506,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1452.2871794871794,
+              "validation_mean": 1532.098148148148,
+              "change": 79.81096866096868,
+              "relative_change": 0.054955362677752806
+            },
+            "weekend": {
+              "train_mean": 795.7098765432099,
+              "validation_mean": 856.609375,
+              "change": 60.89949845679007,
+              "relative_change": 0.07653480276172364
+            }
+          }
+        },
+        "17": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 1872.3475996376812,
+          "validation_mean_target": 2092.2301912568305,
+          "mean_target_change": 219.88259161914925,
+          "mean_target_relative_change": 0.11743684327723058,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 2102.0865384615386,
+              "validation_mean": 2266.0925925925926,
+              "change": 164.00605413105404,
+              "relative_change": 0.07802060054629623
+            },
+            "weekend": {
+              "train_mean": 1319.27237654321,
+              "validation_mean": 1603.2421875,
+              "change": 283.96981095679007,
+              "relative_change": 0.21524729540752974
+            }
+          }
+        },
+        "25": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 265.67753623188406,
+          "validation_mean_target": 317.30669398907105,
+          "mean_target_change": 51.62915775718699,
+          "mean_target_relative_change": 0.19433015861802083,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 287.41282051282053,
+              "validation_mean": 339.73148148148147,
+              "change": 52.318660968660936,
+              "relative_change": 0.18203314965320816
+            },
+            "weekend": {
+              "train_mean": 213.35185185185185,
+              "validation_mean": 254.23697916666666,
+              "change": 40.88512731481481,
+              "relative_change": 0.19163239953129074
+            }
+          }
+        },
+        "26": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 653.3949275362319,
+          "validation_mean_target": 744.5109289617486,
+          "mean_target_change": 91.11600142551674,
+          "mean_target_relative_change": 0.13945012057116735,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 742.6195512820512,
+              "validation_mean": 840.287962962963,
+              "change": 97.66841168091173,
+              "relative_change": 0.13151877231389597
+            },
+            "weekend": {
+              "train_mean": 438.5949074074074,
+              "validation_mean": 475.1380208333333,
+              "change": 36.543113425925924,
+              "relative_change": 0.08331859948383147
+            }
+          }
+        },
+        "28": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 368.7986865942029,
+          "validation_mean_target": 411.3142076502732,
+          "mean_target_change": 42.51552105607033,
+          "mean_target_relative_change": 0.115281107556793,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 417.51826923076925,
+              "validation_mean": 460.98425925925926,
+              "change": 43.46599002849001,
+              "relative_change": 0.1041056002377363
+            },
+            "weekend": {
+              "train_mean": 251.5108024691358,
+              "validation_mean": 271.6171875,
+              "change": 20.106385030864203,
+              "relative_change": 0.07994243123347178
+            }
+          }
+        },
+        "50": {
+          "train_rows": 4416,
+          "train_days": 184,
+          "train_mean_target": 836.9073822463768,
+          "validation_mean_target": 790.6147540983607,
+          "mean_target_change": -46.29262814801609,
+          "mean_target_relative_change": -0.05531392019002168,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 997.9833333333333,
+              "validation_mean": 1062.6212962962964,
+              "change": 64.637962962963,
+              "relative_change": 0.0647685795984867
+            },
+            "weekend": {
+              "train_mean": 449.13194444444446,
+              "validation_mean": 25.596354166666668,
+              "change": -423.53559027777777,
+              "relative_change": -0.9430092771550058
+            }
+          }
+        }
+      }
+    },
+    "jan_aug_sep_oct": {
+      "fold": "fold_3",
+      "experiment_class": "model_architecture",
+      "name": "route_specific_lightgbm_v1",
+      "data_sources": [
+        "data\\raw\\labels\\labels_day_train.csv",
+        "data\\raw\\labels\\labels_day_test.csv"
+      ],
+      "grid_rows": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "periods": {
+        "train": [
+          "2025-01-01",
+          "2025-08-31"
+        ],
+        "validation": [
+          "2025-09-01",
+          "2025-10-31"
+        ]
+      },
+      "baseline_features": [
+        "route",
+        "weekday",
+        "hour",
+        "route_hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_features": [
+        "weekday",
+        "hour",
+        "hour_weekend",
+        "is_night"
+      ],
+      "candidate_categorical_features": [
+        "weekday",
+        "hour",
+        "hour_weekend"
+      ],
+      "model_parameters": {
+        "objective": "regression_l1",
+        "n_estimators": 300,
+        "max_depth": 6,
+        "num_leaves": 31,
+        "learning_rate": 0.1,
+        "random_state": 42,
+        "n_jobs": 4,
+        "verbosity": -1
+      },
+      "versions": {
+        "python": "3.12.6",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "lightgbm": "4.7.0"
+      },
+      "fitted_routes": [
+        1,
+        7,
+        11,
+        12,
+        17,
+        25,
+        26,
+        28,
+        50
+      ],
+      "route_5_prediction": 0,
+      "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+      "metrics": {
+        "baseline_wape": 0.12357994025785918,
+        "candidate_wape": 0.12075207137005418,
+        "delta_wape_absolute": -0.0028278688878049935,
+        "delta_wape_relative": -0.02288291191842644,
+        "baseline_wape_score": 0.8764200597421408,
+        "candidate_wape_score": 0.8792479286299458,
+        "total_actual_boardings": 12754481.0,
+        "routes_improved": 7,
+        "routes_worsened": 2
+      },
+      "per_route": {
+        "1": {
+          "baseline_wape": 0.10940917688956801,
+          "candidate_wape": 0.10880271245399804,
+          "actual_boardings": 1136093.0,
+          "baseline_absolute_error": 124299.0,
+          "candidate_absolute_error": 123610.0,
+          "delta_absolute_error": -689.0,
+          "delta_overall_wape_contribution": -5.402023022340149e-05
+        },
+        "5": {
+          "baseline_wape": null,
+          "candidate_wape": null,
+          "actual_boardings": 0.0,
+          "baseline_absolute_error": 0.0,
+          "candidate_absolute_error": 0.0,
+          "delta_absolute_error": 0.0,
+          "delta_overall_wape_contribution": 0.0
+        },
+        "7": {
+          "baseline_wape": 0.15733322078850975,
+          "candidate_wape": 0.15288695983112352,
+          "actual_boardings": 1350573.0,
+          "baseline_absolute_error": 212490.0,
+          "candidate_absolute_error": 206485.0,
+          "delta_absolute_error": -6005.0,
+          "delta_overall_wape_contribution": -0.0004708149237903134
+        },
+        "11": {
+          "baseline_wape": 0.10545493825315498,
+          "candidate_wape": 0.10335170191199967,
+          "actual_boardings": 1907061.0,
+          "baseline_absolute_error": 201109.0,
+          "candidate_absolute_error": 197098.0,
+          "delta_absolute_error": -4011.0,
+          "delta_overall_wape_contribution": -0.00031447771179399616
+        },
+        "12": {
+          "baseline_wape": 0.08806596477926038,
+          "candidate_wape": 0.08631914434534313,
+          "actual_boardings": 1983604.0,
+          "baseline_absolute_error": 174688.0,
+          "candidate_absolute_error": 171223.0,
+          "delta_absolute_error": -3465.0,
+          "delta_overall_wape_contribution": -0.00027166922746601764
+        },
+        "17": {
+          "baseline_wape": 0.08589449971841562,
+          "candidate_wape": 0.0803947078460019,
+          "actual_boardings": 3063025.0,
+          "baseline_absolute_error": 263097.0,
+          "candidate_absolute_error": 246251.0,
+          "delta_absolute_error": -16846.0,
+          "delta_overall_wape_contribution": -0.001320790708771294
+        },
+        "25": {
+          "baseline_wape": 0.19959874025104565,
+          "candidate_wape": 0.20038016347459944,
+          "actual_boardings": 464537.0,
+          "baseline_absolute_error": 92721.0,
+          "candidate_absolute_error": 93084.0,
+          "delta_absolute_error": 363.0,
+          "delta_overall_wape_contribution": 2.846058573453518e-05
+        },
+        "26": {
+          "baseline_wape": 0.1253876274812746,
+          "candidate_wape": 0.12344260911369549,
+          "actual_boardings": 1089964.0,
+          "baseline_absolute_error": 136668.0,
+          "candidate_absolute_error": 134548.0,
+          "delta_absolute_error": -2120.0,
+          "delta_overall_wape_contribution": -0.0001662160929950815
+        },
+        "28": {
+          "baseline_wape": 0.15373884855288591,
+          "candidate_wape": 0.15646235909154316,
+          "actual_boardings": 602164.0,
+          "baseline_absolute_error": 92576.0,
+          "candidate_absolute_error": 94216.0,
+          "delta_absolute_error": 1640.0,
+          "delta_overall_wape_contribution": 0.00012858226061883662
+        },
+        "50": {
+          "baseline_wape": 0.2406562645793375,
+          "candidate_wape": 0.23639261831942357,
+          "actual_boardings": 1157460.0,
+          "baseline_absolute_error": 278550.0,
+          "candidate_absolute_error": 273615.0,
+          "delta_absolute_error": -4935.0,
+          "delta_overall_wape_contribution": -0.00038692283911826754
+        }
+      },
+      "decision": null,
+      "target_shift_diagnostics": {
+        "1": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 683.4614197530864,
+          "validation_mean_target": 776.0198087431694,
+          "mean_target_change": 92.55838899008302,
+          "mean_target_relative_change": 0.13542591624779865,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 805.1864161849711,
+              "validation_mean": 907.9861111111111,
+              "change": 102.79969492613998,
+              "relative_change": 0.12767191902368658
+            },
+            "weekend": {
+              "train_mean": 382.6267857142857,
+              "validation_mean": 404.8645833333333,
+              "change": 22.237797619047626,
+              "relative_change": 0.05811876859988829
+            }
+          }
+        },
+        "5": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 0.0,
+          "validation_mean_target": 0.0,
+          "mean_target_change": 0.0,
+          "mean_target_relative_change": null,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            },
+            "weekend": {
+              "train_mean": 0.0,
+              "validation_mean": 0.0,
+              "change": 0.0,
+              "relative_change": null
+            }
+          }
+        },
+        "7": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 881.877743484225,
+          "validation_mean_target": 922.5225409836065,
+          "mean_target_change": 40.644797499381525,
+          "mean_target_relative_change": 0.04608892536373288,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1003.582851637765,
+              "validation_mean": 1112.0518518518518,
+              "change": 108.4690002140868,
+              "relative_change": 0.1080817593057457
+            },
+            "weekend": {
+              "train_mean": 581.0922619047619,
+              "validation_mean": 389.4713541666667,
+              "change": -191.62090773809524,
+              "relative_change": -0.32975986826942283
+            }
+          }
+        },
+        "11": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 1206.3444787379972,
+          "validation_mean_target": 1302.6372950819673,
+          "mean_target_change": 96.29281634397012,
+          "mean_target_relative_change": 0.07982198952384278,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1347.0428709055877,
+              "validation_mean": 1433.4185185185186,
+              "change": 86.37564761293083,
+              "relative_change": 0.06412241917353545
+            },
+            "weekend": {
+              "train_mean": 858.6184523809524,
+              "validation_mean": 934.8151041666666,
+              "change": 76.19665178571427,
+              "relative_change": 0.08874331966011284
+            }
+          }
+        },
+        "12": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 1261.252914951989,
+          "validation_mean_target": 1354.9207650273224,
+          "mean_target_change": 93.66785007533349,
+          "mean_target_relative_change": 0.07426571543654203,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 1449.54070327553,
+              "validation_mean": 1532.098148148148,
+              "change": 82.55744487261813,
+              "relative_change": 0.05695420948584817
+            },
+            "weekend": {
+              "train_mean": 795.9130952380953,
+              "validation_mean": 856.609375,
+              "change": 60.69627976190475,
+              "relative_change": 0.07625993355938898
+            }
+          }
+        },
+        "17": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 1892.3794581618656,
+          "validation_mean_target": 2092.2301912568305,
+          "mean_target_change": 199.85073309496488,
+          "mean_target_relative_change": 0.10560817083117513,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 2104.3128612716764,
+              "validation_mean": 2266.0925925925926,
+              "change": 161.7797313209162,
+              "relative_change": 0.07688007534352548
+            },
+            "weekend": {
+              "train_mean": 1368.6011904761904,
+              "validation_mean": 1603.2421875,
+              "change": 234.64099702380963,
+              "relative_change": 0.17144585190823114
+            }
+          }
+        },
+        "25": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 261.2568587105624,
+          "validation_mean_target": 317.30669398907105,
+          "mean_target_change": 56.049835278508624,
+          "mean_target_relative_change": 0.2145391916412971,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 284.09898843930637,
+              "validation_mean": 339.73148148148147,
+              "change": 55.6324930421751,
+              "relative_change": 0.1958208065005489
+            },
+            "weekend": {
+              "train_mean": 204.80416666666667,
+              "validation_mean": 254.23697916666666,
+              "change": 49.43281249999998,
+              "relative_change": 0.24136624417634733
+            }
+          }
+        },
+        "26": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 649.8108710562415,
+          "validation_mean_target": 744.5109289617486,
+          "mean_target_change": 94.70005790550715,
+          "mean_target_relative_change": 0.14573480088379553,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 737.0296242774566,
+              "validation_mean": 840.287962962963,
+              "change": 103.25833868550637,
+              "relative_change": 0.14010066255713283
+            },
+            "weekend": {
+              "train_mean": 434.2559523809524,
+              "validation_mean": 475.1380208333333,
+              "change": 40.882068452380906,
+              "relative_change": 0.09414279350284405
+            }
+          }
+        },
+        "28": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 372.6150548696845,
+          "validation_mean_target": 411.3142076502732,
+          "mean_target_change": 38.69915278058869,
+          "mean_target_relative_change": 0.10385826411153198,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 421.32369942196533,
+              "validation_mean": 460.98425925925926,
+              "change": 39.66055983729393,
+              "relative_change": 0.09413322794731505
+            },
+            "weekend": {
+              "train_mean": 252.23511904761904,
+              "validation_mean": 271.6171875,
+              "change": 19.382068452380963,
+              "relative_change": 0.0768412762091304
+            }
+          }
+        },
+        "50": {
+          "train_rows": 5832,
+          "train_days": 243,
+          "train_mean_target": 835.0186899862825,
+          "validation_mean_target": 790.6147540983607,
+          "mean_target_change": -44.403935887921875,
+          "mean_target_relative_change": -0.05317717605656391,
+          "weekday_weekend": {
+            "weekday": {
+              "train_mean": 994.8441714836224,
+              "validation_mean": 1062.6212962962964,
+              "change": 67.77712481267395,
+              "relative_change": 0.06812838307289582
+            },
+            "weekend": {
+              "train_mean": 440.02142857142854,
+              "validation_mean": 25.596354166666668,
+              "change": -414.42507440476186,
+              "relative_change": -0.9418293007916281
+            }
+          }
+        }
+      }
+    }
+  },
+  "decision": "VALIDATION_PERIOD_SPECIFIC",
+  "decision_rationale": "At fixed four-month training length, route-specific loses on May-Jun and Jul-Aug but wins on Sep-Oct. For the same Sep-Oct target, it wins with 4, 6, and 8 months of history, so training length changes magnitude but not the sign. Route 17 and 50 account for much of the four-month Sep-Oct gain; their target-level shifts are descriptive associations, not established causes.",
+  "next_minimal_experiment": "Decompose the fixed May-Aug to Sep-Oct predictions by September vs October and by route without changing training, features, or parameters."
+}
