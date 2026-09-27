@@ -1330,3 +1330,34 @@ Recent block выше previous у восьми маршрутов; route 50 им
 | 50 | +0.030873 | −0.027803 | −0.000032 |
 
 **Вывод — `WEATHER_CANDIDATE_ONLY`.** Bucketing уменьшил May–Jun проигрыш continuous temperature (`+0.031054 → +0.015887`) и улучшил Sep–Oct gain (`−0.007416 → −0.009670`), но не устранил смену знака между folds. На первом fold `>=20` вообще отсутствует в train и занимает 18.44% validation; это оставшийся category shift. Поэтому нельзя утверждать, что mixed continuous-temperature result был **в основном** только проблемой числовой экстраполяции. Bucket выигрывает 2/3 folds, но один fold проигрывает core; route effects также неоднородны. `temperature_bucket` сохраняется как candidate, не входит в accepted set и не добавляется в текущие model-ready input columns. Observed weather 2025 остаётся EDA-only и запрещённым model input из-за leakage. Позднее bucket использовался в отдельном combined pilot v3 candidate experiment; это не меняет решение Weather branch. Ветка закрыта до появления новой информации.
+
+## Recursive hypothesis 1 — `lag_168`
+
+**Контракт.** Сравнены tuned primary LightGBM v4 (`SET_FEATURES + CALENDAR_FEATURES + WEATHER_FEATURES`) и та же модель с единственным новым признаком `lag_168(route,t) = boardings(route,t−168h)`. Параметры из HPO trial 8, folds Jan–Apr → May–Jun, Jan–Jun → Jul–Aug, Jan–Aug → Sep–Oct; reference точно воспроизвёл HPO absolute errors по fold и route. Train lag берётся только из более раннего target, первые 168 часов для девяти маршрутов — `NaN`. Route 5 lag всегда missing, prediction всегда `0`. В holdout первые семь дней используют actual до origin, далее только ранее округлённые predictions. Validation target отсутствует в аргументе recursive inference и state. У 90% строк первой недели lag из pre-origin actual; на следующих неделях у 90% строк lag из predictions; остальные 10% — route 5 missing. Доля train rows с lag: `84.75% / 86.52% / 87.41%` по folds. Источник и доли каждой недели сохранены в JSON.
+
+| Fold | Reference WAPE | Recursive WAPE | Δ WAPE |
+|---|---:|---:|---:|
+| May–Jun | 0.141207 | 0.189901 | +0.048694 |
+| Jul–Aug | 0.205422 | 0.198844 | −0.006578 |
+| Sep–Oct | 0.114021 | 0.122807 | +0.008786 |
+
+Pooled WAPE `0.150956 → 0.168207` (Δ `+0.017251`); pooled absolute error вырос на `604 264`. По горизонту reference → candidate: days 1–7 `0.123722 → 0.179136`, days 8–28 `0.153421 → 0.169625`, days 29–61 `0.154648 → 0.164822`. Ухудшение не монотонно нарастает; уже первая неделя хуже, и поздние buckets также хуже. Pooled per-route WAPE ухудшился у всех девяти маршрутов с ненулевым target; наибольшие Δ: route 28 `+0.028867`, route 1 `+0.027189`, route 50 `+0.024313`, route 25 `+0.022236`. Route 5 WAPE не определён.
+
+**Решение — `RECURSIVE_LAG168_REJECTED`.** Один выигрыш Jul–Aug не компенсирует два проигранных folds и ухудшение pooled и обоих поздних horizons. Accepted feature set не меняется. Результат: `ml/experiments/results/recursive_lag_168.json`; воспроизведение: `ml/notebooks/recursive_lag_experiment.ipynb` или `python ml/src/recursive_lag_experiment.py`. Jan–Oct → Nov–Dec final fit и submission для кандидата не выполнялись.
+
+## Recursive representation ablation — `lag_168`
+
+**Гипотеза.** Core профиль времени может скрывать полезный recursive signal. Проверены четыре конфигурации с неизменными tuned LightGBM parameters и recursive inference: A = `SET_FEATURES + CALENDAR_FEATURES + WEATHER_FEATURES`; B = A + `lag_168`; C = `route + CALENDAR_FEATURES + WEATHER_FEATURES + lag_168`; D = `CALENDAR_FEATURES + WEATHER_FEATURES + lag_168`. C — основной тест, D — диагностика без `route`. `lag_168` остаётся числовым, отсутствующая история — `NaN`.
+
+| Вариант | May–Jun | Jul–Aug | Sep–Oct | Pooled WAPE | Δ к A | Δ к B | Pooled AE | WAPE-score |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| A | 0.141207 | 0.205422 | 0.114021 | 0.150956 | 0 | −0.017251 | 5 287 697 | 0.849044 |
+| B | 0.189901 | 0.198844 | 0.122807 | 0.168207 | +0.017251 | 0 | 5 891 961 | 0.831793 |
+| C | 0.368503 | 0.216586 | 0.192500 | 0.257934 | +0.106978 | +0.089727 | 9 034 917 | 0.742066 |
+| D | 0.300499 | 0.204180 | 0.193396 | 0.232029 | +0.081073 | +0.063822 | 8 127 537 | 0.767971 |
+
+Pooled WAPE по дням 1–7 / 8–28 / 29–61: A `0.123722 / 0.153421 / 0.154648`; B `0.179136 / 0.169625 / 0.164822`; C `0.186333 / 0.231909 / 0.288981`; D `0.191298 / 0.222468 / 0.245408`. C хуже B уже в первую неделю и разрыв увеличивается позже. Это согласуется с recursive error accumulation, но не отделяет его причинно от недостаточной выразительности C.
+
+Gain rank `lag_168` по трём folds: B `2/2/1`, C `1/1/1`, D `1/1/1`; доля total gain B `22.20%/21.96%/75.71%`, C `76.47%/82.32%/86.03%`, D `76.39%/80.85%/85.32%`. Корреляция prediction с лагом в C/D высокая (`0.9715–0.9995`), но вместе с ухудшением WAPE показывает, почему importance и корреляция не служат критерием выбора. Pooled per-route WAPE всех вариантов, точные fold/horizon метрики и provenance сохранены в `ml/experiments/results/recursive_lag_ablation.json`.
+
+**Решение — `RECURSIVE_MASKING_REJECTED`.** C намного хуже B на каждом fold и горизонте; удаление core признаков не раскрывает полезную роль лага. D лучше C pooled, поэтому удаление `route` не даёт однозначной механистической интерпретации. A и B точно воспроизведены по fold, route и horizon абсолютным ошибкам. Accepted registry, primary v4 и submissions не менялись; final Jan–Oct → Nov–Dec fit не выполнялся. Воспроизведение: `python ml/src/recursive_lag_ablation.py` или `ml/notebooks/recursive_lag_ablation.ipynb`.

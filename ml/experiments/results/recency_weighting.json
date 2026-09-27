@@ -1,0 +1,1284 @@
+{
+  "experiment": "RECENCY_WEIGHTING_CONTROLLED",
+  "created_at_utc": "2026-09-27T15:48:51.583960+00:00",
+  "source_sha256": {
+    "data/processed/model_ready_train_2025_jan_oct.csv": "f910f3213f2abbefaae4428d2ee1f7342be28f687a95e4a07c8a94cd3ae78615",
+    "data/processed/model_ready_train_2025_jan_aug.csv": "06ce7d94fb4904e23f4b1e03ab674fe8ed2ecf0dc0abf7fc27a92b053230d76c",
+    "data/processed/model_ready_validation_2025_sep_oct.csv": "83f5571543bb8a9bef06969918c21e56d7868cd651af0f1c7f0e3f88d4e2ec02",
+    "ml/experiments/results/hyperparameter_tuning.json": "0eb0d9e9c9fc7072f815530ce933878314219a64b7fd2a3c9c7a0de1b8548ae3",
+    "ml/src/model_selection.py": "5fa699d766f4fb07cf8beaf812c4a68d0c7119e1d5ba95f7bdbb12e851e7bd45",
+    "ml/src/recency_weighting_experiment.py": "d9e1c6ee621ea3d718392dfef67e74568979203903676f56b43eef5819289f70"
+  },
+  "environment": {
+    "python": "3.12.6",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3",
+    "lightgbm": "4.7.0"
+  },
+  "model": "LightGBM",
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 400,
+    "max_depth": 8,
+    "num_leaves": 15,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1,
+    "min_child_samples": 40
+  },
+  "feature_configuration": "calendar_weather",
+  "features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "is_day_off",
+    "is_official_holiday",
+    "is_transferred_day_off",
+    "is_transferred_workday",
+    "is_shortened_workday",
+    "temperature_bucket"
+  ],
+  "categorical_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "temperature_bucket"
+  ],
+  "folds": [
+    {
+      "name": "jan_apr_to_may_jun",
+      "train_period": [
+        "2025-01-01",
+        "2025-04-30"
+      ],
+      "validation_period": [
+        "2025-05-01",
+        "2025-06-30"
+      ]
+    },
+    {
+      "name": "jan_jun_to_jul_aug",
+      "train_period": [
+        "2025-01-01",
+        "2025-06-30"
+      ],
+      "validation_period": [
+        "2025-07-01",
+        "2025-08-31"
+      ]
+    },
+    {
+      "name": "jan_aug_to_sep_oct",
+      "train_period": [
+        "2025-01-01",
+        "2025-08-31"
+      ],
+      "validation_period": [
+        "2025-09-01",
+        "2025-10-31"
+      ]
+    }
+  ],
+  "weighting_configurations": {
+    "reference": "sample_weight=None",
+    "fixed": "age<=30:1.00; 31-60:0.95; 61-120:0.85; >120:0.70",
+    "exponential_120": "exp(-ln(2)*age_days/120)",
+    "exponential_180": "exp(-ln(2)*age_days/180)"
+  },
+  "weight_origin": "max(date) of each fold train, computed independently",
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5); route 5 = 0",
+  "all_folds": {
+    "reference": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1631779,
+        "wape": 0.14120733740697833,
+        "wape_score": 0.8587926625930217,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 136617,
+            "wape": 0.14038146948572933
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 203588,
+            "wape": 0.15032410931776446
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 211096,
+            "wape": 0.12212691141494605
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 218211,
+            "wape": 0.12105139654205437
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 306518,
+            "wape": 0.11125864064081213
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 78873,
+            "wape": 0.20249963414352357
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 191467,
+            "wape": 0.21243001914973406
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 107222,
+            "wape": 0.20032995345899965
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 178187,
+            "wape": 0.15963387244305124
+          }
+        },
+        "train_seconds": 0.7287470000010217,
+        "inference_seconds": 0.2013513000056264,
+        "weight_diagnostics": {
+          "origin": "2025-04-30",
+          "min_age_days": 0,
+          "max_age_days": 119,
+          "min_weight": 1.0,
+          "mean_weight": 1.0,
+          "max_weight": 1.0,
+          "rows": 28800,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14160,
+            "over_120": 0
+          }
+        }
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2201643,
+        "wape": 0.20542211993614648,
+        "wape_score": 0.7945778800638535,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 147917,
+            "wape": 0.16232727959114468
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 542291,
+            "wape": 0.6201176219015045
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 259136,
+            "wape": 0.1554246834809093
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 265167,
+            "wape": 0.15226216698554593
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 341473,
+            "wape": 0.1267051821507818
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 83025,
+            "wape": 0.2451624524218005
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 171594,
+            "wape": 0.21388986530450455
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 108104,
+            "wape": 0.2327720597734809
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 282936,
+            "wape": 0.23138579100727927
+          }
+        },
+        "train_seconds": 0.9079346999933477,
+        "inference_seconds": 0.2043028000043705,
+        "weight_diagnostics": {
+          "origin": "2025-06-30",
+          "min_age_days": 0,
+          "max_age_days": 180,
+          "min_weight": 1.0,
+          "mean_weight": 1.0,
+          "max_weight": 1.0,
+          "rows": 43440,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 14400
+          }
+        }
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1454275,
+        "wape": 0.11402071162284064,
+        "wape_score": 0.8859792883771593,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 92670,
+            "wape": 0.08156902647934632
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 225650,
+            "wape": 0.1670772331447467
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 198630,
+            "wape": 0.10415503227217168
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 188235,
+            "wape": 0.09489545292306327
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 219081,
+            "wape": 0.07152439173692673
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 68917,
+            "wape": 0.14835632037921628
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 99755,
+            "wape": 0.09152137134804453
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 80022,
+            "wape": 0.13289070751489626
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 281315,
+            "wape": 0.2430451160299276
+          }
+        },
+        "train_seconds": 1.0115988000034122,
+        "inference_seconds": 0.18683340000279713,
+        "weight_diagnostics": {
+          "origin": "2025-08-31",
+          "min_age_days": 0,
+          "max_age_days": 242,
+          "min_weight": 1.0,
+          "mean_weight": 1.0,
+          "max_weight": 1.0,
+          "rows": 58320,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 29280
+          }
+        }
+      }
+    ],
+    "fixed": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1673876,
+        "wape": 0.14485023591395846,
+        "wape_score": 0.8551497640860415,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 138116,
+            "wape": 0.14192177429961858
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 205333,
+            "wape": 0.1516125721483807
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 214736,
+            "wape": 0.12423278721339985
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 216341,
+            "wape": 0.12001402394610988
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 339869,
+            "wape": 0.12336424919891223
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 79604,
+            "wape": 0.204376413682262
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 190870,
+            "wape": 0.21176765581071275
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 107643,
+            "wape": 0.20111653560078246
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 181364,
+            "wape": 0.1624800779055798
+          }
+        },
+        "train_seconds": 3.4042103000028874,
+        "inference_seconds": 0.22905829999945126,
+        "weight_diagnostics": {
+          "origin": "2025-04-30",
+          "min_age_days": 0,
+          "max_age_days": 119,
+          "min_weight": 0.85,
+          "mean_weight": 0.9137499999999997,
+          "max_weight": 1.0,
+          "rows": 28800,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14160,
+            "over_120": 0
+          }
+        }
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2180773,
+        "wape": 0.2034748652526817,
+        "wape_score": 0.7965251347473183,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 142760,
+            "wape": 0.15666787748826583
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 542363,
+            "wape": 0.6201999549455287
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 248825,
+            "wape": 0.14924034818449483
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 257411,
+            "wape": 0.14780857597633326
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 352738,
+            "wape": 0.13088511402512784
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 82955,
+            "wape": 0.24495575116712387
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 167172,
+            "wape": 0.20837789528004846
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 103933,
+            "wape": 0.22379096507471685
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 282616,
+            "wape": 0.2311240941814164
+          }
+        },
+        "train_seconds": 5.362429399996472,
+        "inference_seconds": 0.21130330000596587,
+        "weight_diagnostics": {
+          "origin": "2025-06-30",
+          "min_age_days": 0,
+          "max_age_days": 180,
+          "min_weight": 0.7,
+          "mean_weight": 0.8425414364640882,
+          "max_weight": 1.0,
+          "rows": 43440,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 14400
+          }
+        }
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1466170,
+        "wape": 0.11495332503141445,
+        "wape_score": 0.8850466749685856,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 92026,
+            "wape": 0.081002171477159
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 222978,
+            "wape": 0.16509881361466577
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 205397,
+            "wape": 0.1077034242743153
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 187971,
+            "wape": 0.09476236184238386
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 222738,
+            "wape": 0.07271830951428734
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 70710,
+            "wape": 0.1522160775137395
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 102983,
+            "wape": 0.09448293705113196
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 79825,
+            "wape": 0.13256355411482587
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 281542,
+            "wape": 0.24324123511827622
+          }
+        },
+        "train_seconds": 7.529204000005848,
+        "inference_seconds": 0.19093669999710983,
+        "weight_diagnostics": {
+          "origin": "2025-08-31",
+          "min_age_days": 0,
+          "max_age_days": 242,
+          "min_weight": 0.7,
+          "mean_weight": 0.8061728395061727,
+          "max_weight": 1.0,
+          "rows": 58320,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 29280
+          }
+        }
+      }
+    ],
+    "exponential_120": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1692071,
+        "wape": 0.1464247551988126,
+        "wape_score": 0.8535752448011874,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 136793,
+            "wape": 0.1405623191503354
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 209597,
+            "wape": 0.1547609993745971
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 214423,
+            "wape": 0.12405170503622512
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 217613,
+            "wape": 0.12071965920923361
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 356538,
+            "wape": 0.12941469413474535
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 77721,
+            "wape": 0.19954197336564852
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 192640,
+            "wape": 0.21373144661484625
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 104434,
+            "wape": 0.19512094868158744
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 182312,
+            "wape": 0.16332937056484234
+          }
+        },
+        "train_seconds": 3.5466425999984494,
+        "inference_seconds": 0.23466349999944214,
+        "weight_diagnostics": {
+          "origin": "2025-04-30",
+          "min_age_days": 0,
+          "max_age_days": 119,
+          "min_weight": 0.5028964705339267,
+          "mean_weight": 0.7234328594109029,
+          "max_weight": 1.0,
+          "rows": 28800,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14160,
+            "over_120": 0
+          }
+        }
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2133615,
+        "wape": 0.19907483476093132,
+        "wape_score": 0.8009251652390686,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 141801,
+            "wape": 0.15561545037625094
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 536572,
+            "wape": 0.6135778624740851
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 244648,
+            "wape": 0.14673506561897035
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 250105,
+            "wape": 0.1436133805259326
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 337485,
+            "wape": 0.12522541576685886
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 76280,
+            "wape": 0.22524531009617513
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 164520,
+            "wape": 0.20507220905099882
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 101319,
+            "wape": 0.21816243917143965
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 280885,
+            "wape": 0.2297084779140146
+          }
+        },
+        "train_seconds": 5.050749199996062,
+        "inference_seconds": 0.19402290000289213,
+        "weight_diagnostics": {
+          "origin": "2025-06-30",
+          "min_age_days": 0,
+          "max_age_days": 180,
+          "min_weight": 0.3535533905932738,
+          "mean_weight": 0.6220559446104702,
+          "max_weight": 1.0,
+          "rows": 43440,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 14400
+          }
+        }
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1516181,
+        "wape": 0.11887437834593191,
+        "wape_score": 0.881125621654068,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 94407,
+            "wape": 0.08309795060791678
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 229281,
+            "wape": 0.16976572166036194
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 207102,
+            "wape": 0.10859747013860595
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 192725,
+            "wape": 0.09715900956037596
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 251612,
+            "wape": 0.08214493841872006
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 70389,
+            "wape": 0.15152506689456383
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 106457,
+            "wape": 0.09767019828177811
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 80993,
+            "wape": 0.13450322503504028
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 283215,
+            "wape": 0.244686641439013
+          }
+        },
+        "train_seconds": 7.459857699999702,
+        "inference_seconds": 0.2118869999976596,
+        "weight_diagnostics": {
+          "origin": "2025-08-31",
+          "min_age_days": 0,
+          "max_age_days": 242,
+          "min_weight": 0.24712850508822404,
+          "mean_weight": 0.5389448695679223,
+          "max_weight": 1.0,
+          "rows": 58320,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 29280
+          }
+        }
+      }
+    ],
+    "exponential_180": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1669007,
+        "wape": 0.1444288929956867,
+        "wape_score": 0.8555711070043133,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 136735,
+            "wape": 0.1405027209654084
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 205155,
+            "wape": 0.15148114155591672
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 209766,
+            "wape": 0.12135745679628024
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 212747,
+            "wape": 0.1180202714809631
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 352480,
+            "wape": 0.1279417380156254
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 79383,
+            "wape": 0.20380901521706202
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 188289,
+            "wape": 0.2089040715929339
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 106181,
+            "wape": 0.19838498431506632
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 178271,
+            "wape": 0.15970912622298591
+          }
+        },
+        "train_seconds": 3.1808124000017415,
+        "inference_seconds": 0.19773229999555042,
+        "weight_diagnostics": {
+          "origin": "2025-04-30",
+          "min_age_days": 0,
+          "max_age_days": 119,
+          "min_weight": 0.6323910648476662,
+          "mean_weight": 0.8023239940848108,
+          "max_weight": 1.0,
+          "rows": 28800,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14160,
+            "over_120": 0
+          }
+        }
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2149749,
+        "wape": 0.2005802016542241,
+        "wape_score": 0.7994197983457759,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 146951,
+            "wape": 0.16126717052940706
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 541579,
+            "wape": 0.6193034395772655
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 248702,
+            "wape": 0.1491665752001617
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 254158,
+            "wape": 0.14594066319229912
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 333332,
+            "wape": 0.12368442534749279
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 78343,
+            "wape": 0.23133709135900168
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 162658,
+            "wape": 0.20275124835775205
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 101352,
+            "wape": 0.21823349554282762
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 282674,
+            "wape": 0.23117152673110405
+          }
+        },
+        "train_seconds": 4.898643199994694,
+        "inference_seconds": 0.19849619999877177,
+        "weight_diagnostics": {
+          "origin": "2025-06-30",
+          "min_age_days": 0,
+          "max_age_days": 180,
+          "min_weight": 0.5,
+          "mean_weight": 0.721506707904438,
+          "max_weight": 1.0,
+          "rows": 43440,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 14400
+          }
+        }
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1489477,
+        "wape": 0.11678068280473348,
+        "wape_score": 0.8832193171952665,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 93522,
+            "wape": 0.08231896508472458
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 227231,
+            "wape": 0.16824784739514265
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 205682,
+            "wape": 0.10785286889092693
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 189864,
+            "wape": 0.09571668538680099
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 237577,
+            "wape": 0.07756286677385918
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 69629,
+            "wape": 0.14988902929153114
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 104965,
+            "wape": 0.09630134573251961
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 81154,
+            "wape": 0.13477059405743286
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 279853,
+            "wape": 0.24178200542567346
+          }
+        },
+        "train_seconds": 7.3055314000012,
+        "inference_seconds": 0.18666620000294643,
+        "weight_diagnostics": {
+          "origin": "2025-08-31",
+          "min_age_days": 0,
+          "max_age_days": 242,
+          "min_weight": 0.39380560644880985,
+          "mean_weight": 0.650686228404234,
+          "max_weight": 1.0,
+          "rows": 58320,
+          "age_bin_rows": {
+            "0_30": 7440,
+            "31_60": 7200,
+            "61_120": 14400,
+            "over_120": 29280
+          }
+        }
+      }
+    ]
+  },
+  "summaries": {
+    "reference": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5287697,
+      "pooled_wape": 0.1509561111066385,
+      "wape_score": 0.8490438888933615,
+      "mean_wape": 0.15355005632198848,
+      "median_wape": 0.14120733740697833,
+      "fold_wape_range": 0.09140140831330584,
+      "train_seconds": 2.6482804999977816,
+      "inference_seconds": 0.592487500012794,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 377204,
+          "wape": 0.12488114566310787
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 971529,
+          "wape": 0.2714225329014915
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 668862,
+          "wape": 0.12613290815196024
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 671613,
+          "wape": 0.12149841771092801
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 867072,
+          "wape": 0.10185210962605759
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 230815,
+          "wape": 0.19352520820634417
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 462816,
+          "wape": 0.16567389860019702
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 295348,
+          "wape": 0.18438380058571205
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 742438,
+          "wape": 0.2123391807513402
+        }
+      }
+    },
+    "fixed": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5320819,
+      "pooled_wape": 0.15190169636087567,
+      "wape_score": 0.8480983036391243,
+      "mean_wape": 0.1544261420660182,
+      "median_wape": 0.14485023591395846,
+      "fold_wape_range": 0.08852154022126726,
+      "train_seconds": 16.295843700005207,
+      "inference_seconds": 0.631298300002527,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 372902,
+          "wape": 0.12345688004386023
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 970674,
+          "wape": 0.2711836658520974
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 668958,
+          "wape": 0.12615101167583
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 661723,
+          "wape": 0.1197092633152253
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 915345,
+          "wape": 0.10752258092253433
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 233269,
+          "wape": 0.19558274719184496
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 461025,
+          "wape": 0.1650327756649637
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 291401,
+          "wape": 0.18191971462301107
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 745522,
+          "wape": 0.21322121269668398
+        }
+      }
+    },
+    "exponential_120": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5341867,
+      "pooled_wape": 0.1525025863563827,
+      "wape_score": 0.8474974136436173,
+      "mean_wape": 0.15479132276855861,
+      "median_wape": 0.1464247551988126,
+      "fold_wape_range": 0.08020045641499941,
+      "train_seconds": 16.057249499994214,
+      "inference_seconds": 0.6405733999999939,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 373001,
+          "wape": 0.12348965603091405
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 975450,
+          "wape": 0.27251796880871276
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 666173,
+          "wape": 0.12562582090523278
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 660443,
+          "wape": 0.11947770440455802
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 945635,
+          "wape": 0.11108064807332838
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 224390,
+          "wape": 0.18813821228872285
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 463617,
+          "wape": 0.16596063197324107
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 286746,
+          "wape": 0.17901362894873366
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 746412,
+          "wape": 0.21347575498960095
+        }
+      }
+    },
+    "exponential_180": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5308233,
+      "pooled_wape": 0.15154238424174551,
+      "wape_score": 0.8484576157582545,
+      "mean_wape": 0.15392992581821477,
+      "median_wape": 0.1444288929956867,
+      "fold_wape_range": 0.08379951884949062,
+      "train_seconds": 15.384986999997636,
+      "inference_seconds": 0.5828946999972686,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 377208,
+          "wape": 0.12488246994541308
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 973965,
+          "wape": 0.27210309445976516
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 664150,
+          "wape": 0.1252443268553519
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 656769,
+          "wape": 0.11881305796878333
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 923389,
+          "wape": 0.10846748327185712
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 227355,
+          "wape": 0.19062419561880023
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 455912,
+          "wape": 0.1632024788654952
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 288687,
+          "wape": 0.1802253823953013
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 740798,
+          "wape": 0.21187013652618983
+        }
+      }
+    }
+  },
+  "best_weighting": "exponential_180",
+  "best_delta_pooled_wape": 0.0005862731351070072,
+  "best_fold_delta_wape": {
+    "jan_apr_to_may_jun": 0.0032215555887083747,
+    "jan_jun_to_jul_aug": -0.004841918281922375,
+    "jan_aug_to_sep_oct": 0.002759971181892848
+  },
+  "best_route_delta_pooled_wape": {
+    "1": 1.3242823052039832e-06,
+    "7": 0.0006805615582736735,
+    "11": -0.0008885812966083484,
+    "12": -0.0026853597421446773,
+    "17": 0.006615373645799533,
+    "25": -0.0029010125875439385,
+    "26": -0.0024714197347018296,
+    "28": -0.00415841819041074,
+    "50": -0.00046904422515037236
+  },
+  "route_degradation_threshold": 0.01,
+  "classification_rule": "SUPPORTED if pooled WAPE improves, every fold does not worsen, and no route worsens by more than 0.01 absolute WAPE; REJECTED if no candidate improves pooled WAPE; otherwise MIXED",
+  "classification": "RECENCY_WEIGHTING_REJECTED",
+  "nov_dec_used": false,
+  "final_fit_performed": false,
+  "accepted_feature_registry_changed": false
+}
