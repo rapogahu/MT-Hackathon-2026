@@ -1,0 +1,70 @@
+{
+  "hash": "97bea7eb",
+  "configHash": "9e809b19",
+  "lockfileHash": "da492c61",
+  "browserHash": "fb8d32bb",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "231817c6",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "e86ab48c",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "9f387137",
+      "needsInterop": true
+    },
+    "echarts/charts": {
+      "src": "../../node_modules/echarts/charts.js",
+      "file": "echarts_charts.js",
+      "fileHash": "4e8b24ef",
+      "needsInterop": false
+    },
+    "echarts/components": {
+      "src": "../../node_modules/echarts/components.js",
+      "file": "echarts_components.js",
+      "fileHash": "1161d0fb",
+      "needsInterop": false
+    },
+    "echarts/core": {
+      "src": "../../node_modules/echarts/core.js",
+      "file": "echarts_core.js",
+      "fileHash": "5daec590",
+      "needsInterop": false
+    },
+    "echarts/renderers": {
+      "src": "../../node_modules/echarts/renderers.js",
+      "file": "echarts_renderers.js",
+      "fileHash": "8de85373",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-ITZPYNHE": {
+      "file": "chunk-ITZPYNHE.js"
+    },
+    "chunk-GV6PFVLO": {
+      "file": "chunk-GV6PFVLO.js"
+    },
+    "chunk-UDOZL6VI": {
+      "file": "chunk-UDOZL6VI.js"
+    },
+    "chunk-MJD6IP5R": {
+      "file": "chunk-MJD6IP5R.js"
+    },
+    "chunk-5FIDNIYT": {
+      "file": "chunk-5FIDNIYT.js"
+    },
+    "chunk-AXQFWXYZ": {
+      "file": "chunk-AXQFWXYZ.js"
+    }
+  }
+}
