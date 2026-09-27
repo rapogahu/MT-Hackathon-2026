@@ -1134,3 +1134,113 @@ Recent block выше previous у восьми маршрутов; route 50 им
 **Сверка с H6.** H6 запускался до принятия `is_night`: его контроль включал пять признаков, текущий — шесть. В H6 `is_weekend` совпадал с `weekday>=5` и был числовым `int8`; здесь `is_day_off` отличается от него на 12 train датах. Поэтому прежний H6 не является контролем для календарной группы. В актуальном notebook H6 указан WAPE `0.124202 → 0.124220`; в старом разделе `data/Features.md` сохранены немного другие числа `0.124226 → 0.124246`. Оба результата относятся к прежнему пятиместному набору.
 
 **Классификация — `REPRESENTATION_DIFFERENCE`.** На Sep–Oct нет положительных наблюдений для четырёх official flags, а единственный меняющийся флаг совпадает с обычным weekend. Улучшение от четырёх константных в validation колонок показывает изменение fitted tree structure через train. Разница `is_day_off` в train также может менять обученные разбиения. Отдельный эффект официальных праздничных дат на validation этим экспериментом не установлен. Оснований для `PIPELINE_INCONSISTENCY` нет: split, параметры и baseline/полная группа воспроизведены. Accepted set не меняется.
+
+## Official calendar group — temporal stability
+
+**Контракт.** Fixed expanding-window folds: Jan–Apr → May–Jun, Jan–Jun → Jul–Aug, Jan–Aug → Sep–Oct 2025. Во всех folds сравнивались `core` (`route, weekday, hour, route_hour, hour_weekend, is_night`) и `core + official calendar group` (`is_day_off, is_official_holiday, is_transferred_day_off, is_transferred_workday, is_shortened_workday`). Использованы тот же model-ready Jan–Oct CSV, frozen Global LightGBM (`regression_l1`, 300 trees, `max_depth=6`, `num_leaves=31`, `learning_rate=0.1`, seed 42), те же пять категориальных core полей, числовые `int8` flags, `floor(max(raw,0)+0.5)` и route 5 → 0. Validation target использован только после prediction для WAPE. Запуск: `python ml/src/calendar_temporal_stability.py`; точный JSON: `ml/experiments/results/calendar_official_group_temporal_stability.json`.
+
+**Availability.** Для каждого validation периода проверено `known_from <= forecast_origin` по всем строкам календаря с датой доступности. Шесть записей переносов `annual_decree` в `holidays_v2.csv` и все соответствующие строки ML-календаря имеют `known_from=2024-10-04`; это раньше origins `2025-04-30`, `2025-06-30`, `2025-08-31`. Значения пяти flags в model-ready CSV построчно сверены с `calendar_2025_ml.csv`. Fold 3 воспроизвёл сохранённые core/calendar WAPE с допуском `1e−12`.
+
+| Fold | Core WAPE | Calendar WAPE | Δ WAPE |
+|---|---:|---:|---:|
+| Jan–Apr → May–Jun | 0.183873 | 0.131749 | −0.052124 |
+| Jan–Jun → Jul–Aug | 0.248786 | 0.258579 | +0.009793 |
+| Jan–Aug → Sep–Oct | 0.123580 | 0.120922 | −0.002658 |
+
+`Δ = calendar − core`; отрицательное значение означает улучшение.
+
+| Route | Δ May–Jun | Δ Jul–Aug | Δ Sep–Oct |
+|---:|---:|---:|---:|
+| 1 | −0.066860 | +0.012314 | −0.005309 |
+| 5 | N/A | N/A | N/A |
+| 7 | −0.050822 | +0.023580 | −0.004598 |
+| 11 | −0.042898 | +0.007760 | −0.000632 |
+| 12 | −0.060654 | +0.009097 | −0.002138 |
+| 17 | −0.036022 | +0.005127 | −0.001693 |
+| 25 | −0.030665 | +0.014525 | −0.010275 |
+| 26 | −0.061246 | +0.013853 | −0.005237 |
+| 28 | −0.057355 | +0.016250 | −0.003929 |
+| 50 | −0.078723 | +0.005672 | +0.001567 |
+
+| Flag | May–Jun active days | Jul–Aug active days | Sep–Oct active days |
+|---|---:|---:|---:|
+| `is_day_off` | 24 | 18 | 16 |
+| `is_official_holiday` | 3 | 0 | 0 |
+| `is_transferred_day_off` | 3 | 0 | 0 |
+| `is_transferred_workday` | 0 | 0 | 0 |
+| `is_shortened_workday` | 1 | 0 | 0 |
+
+**Вывод — `CALENDAR_MIXED`.** Группа улучшила 2 из 3 folds и ухудшила Jul–Aug на всех девяти маршрутах с определённой WAPE. Самый крупный выигрыш приходится на May–Jun, где есть официальные праздничные и перенесённые выходные; это наблюдение не доказывает отдельный вклад каждого флага. Jul–Aug и Sep–Oct содержат только активный `is_day_off`, но направление Δ различается. Calendar flags остаются candidate; подбор правил по отдельным folds и минимальная ablation сейчас не проводятся.
+
+## Финальное разложение Calendar branch
+
+**Контракт.** Один и тот же frozen Global LightGBM, core `route, weekday, hour, route_hour, hour_weekend, is_night`, model-ready Jan–Oct CSV, пять категориальных core полей, числовые `int8` calendar flags, параметры (`regression_l1`, 300 trees, `max_depth=6`, `num_leaves=31`, `learning_rate=0.1`, seed 42), `floor(max(raw,0)+0.5)` и route 5 → 0. На каждом из трёх уже определённых folds обучены четыре заранее заданных варианта: core; core + `is_day_off`; core + четыре `special_calendar` flags; core + все пять. Validation target не входит в features. Запуск: `python ml/src/calendar_final_ablation.py`; полный JSON: `ml/experiments/results/calendar_final_ablation.json`. Core и all-calendar WAPE всех folds точно воспроизвели предыдущий stability artifact с допуском `1e−12`.
+
+Для каждого fold проверено `known_from <= forecast_origin`. Шесть переносов в provenance registry имеют `known_from=2024-10-04`; model-ready flags построчно совпали с `calendar_2025_ml.csv`.
+
+| Fold | Вариант | WAPE | Δ к core |
+|---|---|---:|---:|
+| Jan–Apr → May–Jun | core | 0.183873 | +0.000000 |
+| Jan–Apr → May–Jun | + `is_day_off` | 0.129697 | −0.054176 |
+| Jan–Apr → May–Jun | + `special_calendar` | 0.159432 | −0.024441 |
+| Jan–Apr → May–Jun | + все 5 | 0.131749 | −0.052124 |
+| Jan–Jun → Jul–Aug | core | 0.248786 | +0.000000 |
+| Jan–Jun → Jul–Aug | + `is_day_off` | 0.258991 | +0.010205 |
+| Jan–Jun → Jul–Aug | + `special_calendar` | 0.258847 | +0.010060 |
+| Jan–Jun → Jul–Aug | + все 5 | 0.258579 | +0.009793 |
+| Jan–Aug → Sep–Oct | core | 0.123580 | +0.000000 |
+| Jan–Aug → Sep–Oct | + `is_day_off` | 0.120678 | −0.002902 |
+| Jan–Aug → Sep–Oct | + `special_calendar` | 0.119889 | −0.003691 |
+| Jan–Aug → Sep–Oct | + все 5 | 0.120922 | −0.002658 |
+
+**Per-route Δ WAPE к core.** Для route 5 WAPE не определён, final prediction принудительно равен нулю.
+
+| Route | May–Jun: day off | May–Jun: special | May–Jun: all 5 |
+|---:|---:|---:|---:|
+| 1 | −0.068878 | −0.033192 | −0.066860 |
+| 5 | N/A | N/A | N/A |
+| 7 | −0.052537 | −0.024142 | −0.050822 |
+| 11 | −0.045530 | −0.016203 | −0.042898 |
+| 12 | −0.062067 | −0.031341 | −0.060654 |
+| 17 | −0.038384 | −0.015664 | −0.036022 |
+| 25 | −0.024822 | −0.012870 | −0.030665 |
+| 26 | −0.061869 | −0.029545 | −0.061246 |
+| 28 | −0.057690 | −0.027547 | −0.057355 |
+| 50 | −0.085313 | −0.038880 | −0.078723 |
+
+| Route | Jul–Aug: day off | Jul–Aug: special | Jul–Aug: all 5 |
+|---:|---:|---:|---:|
+| 1 | +0.013110 | +0.010873 | +0.012314 |
+| 5 | N/A | N/A | N/A |
+| 7 | +0.021359 | +0.022694 | +0.023580 |
+| 11 | +0.009305 | +0.012777 | +0.007760 |
+| 12 | +0.009783 | +0.011984 | +0.009097 |
+| 17 | +0.005885 | +0.004932 | +0.005127 |
+| 25 | +0.013784 | +0.014138 | +0.014525 |
+| 26 | +0.014639 | +0.016449 | +0.013853 |
+| 28 | +0.015400 | +0.009590 | +0.016250 |
+| 50 | +0.005536 | +0.000135 | +0.005672 |
+
+| Route | Sep–Oct: day off | Sep–Oct: special | Sep–Oct: all 5 |
+|---:|---:|---:|---:|
+| 1 | −0.006386 | −0.003641 | −0.005309 |
+| 5 | N/A | N/A | N/A |
+| 7 | −0.007465 | −0.009506 | −0.004598 |
+| 11 | −0.000917 | −0.000088 | −0.000632 |
+| 12 | −0.000468 | −0.001561 | −0.002138 |
+| 17 | −0.000464 | −0.003511 | −0.001693 |
+| 25 | −0.010499 | −0.009801 | −0.010275 |
+| 26 | −0.005380 | −0.009116 | −0.005237 |
+| 28 | −0.005708 | −0.007013 | −0.003929 |
+| 50 | −0.001205 | +0.002273 | +0.001567 |
+
+| Special flag | May–Jun active days | Jul–Aug active days | Sep–Oct active days |
+|---|---:|---:|---:|
+| `is_official_holiday` | 3 | 0 | 0 |
+| `is_transferred_day_off` | 3 | 0 | 0 |
+| `is_transferred_workday` | 0 | 0 | 0 |
+| `is_shortened_workday` | 1 | 0 | 0 |
+
+**Ответ на два вопроса.** `is_day_off` нестабилен: улучшает 2/3 folds, но ухудшает Jul–Aug на всех девяти оцениваемых маршрутах. `special_calendar` улучшает May–Jun, где три вида special flags активны, однако добавление special к `is_day_off` на этом fold ухудшает overall WAPE `0.129697 → 0.131749` (`+0.002052`). В Jul–Aug и Sep–Oct special flags неактивны, но их добавление всё равно меняет WAPE; это эффект представления в train. Отдельная полезность special flags поверх `is_day_off` не установлена. Для `is_transferred_workday` нет активных validation дней ни в одном fold.
+
+**Финальное решение — `CALENDAR_CANDIDATE_ONLY`.** Каждый calendar вариант выигрывает 2/3 folds и проигрывает Jul–Aug; устойчивого набора для accepted feature registry нет. Calendar features не входят в accepted feature set текущей Global LightGBM из-за отсутствия стабильного improvement across temporal folds, но они **не являются `REJECT` features**. Пять calendar columns остаются optional/candidate features в model-ready данных: `is_day_off`, `is_official_holiday`, `is_transferred_day_off`, `is_transferred_workday`, `is_shortened_workday`. Их разрешено повторно тестировать при переходе к существенно другой model architecture/model family, например CatBoost, другим boosting configurations, neural/time-series models или ensemble components. Те же calendar experiments на текущей frozen Global LightGBM без новой информации не повторять. Calendar branch закрыта; следующий research direction — leakage-safe Weather.

@@ -1,0 +1,739 @@
+{
+  "experiment": "CALENDAR_FINAL_ABLATION",
+  "created_at_utc": "2026-09-27T07:56:57.504563+00:00",
+  "data_sources": [
+    "data/processed/model_ready_train_2025_jan_oct.csv",
+    "dataset/meta features/calendar_2025_ml.csv",
+    "dataset/meta features/holidays_v2.csv"
+  ],
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "core_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "variant_features": {
+    "core": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night"
+    ],
+    "day_off_only": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night",
+      "is_day_off"
+    ],
+    "special_calendar": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night",
+      "is_official_holiday",
+      "is_transferred_day_off",
+      "is_transferred_workday",
+      "is_shortened_workday"
+    ],
+    "all_calendar": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night",
+      "is_day_off",
+      "is_official_holiday",
+      "is_transferred_day_off",
+      "is_transferred_workday",
+      "is_shortened_workday"
+    ]
+  },
+  "categorical_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend"
+  ],
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5); route 5 = 0",
+  "environment": {
+    "python": "3.12.6",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3",
+    "lightgbm": "4.7.0"
+  },
+  "prior_stability_results_reproduced": true,
+  "folds": [
+    {
+      "fold": "jan_apr_to_may_jun",
+      "train_period": [
+        "2025-01-01",
+        "2025-04-30"
+      ],
+      "validation_period": [
+        "2025-05-01",
+        "2025-06-30"
+      ],
+      "forecast_origin": "2025-04-30",
+      "rows": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "availability": {
+        "dated_validation_calendar_known_by_origin": true,
+        "six_annual_decree_transfers_known_by_origin": true,
+        "annual_transfer_known_from": "2024-10-04"
+      },
+      "special_validation_active_days": {
+        "is_official_holiday": 3,
+        "is_transferred_day_off": 3,
+        "is_transferred_workday": 0,
+        "is_shortened_workday": 1
+      },
+      "day_off_validation_active_days": 24,
+      "variants": {
+        "core": {
+          "wape": 0.18387295918243723,
+          "delta_wape_vs_core": 0.0,
+          "per_route": {
+            "1": {
+              "wape": 0.19519741384979614,
+              "delta_wape_vs_core": 0.0
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.19304938910617597,
+              "delta_wape_vs_core": 0.0
+            },
+            "11": {
+              "wape": 0.16906884998932598,
+              "delta_wape_vs_core": 0.0
+            },
+            "12": {
+              "wape": 0.1834951246261714,
+              "delta_wape_vs_core": 0.0
+            },
+            "17": {
+              "wape": 0.13736931053457635,
+              "delta_wape_vs_core": 0.0
+            },
+            "25": {
+              "wape": 0.21253308754624553,
+              "delta_wape_vs_core": 0.0
+            },
+            "26": {
+              "wape": 0.22977018100159988,
+              "delta_wape_vs_core": 0.0
+            },
+            "28": {
+              "wape": 0.23274236912562332,
+              "delta_wape_vs_core": 0.0
+            },
+            "50": {
+              "wape": 0.2306841912413559,
+              "delta_wape_vs_core": 0.0
+            }
+          }
+        },
+        "day_off_only": {
+          "wape": 0.1296972942325259,
+          "delta_wape_vs_core": -0.05417566494991133,
+          "per_route": {
+            "1": {
+              "wape": 0.12631938050769434,
+              "delta_wape_vs_core": -0.0688780333421018
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.1405125940780919,
+              "delta_wape_vs_core": -0.05253679502808406
+            },
+            "11": {
+              "wape": 0.12353854244467882,
+              "delta_wape_vs_core": -0.04553030754464715
+            },
+            "12": {
+              "wape": 0.12142862294057963,
+              "delta_wape_vs_core": -0.062066501685591774
+            },
+            "17": {
+              "wape": 0.09898570020225016,
+              "delta_wape_vs_core": -0.03838361033232619
+            },
+            "25": {
+              "wape": 0.1877113302541483,
+              "delta_wape_vs_core": -0.024821757292097235
+            },
+            "26": {
+              "wape": 0.1679007852944244,
+              "delta_wape_vs_core": -0.06186939570717548
+            },
+            "28": {
+              "wape": 0.17505282805239647,
+              "delta_wape_vs_core": -0.05768954107322685
+            },
+            "50": {
+              "wape": 0.1453714893887691,
+              "delta_wape_vs_core": -0.0853127018525868
+            }
+          }
+        },
+        "special_calendar": {
+          "wape": 0.15943178156143162,
+          "delta_wape_vs_core": -0.024441177621005616,
+          "per_route": {
+            "1": {
+              "wape": 0.16200533506510587,
+              "delta_wape_vs_core": -0.03319207878469027
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.16890750904323698,
+              "delta_wape_vs_core": -0.024141880062938992
+            },
+            "11": {
+              "wape": 0.1528663341619916,
+              "delta_wape_vs_core": -0.01620251582733437
+            },
+            "12": {
+              "wape": 0.1521542678451663,
+              "delta_wape_vs_core": -0.031340856781005094
+            },
+            "17": {
+              "wape": 0.12170508645359499,
+              "delta_wape_vs_core": -0.015664224080981365
+            },
+            "25": {
+              "wape": 0.19966264181752363,
+              "delta_wape_vs_core": -0.012870445728721897
+            },
+            "26": {
+              "wape": 0.20022566951952586,
+              "delta_wape_vs_core": -0.029544511482074015
+            },
+            "28": {
+              "wape": 0.2051951788680317,
+              "delta_wape_vs_core": -0.027547190257591614
+            },
+            "50": {
+              "wape": 0.19180396748678355,
+              "delta_wape_vs_core": -0.03888022375457234
+            }
+          }
+        },
+        "all_calendar": {
+          "wape": 0.13174905857679034,
+          "delta_wape_vs_core": -0.052123900605646895,
+          "per_route": {
+            "1": {
+              "wape": 0.12833749835591213,
+              "delta_wape_vs_core": -0.06685991549388401
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.14222709877304374,
+              "delta_wape_vs_core": -0.050822290333132236
+            },
+            "11": {
+              "wape": 0.12617088719274608,
+              "delta_wape_vs_core": -0.0428979627965799
+            },
+            "12": {
+              "wape": 0.12284100295623453,
+              "delta_wape_vs_core": -0.060654121669936875
+            },
+            "17": {
+              "wape": 0.1013475842503314,
+              "delta_wape_vs_core": -0.03602172628424495
+            },
+            "25": {
+              "wape": 0.18186789628674932,
+              "delta_wape_vs_core": -0.03066519125949621
+            },
+            "26": {
+              "wape": 0.16852431661189501,
+              "delta_wape_vs_core": -0.06124586438970486
+            },
+            "28": {
+              "wape": 0.1753872655901141,
+              "delta_wape_vs_core": -0.05735510353550921
+            },
+            "50": {
+              "wape": 0.1519615704030467,
+              "delta_wape_vs_core": -0.07872262083830919
+            }
+          }
+        }
+      }
+    },
+    {
+      "fold": "jan_jun_to_jul_aug",
+      "train_period": [
+        "2025-01-01",
+        "2025-06-30"
+      ],
+      "validation_period": [
+        "2025-07-01",
+        "2025-08-31"
+      ],
+      "forecast_origin": "2025-06-30",
+      "rows": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "availability": {
+        "dated_validation_calendar_known_by_origin": true,
+        "six_annual_decree_transfers_known_by_origin": true,
+        "annual_transfer_known_from": "2024-10-04"
+      },
+      "special_validation_active_days": {
+        "is_official_holiday": 0,
+        "is_transferred_day_off": 0,
+        "is_transferred_workday": 0,
+        "is_shortened_workday": 0
+      },
+      "day_off_validation_active_days": 18,
+      "variants": {
+        "core": {
+          "wape": 0.24878646472320012,
+          "delta_wape_vs_core": 0.0,
+          "per_route": {
+            "1": {
+              "wape": 0.21843733778740093,
+              "delta_wape_vs_core": 0.0
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.6988668914816174,
+              "delta_wape_vs_core": 0.0
+            },
+            "11": {
+              "wape": 0.18389145894773334,
+              "delta_wape_vs_core": 0.0
+            },
+            "12": {
+              "wape": 0.1922038040419956,
+              "delta_wape_vs_core": 0.0
+            },
+            "17": {
+              "wape": 0.14667349407425548,
+              "delta_wape_vs_core": 0.0
+            },
+            "25": {
+              "wape": 0.29494497317313,
+              "delta_wape_vs_core": 0.0
+            },
+            "26": {
+              "wape": 0.3166141895210245,
+              "delta_wape_vs_core": 0.0
+            },
+            "28": {
+              "wape": 0.320558976788252,
+              "delta_wape_vs_core": 0.0
+            },
+            "50": {
+              "wape": 0.25910357387905847,
+              "delta_wape_vs_core": 0.0
+            }
+          }
+        },
+        "day_off_only": {
+          "wape": 0.2589911242694646,
+          "delta_wape_vs_core": 0.010204659546264455,
+          "per_route": {
+            "1": {
+              "wape": 0.23154713369994523,
+              "delta_wape_vs_core": 0.013109795912544298
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.7202254553188862,
+              "delta_wape_vs_core": 0.02135856383726875
+            },
+            "11": {
+              "wape": 0.19319645145947553,
+              "delta_wape_vs_core": 0.009304992511742188
+            },
+            "12": {
+              "wape": 0.20198723411096997,
+              "delta_wape_vs_core": 0.009783430068974364
+            },
+            "17": {
+              "wape": 0.15255879362676344,
+              "delta_wape_vs_core": 0.0058852995525079665
+            },
+            "25": {
+              "wape": 0.3087289939849935,
+              "delta_wape_vs_core": 0.013784020811863473
+            },
+            "26": {
+              "wape": 0.33125294482794726,
+              "delta_wape_vs_core": 0.014638755306922768
+            },
+            "28": {
+              "wape": 0.3359588303690625,
+              "delta_wape_vs_core": 0.015399853580810474
+            },
+            "50": {
+              "wape": 0.2646392795486384,
+              "delta_wape_vs_core": 0.005535705669579949
+            }
+          }
+        },
+        "special_calendar": {
+          "wape": 0.25884678296638264,
+          "delta_wape_vs_core": 0.010060318243182514,
+          "per_route": {
+            "1": {
+              "wape": 0.22931058890923997,
+              "delta_wape_vs_core": 0.01087325112183904
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.7215610802552782,
+              "delta_wape_vs_core": 0.022694188773660806
+            },
+            "11": {
+              "wape": 0.19666857996601644,
+              "delta_wape_vs_core": 0.0127771210182831
+            },
+            "12": {
+              "wape": 0.20418819005969513,
+              "delta_wape_vs_core": 0.011984386017699522
+            },
+            "17": {
+              "wape": 0.1516055539476516,
+              "delta_wape_vs_core": 0.004932059873396122
+            },
+            "25": {
+              "wape": 0.30908333899301055,
+              "delta_wape_vs_core": 0.014138365819880538
+            },
+            "26": {
+              "wape": 0.3330628454329925,
+              "delta_wape_vs_core": 0.016448655911968035
+            },
+            "28": {
+              "wape": 0.33014943370225225,
+              "delta_wape_vs_core": 0.009590456914000234
+            },
+            "50": {
+              "wape": 0.259238511304894,
+              "delta_wape_vs_core": 0.00013493742583553514
+            }
+          }
+        },
+        "all_calendar": {
+          "wape": 0.2585792803704319,
+          "delta_wape_vs_core": 0.00979281564723175,
+          "per_route": {
+            "1": {
+              "wape": 0.23075150319294754,
+              "delta_wape_vs_core": 0.012314165405546612
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.7224473039930382,
+              "delta_wape_vs_core": 0.023580412511420845
+            },
+            "11": {
+              "wape": 0.19165141725100268,
+              "delta_wape_vs_core": 0.0077599583032693376
+            },
+            "12": {
+              "wape": 0.20130047613688304,
+              "delta_wape_vs_core": 0.009096672094887431
+            },
+            "17": {
+              "wape": 0.15180072875154915,
+              "delta_wape_vs_core": 0.005127234677293674
+            },
+            "25": {
+              "wape": 0.3094701656267625,
+              "delta_wape_vs_core": 0.014525192453632485
+            },
+            "26": {
+              "wape": 0.33046765737534495,
+              "delta_wape_vs_core": 0.013853467854320456
+            },
+            "28": {
+              "wape": 0.3368093536023427,
+              "delta_wape_vs_core": 0.016250376814090695
+            },
+            "50": {
+              "wape": 0.2647758525796356,
+              "delta_wape_vs_core": 0.005672278700577127
+            }
+          }
+        }
+      }
+    },
+    {
+      "fold": "jan_aug_to_sep_oct",
+      "train_period": [
+        "2025-01-01",
+        "2025-08-31"
+      ],
+      "validation_period": [
+        "2025-09-01",
+        "2025-10-31"
+      ],
+      "forecast_origin": "2025-08-31",
+      "rows": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "availability": {
+        "dated_validation_calendar_known_by_origin": true,
+        "six_annual_decree_transfers_known_by_origin": true,
+        "annual_transfer_known_from": "2024-10-04"
+      },
+      "special_validation_active_days": {
+        "is_official_holiday": 0,
+        "is_transferred_day_off": 0,
+        "is_transferred_workday": 0,
+        "is_shortened_workday": 0
+      },
+      "day_off_validation_active_days": 16,
+      "variants": {
+        "core": {
+          "wape": 0.12357994025785918,
+          "delta_wape_vs_core": 0.0,
+          "per_route": {
+            "1": {
+              "wape": 0.10940917688956801,
+              "delta_wape_vs_core": 0.0
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.15733322078850975,
+              "delta_wape_vs_core": 0.0
+            },
+            "11": {
+              "wape": 0.10545493825315498,
+              "delta_wape_vs_core": 0.0
+            },
+            "12": {
+              "wape": 0.08806596477926038,
+              "delta_wape_vs_core": 0.0
+            },
+            "17": {
+              "wape": 0.08589449971841562,
+              "delta_wape_vs_core": 0.0
+            },
+            "25": {
+              "wape": 0.19959874025104565,
+              "delta_wape_vs_core": 0.0
+            },
+            "26": {
+              "wape": 0.1253876274812746,
+              "delta_wape_vs_core": 0.0
+            },
+            "28": {
+              "wape": 0.15373884855288591,
+              "delta_wape_vs_core": 0.0
+            },
+            "50": {
+              "wape": 0.2406562645793375,
+              "delta_wape_vs_core": 0.0
+            }
+          }
+        },
+        "day_off_only": {
+          "wape": 0.1206783717816507,
+          "delta_wape_vs_core": -0.0029015684762084826,
+          "per_route": {
+            "1": {
+              "wape": 0.1030232560186534,
+              "delta_wape_vs_core": -0.006385920870914608
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.14986824110951424,
+              "delta_wape_vs_core": -0.007464979678995509
+            },
+            "11": {
+              "wape": 0.10453834460460362,
+              "delta_wape_vs_core": -0.0009165936485513587
+            },
+            "12": {
+              "wape": 0.08759762533247563,
+              "delta_wape_vs_core": -0.00046833944678474626
+            },
+            "17": {
+              "wape": 0.08543057924763918,
+              "delta_wape_vs_core": -0.0004639204707764383
+            },
+            "25": {
+              "wape": 0.1891001147379003,
+              "delta_wape_vs_core": -0.010498625513145343
+            },
+            "26": {
+              "wape": 0.12000763327963125,
+              "delta_wape_vs_core": -0.005379994201643354
+            },
+            "28": {
+              "wape": 0.14803110116180973,
+              "delta_wape_vs_core": -0.0057077473910761845
+            },
+            "50": {
+              "wape": 0.23945103934477216,
+              "delta_wape_vs_core": -0.0012052252345653436
+            }
+          }
+        },
+        "special_calendar": {
+          "wape": 0.11988915895519386,
+          "delta_wape_vs_core": -0.0036907813026653136,
+          "per_route": {
+            "1": {
+              "wape": 0.10576862985688672,
+              "delta_wape_vs_core": -0.003640547032681296
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.14782688532941204,
+              "delta_wape_vs_core": -0.009506335459097709
+            },
+            "11": {
+              "wape": 0.10536736895149133,
+              "delta_wape_vs_core": -8.756930166364807e-05
+            },
+            "12": {
+              "wape": 0.08650466524568412,
+              "delta_wape_vs_core": -0.0015612995335762547
+            },
+            "17": {
+              "wape": 0.08238359138433411,
+              "delta_wape_vs_core": -0.0035109083340815056
+            },
+            "25": {
+              "wape": 0.18979758340024583,
+              "delta_wape_vs_core": -0.009801156850799825
+            },
+            "26": {
+              "wape": 0.11627173007548873,
+              "delta_wape_vs_core": -0.009115897405785875
+            },
+            "28": {
+              "wape": 0.14672580891584353,
+              "delta_wape_vs_core": -0.00701303963704239
+            },
+            "50": {
+              "wape": 0.24292934529055,
+              "delta_wape_vs_core": 0.0022730807112124884
+            }
+          }
+        },
+        "all_calendar": {
+          "wape": 0.12092150201956472,
+          "delta_wape_vs_core": -0.0026584382382944527,
+          "per_route": {
+            "1": {
+              "wape": 0.10410063260666161,
+              "delta_wape_vs_core": -0.005308544282906405
+            },
+            "5": {
+              "wape": null,
+              "delta_wape_vs_core": null
+            },
+            "7": {
+              "wape": 0.1527351724046016,
+              "delta_wape_vs_core": -0.004598048383908149
+            },
+            "11": {
+              "wape": 0.10482307592677947,
+              "delta_wape_vs_core": -0.0006318623263755069
+            },
+            "12": {
+              "wape": 0.08592793722940667,
+              "delta_wape_vs_core": -0.002138027549853705
+            },
+            "17": {
+              "wape": 0.08420107573395581,
+              "delta_wape_vs_core": -0.0016934239844598048
+            },
+            "25": {
+              "wape": 0.189323993567789,
+              "delta_wape_vs_core": -0.010274746683256647
+            },
+            "26": {
+              "wape": 0.12015075727271726,
+              "delta_wape_vs_core": -0.005236870208557343
+            },
+            "28": {
+              "wape": 0.14980968639772554,
+              "delta_wape_vs_core": -0.003929162155160371
+            },
+            "50": {
+              "wape": 0.24222348936464327,
+              "delta_wape_vs_core": 0.0015672247853057708
+            }
+          }
+        }
+      }
+    }
+  ],
+  "classification": "CALENDAR_CANDIDATE_ONLY",
+  "decision_basis": {
+    "day_off_improved_folds": 2,
+    "special_improved_folds": 2,
+    "all_improved_folds": 2,
+    "special_active_fold_delta_vs_core": -0.024441177621005616,
+    "all_vs_day_off_on_special_active_fold": 0.002051764344264434,
+    "reason": "Each calendar variant improves 2 of 3 folds and worsens Jul-Aug. Special flags improve their active fold versus core, but adding them to day_off does not improve the active fold. Inactive-fold changes show representation effects. No calendar set is accepted from this evidence."
+  }
+}
