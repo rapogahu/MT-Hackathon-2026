@@ -1,32 +1,32 @@
-﻿# ML model
+﻿# ML-модель
 
 Pilot Model v5 прогнозирует пассажиропоток по маршруту, дате и часу.
 
-## Final model
+## Финальная модель
 
-- Solution: **Pilot Model v5**
-- Model: tuned `XGBRegressor`
-- Configuration: `calendar_weather`
-- Train period: `2025-01-01..2025-10-31`
-- Forecast period: `2025-11-01..2025-12-31`
-- Features: 12
-- Recency weighting: exponential, half-life 180 days (`exp(-ln(2) * age_days / 180)`)
-- Postprocessing: `floor(max(raw_prediction, 0) + 0.5)`
-- Route 5 predictions are forced to zero.
+- Решение: **Pilot Model v5**
+- Модель: настроенный `XGBRegressor`
+- Конфигурация: `calendar_weather`
+- Период обучения: `2025-01-01..2025-10-31`
+- Период прогнозирования: `2025-11-01..2025-12-31`
+- Количество признаков: 12
+- Взвешивание по давности данных: экспоненциальное, период полураспада — 180 дней (`exp(-ln(2) * age_days / 180)`)
+- Постобработка: `floor(max(raw_prediction, 0) + 0.5)`
+- Для маршрута 5 все прогнозы равн 0.
 
-## Inputs
+## Входные данные
 
-- Train: `data/processed/model_ready_train_2025_jan_oct.csv`
-- Forecast: `data/processed/model_ready_forecast_2025_nov_dec.csv`
+- Обучающая выборка: `data/processed/model_ready_train_2025_jan_oct.csv`
+- Данные для прогнозирования: `data/processed/model_ready_forecast_2025_nov_dec.csv`
 
-## Model artifact
+## Артефакты модели
 
-- Model: `ml/models/pilot_model_v5_xgboost.json`
-- Metadata: `ml/models/pilot_model_v5_metadata.json`
+- Модель: `ml/models/pilot_model_v5_xgboost.json`
+- Метаданные: `ml/models/pilot_model_v5_metadata.json`
 
-## Quick start
+## Быстрый запуск
 
-Run from the project root:
+Запускать из корня проекта:
 
 ```bash
 pip install -r requirements.txt
@@ -34,22 +34,21 @@ python -m ml.src.train
 python -m ml.src.predict
 ```
 
-## Training
+## Обучение
+Команда python -m ml.src.train обучает настроенный XGBRegressor на полной выборке за январь–октябрь с настроенным экспоненциальным взвешиванием по давности данных с периодом полураспада 180 дней и сохраняет модель в нативном формате XGBoost.
 
-`python -m ml.src.train` trains tuned `XGBRegressor` on the full Jan–Oct input with the configured 180-day recency weighting and saves the native XGBoost model artifact.
+## Инференс
+Команда python -m ml.src.predict загружает сохранённую модель, обрабатывает входные данные для прогнозирования за ноябрь–декабрь и сохраняет воспроизведённый submission-файл.
 
-## Inference
+## Выходной файл:
+data/end_submissions/pilot_model_v5_reproduced_submission.csv
 
-`python -m ml.src.predict` loads the saved model, processes the Nov–Dec forecast input and writes the reproduced submission.
-
-## Output format
-
-Output file: `data/end_submissions/pilot_model_v5_reproduced_submission.csv`
-
-```text
+## Формат файла внутри
 route;date;hour;prediction
-```
 
-## Reproducibility check
+## Проверка воспроизводимости
+predict.py создает
+data\end_submissions\pilot_model_v5_reproduced_submission.csv и сравнивает полученный результат с
+data/end_submissions/pilot_model_v5_weighted_xgboost_submission.csv
 
-`predict.py` compares its output with `data/end_submissions/pilot_model_v5_weighted_xgboost_submission.csv`. The current check reports 14,640 rows, matching keys and row order, **0 prediction mismatches**, and `max_abs_diff = 0`.
+## Подробное описание эволюции архитектуры ml части
