@@ -1,0 +1,1576 @@
+{
+  "experiment": "PILOT_V5_TRAIN_WINDOW_CONTROLLED",
+  "created_at_utc": "2026-09-27T17:17:13.775615+00:00",
+  "source_sha256": {
+    "data/processed/model_ready_train_2025_jan_oct.csv": "f910f3213f2abbefaae4428d2ee1f7342be28f687a95e4a07c8a94cd3ae78615",
+    "data/processed/model_ready_train_2025_jan_aug.csv": "06ce7d94fb4904e23f4b1e03ab674fe8ed2ecf0dc0abf7fc27a92b053230d76c",
+    "data/processed/model_ready_validation_2025_sep_oct.csv": "83f5571543bb8a9bef06969918c21e56d7868cd651af0f1c7f0e3f88d4e2ec02",
+    "ml/experiments/results/hyperparameter_tuning.json": "0eb0d9e9c9fc7072f815530ce933878314219a64b7fd2a3c9c7a0de1b8548ae3",
+    "ml/experiments/results/ensemble_experiment.json": "4e1b515d9afcc8a172498ff22550e61ca8f3f855db4a928dbe729cd6daaad8c1",
+    "ml/src/model_selection.py": "5fa699d766f4fb07cf8beaf812c4a68d0c7119e1d5ba95f7bdbb12e851e7bd45",
+    "ml/src/recency_weighting_experiment.py": "b9dd1ce2981e3ea4161491b11a283d369955a90a555b7f3dc113be95360f1a1c",
+    "ml/src/train_window_experiment.py": "b26b6cc8dca55fa3c14831a69a03a7a776dd116be4ea322754d65517048d47ac"
+  },
+  "environment": {
+    "python": "3.12.6",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "xgboost": "3.0.5"
+  },
+  "features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "is_day_off",
+    "is_official_holiday",
+    "is_transferred_day_off",
+    "is_transferred_workday",
+    "is_shortened_workday",
+    "temperature_bucket"
+  ],
+  "categorical_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "temperature_bucket"
+  ],
+  "parameters": {
+    "objective": "reg:absoluteerror",
+    "n_estimators": 500,
+    "max_depth": 6,
+    "learning_rate": 0.1,
+    "tree_method": "hist",
+    "enable_categorical": true,
+    "random_state": 42,
+    "n_jobs": 4,
+    "min_child_weight": 1
+  },
+  "weighting": "exp(-ln(2) * age_days / 180); origin=max(sliced fold train date)",
+  "postprocessing": "floor(max(raw, 0) + 0.5); route 5 = 0",
+  "folds": [
+    {
+      "name": "jan_apr_to_may_jun",
+      "train_period": [
+        "2025-01-01",
+        "2025-04-30"
+      ],
+      "validation_period": [
+        "2025-05-01",
+        "2025-06-30"
+      ]
+    },
+    {
+      "name": "jan_jun_to_jul_aug",
+      "train_period": [
+        "2025-01-01",
+        "2025-06-30"
+      ],
+      "validation_period": [
+        "2025-07-01",
+        "2025-08-31"
+      ]
+    },
+    {
+      "name": "jan_aug_to_sep_oct",
+      "train_period": [
+        "2025-01-01",
+        "2025-08-31"
+      ],
+      "validation_period": [
+        "2025-09-01",
+        "2025-10-31"
+      ]
+    }
+  ],
+  "windows": [
+    "FULL",
+    "8m",
+    "6m",
+    "4m",
+    "2m"
+  ],
+  "fold_details": [
+    {
+      "fold": "jan_apr_to_may_jun",
+      "windows": {
+        "FULL": "FULL",
+        "8m": "FULL",
+        "6m": "FULL",
+        "4m": "FULL",
+        "2m": "2025-03-01 to 2025-04-30"
+      }
+    },
+    {
+      "fold": "jan_jun_to_jul_aug",
+      "windows": {
+        "FULL": "FULL",
+        "8m": "FULL",
+        "6m": "FULL",
+        "4m": "2025-03-01 to 2025-06-30",
+        "2m": "2025-05-01 to 2025-06-30"
+      }
+    },
+    {
+      "fold": "jan_aug_to_sep_oct",
+      "windows": {
+        "FULL": "FULL",
+        "8m": "FULL",
+        "6m": "2025-03-01 to 2025-08-31",
+        "4m": "2025-05-01 to 2025-08-31",
+        "2m": "2025-07-01 to 2025-08-31"
+      }
+    }
+  ],
+  "fold_results": {
+    "FULL": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1813440,
+        "wape": 0.1569275214029049,
+        "wape_score": 0.8430724785970951,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 138942,
+            "wape": 0.14277053465737208
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 211810,
+            "wape": 0.1563950212910176
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 218362,
+            "wape": 0.1263305634895519
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 217419,
+            "wape": 0.12061203873671317
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 462538,
+            "wape": 0.16789013736459185
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 79215,
+            "wape": 0.20337768968695522
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 199414,
+            "wape": 0.22124710701439448
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 104165,
+            "wape": 0.19461835819194473
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 181575,
+            "wape": 0.162669108233749
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-04-30",
+        "train_rows": 28800,
+        "min_weight": 0.6323910648476662,
+        "mean_weight": 0.8023239940848108,
+        "max_weight": 1.0,
+        "effective_weight_sum": 23106.93102964255,
+        "train_seconds": 7.655203200003598,
+        "inference_seconds": 0.3225739999979851
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2124432,
+        "wape": 0.1982180240394049,
+        "wape_score": 0.8017819759605951,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 140869,
+            "wape": 0.15459265364173802
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 532204,
+            "wape": 0.6085829911366191
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 249831,
+            "wape": 0.14984372722708944
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 245384,
+            "wape": 0.14090252400781847
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 306224,
+            "wape": 0.11362587290632352
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 84632,
+            "wape": 0.24990772265416222
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 171819,
+            "wape": 0.21417032510900538
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 110303,
+            "wape": 0.23750699797597002
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 283166,
+            "wape": 0.23157388560086817
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-06-30",
+        "train_rows": 43440,
+        "min_weight": 0.5,
+        "mean_weight": 0.721506707904438,
+        "max_weight": 1.0,
+        "effective_weight_sum": 31342.25139136879,
+        "train_seconds": 9.603663399997458,
+        "inference_seconds": 0.3179059000030975
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1512515,
+        "wape": 0.11858694995115834,
+        "wape_score": 0.8814130500488416,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 95760,
+            "wape": 0.0842888742382886
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 233309,
+            "wape": 0.1727481594849001
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 209798,
+            "wape": 0.11001116377504443
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 196227,
+            "wape": 0.09892448291090358
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 228421,
+            "wape": 0.07457366492274793
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 68006,
+            "wape": 0.14639522793663368
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 108509,
+            "wape": 0.09955282926775563
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 81288,
+            "wape": 0.13499312479656705
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 291197,
+            "wape": 0.251582776078655
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-08-31",
+        "train_rows": 58320,
+        "min_weight": 0.39380560644880985,
+        "mean_weight": 0.650686228404234,
+        "max_weight": 1.0,
+        "effective_weight_sum": 37948.020840534926,
+        "train_seconds": 13.740431700003683,
+        "inference_seconds": 0.31482710000273073
+      }
+    ],
+    "8m": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1813440,
+        "wape": 0.1569275214029049,
+        "wape_score": 0.8430724785970951,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 138942,
+            "wape": 0.14277053465737208
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 211810,
+            "wape": 0.1563950212910176
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 218362,
+            "wape": 0.1263305634895519
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 217419,
+            "wape": 0.12061203873671317
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 462538,
+            "wape": 0.16789013736459185
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 79215,
+            "wape": 0.20337768968695522
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 199414,
+            "wape": 0.22124710701439448
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 104165,
+            "wape": 0.19461835819194473
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 181575,
+            "wape": 0.162669108233749
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-04-30",
+        "train_rows": 28800,
+        "min_weight": 0.6323910648476662,
+        "mean_weight": 0.8023239940848108,
+        "max_weight": 1.0,
+        "effective_weight_sum": 23106.93102964255,
+        "train_seconds": 7.655203200003598,
+        "inference_seconds": 0.3225739999979851
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2124432,
+        "wape": 0.1982180240394049,
+        "wape_score": 0.8017819759605951,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 140869,
+            "wape": 0.15459265364173802
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 532204,
+            "wape": 0.6085829911366191
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 249831,
+            "wape": 0.14984372722708944
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 245384,
+            "wape": 0.14090252400781847
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 306224,
+            "wape": 0.11362587290632352
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 84632,
+            "wape": 0.24990772265416222
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 171819,
+            "wape": 0.21417032510900538
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 110303,
+            "wape": 0.23750699797597002
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 283166,
+            "wape": 0.23157388560086817
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-06-30",
+        "train_rows": 43440,
+        "min_weight": 0.5,
+        "mean_weight": 0.721506707904438,
+        "max_weight": 1.0,
+        "effective_weight_sum": 31342.25139136879,
+        "train_seconds": 9.603663399997458,
+        "inference_seconds": 0.3179059000030975
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1512515,
+        "wape": 0.11858694995115834,
+        "wape_score": 0.8814130500488416,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 95760,
+            "wape": 0.0842888742382886
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 233309,
+            "wape": 0.1727481594849001
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 209798,
+            "wape": 0.11001116377504443
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 196227,
+            "wape": 0.09892448291090358
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 228421,
+            "wape": 0.07457366492274793
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 68006,
+            "wape": 0.14639522793663368
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 108509,
+            "wape": 0.09955282926775563
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 81288,
+            "wape": 0.13499312479656705
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 291197,
+            "wape": 0.251582776078655
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-08-31",
+        "train_rows": 58320,
+        "min_weight": 0.39380560644880985,
+        "mean_weight": 0.650686228404234,
+        "max_weight": 1.0,
+        "effective_weight_sum": 37948.020840534926,
+        "train_seconds": 13.740431700003683,
+        "inference_seconds": 0.31482710000273073
+      }
+    ],
+    "6m": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1813440,
+        "wape": 0.1569275214029049,
+        "wape_score": 0.8430724785970951,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 138942,
+            "wape": 0.14277053465737208
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 211810,
+            "wape": 0.1563950212910176
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 218362,
+            "wape": 0.1263305634895519
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 217419,
+            "wape": 0.12061203873671317
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 462538,
+            "wape": 0.16789013736459185
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 79215,
+            "wape": 0.20337768968695522
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 199414,
+            "wape": 0.22124710701439448
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 104165,
+            "wape": 0.19461835819194473
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 181575,
+            "wape": 0.162669108233749
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-04-30",
+        "train_rows": 28800,
+        "min_weight": 0.6323910648476662,
+        "mean_weight": 0.8023239940848108,
+        "max_weight": 1.0,
+        "effective_weight_sum": 23106.93102964255,
+        "train_seconds": 7.655203200003598,
+        "inference_seconds": 0.3225739999979851
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2124432,
+        "wape": 0.1982180240394049,
+        "wape_score": 0.8017819759605951,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 140869,
+            "wape": 0.15459265364173802
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 532204,
+            "wape": 0.6085829911366191
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 249831,
+            "wape": 0.14984372722708944
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 245384,
+            "wape": 0.14090252400781847
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 306224,
+            "wape": 0.11362587290632352
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 84632,
+            "wape": 0.24990772265416222
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 171819,
+            "wape": 0.21417032510900538
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 110303,
+            "wape": 0.23750699797597002
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 283166,
+            "wape": 0.23157388560086817
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-06-30",
+        "train_rows": 43440,
+        "min_weight": 0.5,
+        "mean_weight": 0.721506707904438,
+        "max_weight": 1.0,
+        "effective_weight_sum": 31342.25139136879,
+        "train_seconds": 9.603663399997458,
+        "inference_seconds": 0.3179059000030975
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1538695,
+        "wape": 0.12063956189201269,
+        "wape_score": 0.8793604381079874,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 95137,
+            "wape": 0.08374050363834651
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 246193,
+            "wape": 0.18228781413518558
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 211519,
+            "wape": 0.11091359951254837
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 199208,
+            "wape": 0.10042730303024193
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 240299,
+            "wape": 0.07845153075799251
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 68023,
+            "wape": 0.14643182351459624
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 108111,
+            "wape": 0.09918767959308748
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 82133,
+            "wape": 0.1363963969948386
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 288072,
+            "wape": 0.2488828987610803
+          }
+        },
+        "first_train_date": "2025-03-01",
+        "last_train_date": "2025-08-31",
+        "train_rows": 44160,
+        "min_weight": 0.494257010176448,
+        "mean_weight": 0.7178326815631603,
+        "max_weight": 1.0,
+        "effective_weight_sum": 31699.491217829156,
+        "train_seconds": 10.064240899999277,
+        "inference_seconds": 0.31828229999518953
+      }
+    ],
+    "4m": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 1813440,
+        "wape": 0.1569275214029049,
+        "wape_score": 0.8430724785970951,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 138942,
+            "wape": 0.14277053465737208
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 211810,
+            "wape": 0.1563950212910176
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 218362,
+            "wape": 0.1263305634895519
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 217419,
+            "wape": 0.12061203873671317
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 462538,
+            "wape": 0.16789013736459185
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 79215,
+            "wape": 0.20337768968695522
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 199414,
+            "wape": 0.22124710701439448
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 104165,
+            "wape": 0.19461835819194473
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 181575,
+            "wape": 0.162669108233749
+          }
+        },
+        "first_train_date": "2025-01-01",
+        "last_train_date": "2025-04-30",
+        "train_rows": 28800,
+        "min_weight": 0.6323910648476662,
+        "mean_weight": 0.8023239940848108,
+        "max_weight": 1.0,
+        "effective_weight_sum": 23106.93102964255,
+        "train_seconds": 7.655203200003598,
+        "inference_seconds": 0.3225739999979851
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2081896,
+        "wape": 0.19424924468071508,
+        "wape_score": 0.8057507553192849,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 131353,
+            "wape": 0.14414959170437225
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 543054,
+            "wape": 0.6209901234652606
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 234090,
+            "wape": 0.14040258457352917
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 242329,
+            "wape": 0.1391483052696616
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 300999,
+            "wape": 0.11168711178395707
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 88004,
+            "wape": 0.2598648173794415
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 156979,
+            "wape": 0.19567244289215135
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 101574,
+            "wape": 0.21871151113216486
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 283514,
+            "wape": 0.23185848089899402
+          }
+        },
+        "first_train_date": "2025-03-01",
+        "last_train_date": "2025-06-30",
+        "train_rows": 29280,
+        "min_weight": 0.6275393266153204,
+        "mean_weight": 0.7994785175552463,
+        "max_weight": 1.0,
+        "effective_weight_sum": 23408.730994017613,
+        "train_seconds": 7.3668327999985195,
+        "inference_seconds": 0.32376160000421805
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 1677056,
+        "wape": 0.13148759247828273,
+        "wape_score": 0.8685124075217172,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 108964,
+            "wape": 0.09591116220239013
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 208588,
+            "wape": 0.15444407669929727
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 232014,
+            "wape": 0.12166050273169028
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 207679,
+            "wape": 0.10469781266825436
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 317050,
+            "wape": 0.10350878624888794
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 75872,
+            "wape": 0.1633282171280221
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 144559,
+            "wape": 0.13262731613154197
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 95012,
+            "wape": 0.15778425810908656
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 287318,
+            "wape": 0.24823147236189588
+          }
+        },
+        "first_train_date": "2025-05-01",
+        "last_train_date": "2025-08-31",
+        "train_rows": 29520,
+        "min_weight": 0.6251274339478156,
+        "mean_weight": 0.7980610290706331,
+        "max_weight": 1.0,
+        "effective_weight_sum": 23558.76157816509,
+        "train_seconds": 6.762949299998581,
+        "inference_seconds": 0.3125964999999269
+      }
+    ],
+    "2m": [
+      {
+        "actual_sum": 11555908,
+        "absolute_error": 2467892,
+        "wape": 0.21356106331064595,
+        "wape_score": 0.786438936689354,
+        "per_route": {
+          "1": {
+            "actual_sum": 973184,
+            "absolute_error": 203242,
+            "wape": 0.2088423155333421
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1354327,
+            "absolute_error": 288762,
+            "wape": 0.21321438618590635
+          },
+          "11": {
+            "actual_sum": 1728497,
+            "absolute_error": 306497,
+            "wape": 0.17731994906557547
+          },
+          "12": {
+            "actual_sum": 1802631,
+            "absolute_error": 335255,
+            "wape": 0.18598093564351217
+          },
+          "17": {
+            "actual_sum": 2755004,
+            "absolute_error": 575376,
+            "wape": 0.20884760965864296
+          },
+          "25": {
+            "actual_sum": 389497,
+            "absolute_error": 91965,
+            "wape": 0.2361122165254161
+          },
+          "26": {
+            "actual_sum": 901318,
+            "absolute_error": 258765,
+            "wape": 0.28709623018734787
+          },
+          "28": {
+            "actual_sum": 535227,
+            "absolute_error": 132350,
+            "wape": 0.24727825763647948
+          },
+          "50": {
+            "actual_sum": 1116223,
+            "absolute_error": 275680,
+            "wape": 0.24697573871887607
+          }
+        },
+        "first_train_date": "2025-03-01",
+        "last_train_date": "2025-04-30",
+        "train_rows": 14640,
+        "min_weight": 0.7937005259840998,
+        "mean_weight": 0.8929478282444924,
+        "max_weight": 1.0,
+        "effective_weight_sum": 13072.756205499369,
+        "train_seconds": 3.7284937000003993,
+        "inference_seconds": 0.3234001000018907
+      },
+      {
+        "actual_sum": 10717653,
+        "absolute_error": 2038997,
+        "wape": 0.19024659596648633,
+        "wape_score": 0.8097534040335137,
+        "per_route": {
+          "1": {
+            "actual_sum": 911227,
+            "absolute_error": 131090,
+            "wape": 0.14386096987907512
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 874497,
+            "absolute_error": 526123,
+            "wape": 0.6016292794600782
+          },
+          "11": {
+            "actual_sum": 1667277,
+            "absolute_error": 228771,
+            "wape": 0.13721235283639133
+          },
+          "12": {
+            "actual_sum": 1741516,
+            "absolute_error": 238346,
+            "wape": 0.13686121746799915
+          },
+          "17": {
+            "actual_sum": 2695020,
+            "absolute_error": 300069,
+            "wape": 0.11134203085691387
+          },
+          "25": {
+            "actual_sum": 338653,
+            "absolute_error": 85500,
+            "wape": 0.2524708182121523
+          },
+          "26": {
+            "actual_sum": 802254,
+            "absolute_error": 146041,
+            "wape": 0.18203835692935155
+          },
+          "28": {
+            "actual_sum": 464420,
+            "absolute_error": 98050,
+            "wape": 0.21112355195728005
+          },
+          "50": {
+            "actual_sum": 1222789,
+            "absolute_error": 285007,
+            "wape": 0.23307946015216036
+          }
+        },
+        "first_train_date": "2025-05-01",
+        "last_train_date": "2025-06-30",
+        "train_rows": 14640,
+        "min_weight": 0.7937005259840998,
+        "mean_weight": 0.8929478282444924,
+        "max_weight": 1.0,
+        "effective_weight_sum": 13072.756205499369,
+        "train_seconds": 3.4155611000023782,
+        "inference_seconds": 0.31455629999982193
+      },
+      {
+        "actual_sum": 12754481,
+        "absolute_error": 3029019,
+        "wape": 0.23748665273012676,
+        "wape_score": 0.7625133472698733,
+        "per_route": {
+          "1": {
+            "actual_sum": 1136093,
+            "absolute_error": 231556,
+            "wape": 0.20381782125230946
+          },
+          "5": {
+            "actual_sum": 0,
+            "absolute_error": 0,
+            "wape": null
+          },
+          "7": {
+            "actual_sum": 1350573,
+            "absolute_error": 640884,
+            "wape": 0.4745274783369725
+          },
+          "11": {
+            "actual_sum": 1907061,
+            "absolute_error": 341124,
+            "wape": 0.17887419437553387
+          },
+          "12": {
+            "actual_sum": 1983604,
+            "absolute_error": 321611,
+            "wape": 0.16213468010752147
+          },
+          "17": {
+            "actual_sum": 3063025,
+            "absolute_error": 484746,
+            "wape": 0.1582572783441206
+          },
+          "25": {
+            "actual_sum": 464537,
+            "absolute_error": 146595,
+            "wape": 0.31557227949549765
+          },
+          "26": {
+            "actual_sum": 1089964,
+            "absolute_error": 298950,
+            "wape": 0.2742751136734791
+          },
+          "28": {
+            "actual_sum": 602164,
+            "absolute_error": 164431,
+            "wape": 0.2730668057207007
+          },
+          "50": {
+            "actual_sum": 1157460,
+            "absolute_error": 399122,
+            "wape": 0.34482573911841446
+          }
+        },
+        "first_train_date": "2025-07-01",
+        "last_train_date": "2025-08-31",
+        "train_rows": 14880,
+        "min_weight": 0.7906500072394963,
+        "mean_weight": 0.8912978633895731,
+        "max_weight": 1.0,
+        "effective_weight_sum": 13262.512207236847,
+        "train_seconds": 3.471495199999481,
+        "inference_seconds": 0.31055190000188304
+      }
+    ]
+  },
+  "summaries": {
+    "FULL": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5450387,
+      "pooled_wape": 0.15560067559585547,
+      "wape_score": 0.8443993244041446,
+      "mean_wape": 0.15791083179782273,
+      "median_wape": 0.1569275214029049,
+      "fold_wape_range": 0.07963107408824655,
+      "train_seconds": 30.99929830000474,
+      "inference_seconds": 0.9553070000038133,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 375571,
+          "wape": 0.12434050741200806
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 977323,
+          "wape": 0.27304124130405205
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 677991,
+          "wape": 0.12785444012495203
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 659030,
+          "wape": 0.11922208507582921
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 997183,
+          "wape": 0.117135822899645
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 231853,
+          "wape": 0.19439551198260735
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 479742,
+          "wape": 0.17173288620586954
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 295756,
+          "wape": 0.18463851228390865
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 755938,
+          "wape": 0.2162002155315415
+        }
+      }
+    },
+    "8m": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5450387,
+      "pooled_wape": 0.15560067559585547,
+      "wape_score": 0.8443993244041446,
+      "mean_wape": 0.15791083179782273,
+      "median_wape": 0.1569275214029049,
+      "fold_wape_range": 0.07963107408824655,
+      "train_seconds": 30.99929830000474,
+      "inference_seconds": 0.9553070000038133,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 375571,
+          "wape": 0.12434050741200806
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 977323,
+          "wape": 0.27304124130405205
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 677991,
+          "wape": 0.12785444012495203
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 659030,
+          "wape": 0.11922208507582921
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 997183,
+          "wape": 0.117135822899645
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 231853,
+          "wape": 0.19439551198260735
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 479742,
+          "wape": 0.17173288620586954
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 295756,
+          "wape": 0.18463851228390865
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 755938,
+          "wape": 0.2162002155315415
+        }
+      }
+    },
+    "6m": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5476567,
+      "pooled_wape": 0.1563480767780283,
+      "wape_score": 0.8436519232219717,
+      "mean_wape": 0.1585950357781075,
+      "median_wape": 0.1569275214029049,
+      "fold_wape_range": 0.0775784621473922,
+      "train_seconds": 27.323107500000333,
+      "inference_seconds": 0.9587621999962721,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 374948,
+          "wape": 0.12413425044297242
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 990207,
+          "wape": 0.2766407302682547
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 679712,
+          "wape": 0.12817898350599255
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 662011,
+          "wape": 0.11976136407012544
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 1009061,
+          "wape": 0.11853109267901547
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 231870,
+          "wape": 0.19440976551266176
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 479344,
+          "wape": 0.17159041444248435
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 296601,
+          "wape": 0.1851660401882619
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 752813,
+          "wape": 0.21530645748056898
+        }
+      }
+    },
+    "4m": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 5572392,
+      "pooled_wape": 0.15908374210582482,
+      "wape_score": 0.8409162578941751,
+      "mean_wape": 0.16088811952063423,
+      "median_wape": 0.1569275214029049,
+      "fold_wape_range": 0.06276165220243235,
+      "train_seconds": 21.7849853000007,
+      "inference_seconds": 0.95893210000213,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 379259,
+          "wape": 0.1255614956974068
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 963452,
+          "wape": 0.26916600757054887
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 684466,
+          "wape": 0.1290754850942939
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 667427,
+          "wape": 0.1207411477108864
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 1080587,
+          "wape": 0.1269330177707188
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 243091,
+          "wape": 0.20381793379151444
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 500952,
+          "wape": 0.17932541409883387
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 300751,
+          "wape": 0.18775685770668324
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 752407,
+          "wape": 0.21519034043458662
+        }
+      }
+    },
+    "2m": {
+      "pooled_actual_sum": 35028042,
+      "pooled_absolute_error": 7535908,
+      "pooled_wape": 0.21513928754567554,
+      "wape_score": 0.7848607124543244,
+      "mean_wape": 0.2137647706690863,
+      "median_wape": 0.21356106331064595,
+      "fold_wape_range": 0.04724005676364043,
+      "train_seconds": 10.615550000002258,
+      "inference_seconds": 0.9485083000035957,
+      "per_route": {
+        "1": {
+          "actual_sum": 3020504,
+          "absolute_error": 565888,
+          "wape": 0.18734886628191852
+        },
+        "5": {
+          "actual_sum": 0,
+          "absolute_error": 0,
+          "wape": null
+        },
+        "7": {
+          "actual_sum": 3579397,
+          "absolute_error": 1455769,
+          "wape": 0.40670788962498433
+        },
+        "11": {
+          "actual_sum": 5302835,
+          "absolute_error": 876392,
+          "wape": 0.16526857803420247
+        },
+        "12": {
+          "actual_sum": 5527751,
+          "absolute_error": 895212,
+          "wape": 0.16194868401272056
+        },
+        "17": {
+          "actual_sum": 8513049,
+          "absolute_error": 1360191,
+          "wape": 0.15977718441418579
+        },
+        "25": {
+          "actual_sum": 1192687,
+          "absolute_error": 324060,
+          "wape": 0.27170582055476417
+        },
+        "26": {
+          "actual_sum": 2793536,
+          "absolute_error": 703756,
+          "wape": 0.2519230108364453
+        },
+        "28": {
+          "actual_sum": 1601811,
+          "absolute_error": 394831,
+          "wape": 0.24649037870260598
+        },
+        "50": {
+          "actual_sum": 3496472,
+          "absolute_error": 959809,
+          "wape": 0.27450784676668366
+        }
+      }
+    }
+  },
+  "comparisons_vs_full": {
+    "8m": {
+      "delta_pooled_wape": 0.0,
+      "fold_delta_wape": {
+        "jan_apr_to_may_jun": 0.0,
+        "jan_jun_to_jul_aug": 0.0,
+        "jan_aug_to_sep_oct": 0.0
+      },
+      "fold_wins": 0,
+      "fold_losses": 0,
+      "route_delta_pooled_wape": {
+        "1": 0.0,
+        "7": 0.0,
+        "11": 0.0,
+        "12": 0.0,
+        "17": 0.0,
+        "25": 0.0,
+        "26": 0.0,
+        "28": 0.0,
+        "50": 0.0
+      },
+      "train_rows_ratio_by_fold": {
+        "jan_apr_to_may_jun": 1.0,
+        "jan_jun_to_jul_aug": 1.0,
+        "jan_aug_to_sep_oct": 1.0
+      }
+    },
+    "6m": {
+      "delta_pooled_wape": 0.000747401182172841,
+      "fold_delta_wape": {
+        "jan_apr_to_may_jun": 0.0,
+        "jan_jun_to_jul_aug": 0.0,
+        "jan_aug_to_sep_oct": 0.0020526119408543486
+      },
+      "fold_wins": 0,
+      "fold_losses": 1,
+      "route_delta_pooled_wape": {
+        "1": -0.0002062569690356314,
+        "7": 0.003599488964202646,
+        "11": 0.00032454338104051517,
+        "12": 0.0005392789942962328,
+        "17": 0.0013952697793704755,
+        "25": 1.425353005440888e-05,
+        "26": -0.00014247176338519352,
+        "28": 0.0005275279043532588,
+        "50": -0.0008937580509725263
+      },
+      "train_rows_ratio_by_fold": {
+        "jan_apr_to_may_jun": 1.0,
+        "jan_jun_to_jul_aug": 1.0,
+        "jan_aug_to_sep_oct": 0.757201646090535
+      }
+    },
+    "4m": {
+      "delta_pooled_wape": 0.0034830665099693514,
+      "fold_delta_wape": {
+        "jan_apr_to_may_jun": 0.0,
+        "jan_jun_to_jul_aug": -0.003968779358689806,
+        "jan_aug_to_sep_oct": 0.01290064252712439
+      },
+      "fold_wins": 1,
+      "fold_losses": 1,
+      "route_delta_pooled_wape": {
+        "1": 0.0012209882853987386,
+        "7": -0.0038752337335031806,
+        "11": 0.0012210449693418612,
+        "12": 0.001519062635057189,
+        "17": 0.009797194871073805,
+        "25": 0.009422421808907094,
+        "26": 0.007592527892964329,
+        "28": 0.0031183454227745877,
+        "50": -0.001009875096954882
+      },
+      "train_rows_ratio_by_fold": {
+        "jan_apr_to_may_jun": 1.0,
+        "jan_jun_to_jul_aug": 0.6740331491712708,
+        "jan_aug_to_sep_oct": 0.5061728395061729
+      }
+    },
+    "2m": {
+      "delta_pooled_wape": 0.059538611949820075,
+      "fold_delta_wape": {
+        "jan_apr_to_may_jun": 0.05663354190774106,
+        "jan_jun_to_jul_aug": -0.007971428072918563,
+        "jan_aug_to_sep_oct": 0.11889970277896841
+      },
+      "fold_wins": 1,
+      "fold_losses": 2,
+      "route_delta_pooled_wape": {
+        "1": 0.06300835886991046,
+        "7": 0.13366664832093228,
+        "11": 0.03741413790925044,
+        "12": 0.04272659893689135,
+        "17": 0.04264136151454079,
+        "25": 0.07731030857215682,
+        "26": 0.08019012463057576,
+        "28": 0.06185186641869733,
+        "50": 0.058307631235142154
+      },
+      "train_rows_ratio_by_fold": {
+        "jan_apr_to_may_jun": 0.5083333333333333,
+        "jan_jun_to_jul_aug": 0.3370165745856354,
+        "jan_aug_to_sep_oct": 0.2551440329218107
+      }
+    }
+  },
+  "best_shorter_window": "6m",
+  "classification": "TRAIN_WINDOW_REJECTED",
+  "classification_rule": "SUPPORTED if best shorter window improves pooled WAPE, wins at least two folds, and no route worsens by more than 0.01 absolute WAPE; REJECTED if no pooled gain; otherwise MIXED",
+  "full_reference_reproduced": true,
+  "nov_dec_used": false,
+  "final_fit_performed": false,
+  "accepted_feature_registry_changed": false
+}

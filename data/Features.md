@@ -1361,3 +1361,36 @@ Pooled WAPE по дням 1–7 / 8–28 / 29–61: A `0.123722 / 0.153421 / 0.1
 Gain rank `lag_168` по трём folds: B `2/2/1`, C `1/1/1`, D `1/1/1`; доля total gain B `22.20%/21.96%/75.71%`, C `76.47%/82.32%/86.03%`, D `76.39%/80.85%/85.32%`. Корреляция prediction с лагом в C/D высокая (`0.9715–0.9995`), но вместе с ухудшением WAPE показывает, почему importance и корреляция не служат критерием выбора. Pooled per-route WAPE всех вариантов, точные fold/horizon метрики и provenance сохранены в `ml/experiments/results/recursive_lag_ablation.json`.
 
 **Решение — `RECURSIVE_MASKING_REJECTED`.** C намного хуже B на каждом fold и горизонте; удаление core признаков не раскрывает полезную роль лага. D лучше C pooled, поэтому удаление `route` не даёт однозначной механистической интерпретации. A и B точно воспроизведены по fold, route и horizon абсолютным ошибкам. Accepted registry, primary v4 и submissions не менялись; final Jan–Oct → Nov–Dec fit не выполнялся. Воспроизведение: `python ml/src/recursive_lag_ablation.py` или `ml/notebooks/recursive_lag_ablation.ipynb`.
+
+## Pilot v5 — controlled interaction features
+
+**Гипотезы.** Явные категориальные сочетания `route_temperature_bucket`, `route_is_day_off` и `hour_temperature_bucket` могут уловить неоднородность температурного и календарного эффекта. Каждый признак проверен отдельно поверх `SET_FEATURES + CALENDAR_FEATURES + WEATHER_FEATURES` в tuned XGBoost + weighted D (half-life 180 дней); остальные параметры v5 не менялись. Значения строятся только из route, hour, is_day_off и temperature_bucket, с одним фиксированным словарём категорий для train/validation/inference. Исходные признаки сохранены.
+
+**Проверка.** Jan–Apr → May–Jun, Jan–Jun → Jul–Aug, Jan–Aug → Sep–Oct 2025. Контроль точно воспроизвёл исторический Pilot v5 по fold и per-route AE: fold WAPE `0.156928 / 0.198218 / 0.118587`, pooled `0.155601` (AE `5 450 387`). Для всех вариантов одинаковы preprocessing, параметры, веса, seed, postprocessing и route 5 → 0. Nov–Dec leaderboard не использовался; target не применялся при построении interaction.
+
+| Конфигурация | May–Jun | Jul–Aug | Sep–Oct | Pooled WAPE | Δ к v5 | Pooled AE | Решение |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Pilot v5 | 0.156928 | 0.198218 | 0.118587 | 0.155601 | 0 | 5 450 387 | REFERENCE |
+| + `route_temperature_bucket` | 0.162795 | 0.197964 | 0.122093 | 0.158735 | +0.003135 | 5 560 184 | REJECTED |
+| + `route_is_day_off` | 0.159038 | 0.197794 | 0.117087 | 0.155621 | +0.000020 | 5 451 097 | REJECTED |
+| + `hour_temperature_bucket` | 0.216182 | 0.189932 | 0.122530 | 0.174049 | +0.018448 | 6 096 599 | REJECTED |
+
+**По маршрутам.** Δ pooled WAPE для `route_temperature_bucket`: улучшились 1/11/26/28, ухудшились 7/12/17/25/50; наибольшее ухудшение у route 25 (`+0.011870`). Для `route_is_day_off`: улучшились 11/25/26/50, ухудшились 1/7/12/17/28; наибольшее ухудшение у route 7 (`+0.004100`). Для `hour_temperature_bucket`: улучшился только route 26 (`−0.000531`), ухудшились остальные восемь оцениваемых; наибольшее ухудшение у route 1 (`+0.034435`). Route 5 WAPE не определён из-за нулевого target.
+
+**Решение.** Лучший по pooled WAPE кандидат — `route_is_day_off`, но он всё же хуже v5 на `+0.000020` и `+710` AE; 2/3 выигранных folds не меняют вердикт `REJECTED`. Ни один кандидат не получил SUPPORTED, combined check не проводился. Оснований включать эти признаки в следующую Pilot version сейчас нет; accepted registry остаётся прежним. Полные per-route и timing метрики, параметры, версии окружения и hashes: `ml/experiments/results/interaction_features_experiment.json`. Воспроизведение: `python ml/src/interaction_features_experiment.py` или `ml/notebooks/interaction_features_experiment.ipynb`.
+
+## Pilot v5 — положение относительно праздников
+
+**Гипотеза и контракт.** Текущие calendar flags отмечают сам день; новые признаки отражают расстояние до/после официального праздника или перенесённого выходного. Источник — leakage-safe `calendar_2025_ml.csv`; проверено, что датированные события `known_from <=` каждого forecast origin. Расстояния имеют категории `0..7` и `>7` (включая отсутствие события внутри годового источника). Pre/post flags обозначают ровно 1 день и интервал 1–3 дня до/после события. Long holiday period — последовательность минимум трёх подряд `is_day_off`, одинаково определяемая для train/validation/forecast. Target при построении не используется.
+
+**Контроль.** Tuned XGBoost + C+W + weighted D, half-life 180, прежние folds, preprocessing/postprocessing и route 5 → 0. Reference `0.156928 / 0.198218 / 0.118587`, pooled WAPE `0.155601`, AE `5 450 387`. Nov–Dec leaderboard не использовался.
+
+| Конфигурация | May–Jun | Jul–Aug | Sep–Oct | Pooled WAPE | Δ vs v5 | Pooled AE | WAPE-score | Решение |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Pilot v5 | 0.156928 | 0.198218 | 0.118587 | 0.155601 | 0 | 5 450 387 | 0.844399 | REFERENCE |
+| + holiday distance | 0.152806 | 0.202930 | 0.117933 | 0.155444 | −0.000156 | 5 444 913 | 0.844556 | SUPPORTED |
+| + pre/post flags | 0.153683 | 0.199658 | 0.117748 | 0.154665 | −0.000935 | 5 417 622 | 0.845335 | SUPPORTED |
+| + long holiday period | 0.152773 | 0.198693 | 0.117470 | **0.153969** | **−0.001632** | **5 393 231** | **0.846031** | SUPPORTED |
+| Combined supported | 0.150558 | 0.201666 | 0.117710 | 0.154235 | −0.001366 | 5 402 544 | 0.845765 | SUPPORTED |
+
+**Вывод.** Все три отдельные группы улучшают pooled WAPE на двух folds, но ухудшают Jul–Aug. Лучший одиночный кандидат — `is_long_holiday_period`; combined хуже него. Это ещё не изменение accepted feature registry или Pilot v5. Final Jan–Oct fit/submission не выполнялись. Полные per-route метрики, Δ, fit/predict time и provenance: `ml/experiments/results/holiday_distance_experiment.json`; воспроизведение: `python ml/src/holiday_distance_experiment.py` или `ml/notebooks/holiday_distance_experiment.ipynb`.
