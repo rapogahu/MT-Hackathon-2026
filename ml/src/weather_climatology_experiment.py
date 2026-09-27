@@ -105,14 +105,22 @@ def verify_climatology() -> tuple[pd.DataFrame, dict]:
 
 
 def join_climatology(rows: pd.DataFrame, climatology: pd.DataFrame) -> pd.DataFrame:
+    existing = [candidate for candidate in CANDIDATES if candidate in rows.columns]
     keyed = rows.assign(month=rows["date"].dt.month)
     joined = keyed.merge(
-        climatology[["month", "hour", *CANDIDATES]],
+        climatology[["month", "hour", *CANDIDATES]].rename(
+            columns={candidate: f"_source_{candidate}" for candidate in existing}
+        ),
         on=["month", "hour"], how="left", validate="many_to_one", indicator=True,
         sort=False,
     )
     if len(joined) != len(rows) or joined["_merge"].ne("both").any():
         raise ValueError("Incomplete climatology join")
+    for candidate in existing:
+        source = f"_source_{candidate}"
+        if not np.allclose(joined[candidate], joined[source], rtol=0, atol=1e-12):
+            raise ValueError(f"Existing {candidate} differs from frozen climatology")
+        joined = joined.drop(columns=source)
     if joined[list(CANDIDATES)].isna().any().any():
         raise ValueError("Missing climatology candidate after join")
     return joined.drop(columns=["_merge"])
@@ -143,11 +151,14 @@ def fit_candidate(train: pd.DataFrame, validation: pd.DataFrame, candidate: str)
 
 def add_temperature_bucket(rows: pd.DataFrame) -> pd.DataFrame:
     result = rows.copy()
-    result["temperature_bucket"] = pd.cut(
+    bucket = pd.cut(
         result["climatological_temperature"],
         bins=[-np.inf, 0, 10, 20, np.inf],
         right=False, labels=BUCKET_LABELS,
     )
+    if "temperature_bucket" in result and not result["temperature_bucket"].eq(bucket.astype(str)).all():
+        raise ValueError("Existing temperature_bucket differs from frozen bins")
+    result["temperature_bucket"] = bucket
     if result["temperature_bucket"].isna().any():
         raise ValueError("Temperature bucket has missing values")
     return result
