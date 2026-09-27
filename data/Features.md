@@ -1058,3 +1058,79 @@ Recent block выше previous у восьми маршрутов; route 50 им
 ## Direct Historical Target v1 — completed
 
 В серии H19–H27 проверены full-history агрегаты `route × weekday × hour`, recent same-slot аггрегаты, recent route-level statistics, изменение уровня recent vs previous и frozen last-observed seasonal anchor. Все варианты оценивались отдельно против одного frozen baseline (`route`, `weekday`, `hour`, `route_hour`, `hour_weekend`, `is_night`) на Jan–Aug train / Sep–Oct validation; каждый из H19–H27 получил `REJECT` и ухудшил baseline WAPE `0.123580`. Этот вывод ограничен проверенными direct / frozen-on-origin формулировками H19–H27 и не означает, что любые historical target features бесполезны.
+
+## Calendar official group ? controlled experiment
+
+**Гипотеза.** Пять официальных календарных признаков могут дополнить frozen Global LightGBM: `is_day_off`, `is_official_holiday`, `is_transferred_day_off`, `is_transferred_workday`, `is_shortened_workday`. Не включались `is_informal_event`, названия, текстовые и source поля. Join выполнен по `date`.
+
+**Контракт и доступность.** Запуск: `python ml/src/feature_experiment_runner.py --calendar-official-group`; результат: `ml/experiments/results/calendar_official_group_result.json`. Target ? canonical organizer labels с восстановлением полной сетки `route ? date ? hour`: Jan?Aug 58 320 строк, Sep?Oct 14 640. Validation targets использовались только после prediction для метрик. Global `LGBMRegressor` parameters, accepted features, preprocessing, split, rounding и правило route 5 ? 0 не менялись. Обе модели обучены одним runner на одинаковом split. В registry все записи `annual_decree` проверены относительно prediction origin: 5/5 имеют `known_from=2024-10-04`, раньше validation origin 2025-08-31 и Nov?Dec inference origin 2025-10-31. Переносы leakage-safe для обоих сценариев. В ML pipeline использован только `calendar_2025_ml.csv`; `.xlsx` не использовался.
+
+| Variant | Overall WAPE | WAPE-score | ? WAPE |
+|---|---:|---:|---:|
+| Current accepted | 0.123580 | 0.876420 | +0.000000 |
+| + official calendar group | 0.120922 | 0.879078 | ?0.002658 |
+
+`? = candidate ? baseline`; отрицательное значение означает улучшение.
+
+| Route | Current accepted | + official calendar group |
+|---:|---:|---:|
+| 1 | 0.109409 | 0.104101 |
+| 5 | N/A | N/A |
+| 7 | 0.157333 | 0.152735 |
+| 11 | 0.105455 | 0.104823 |
+| 12 | 0.088066 | 0.085928 |
+| 17 | 0.085894 | 0.084201 |
+| 25 | 0.199599 | 0.189324 |
+| 26 | 0.125388 | 0.120151 |
+| 28 | 0.153739 | 0.149810 |
+| 50 | 0.240656 | 0.242223 |
+
+| Calendar flag | Coverage (validation rows) | Active days 2025 | Active validation days | Active Nov?Dec inference days |
+|---|---:|---:|---:|---:|
+| `is_day_off` | 14 640/14 640 | 118 | 16 | 20 |
+| `is_official_holiday` | 14 640/14 640 | 14 | 0 | 1 |
+| `is_transferred_day_off` | 14 640/14 640 | 5 | 0 | 2 |
+| `is_transferred_workday` | 14 640/14 640 | 1 | 0 | 1 |
+| `is_shortened_workday` | 14 640/14 640 | 4 | 0 | 1 |
+
+**Результат и вывод ? INCONCLUSIVE.** Overall WAPE снизился на 0.002658; улучшились 8 из 9 маршрутов с определённой WAPE, маршрут 50 ухудшился на 0.001567. Эффект установлен только на одном temporal holdout, а четыре из пяти flags неактивны в validation. Этого недостаточно для вывода об устойчивой пользе; accepted feature set не меняется.
+
+## Диагностика улучшения official calendar group
+
+**Контракт.** Повторён frozen Global LightGBM на canonical Jan–Aug → Sep–Oct split с теми же параметрами, preprocessing, округлением и route 5 → 0. Запуск: `python ml/src/feature_experiment_runner.py --calendar-decomposition`; точные метрики: `ml/experiments/results/calendar_official_group_decomposition.json`. Baseline и полная группа воспроизвели предыдущий результат с допуском `1e-12`; новых H-experiments не проводилось.
+
+| Флаг | Train: активных дат / строк | Validation: активных дат / строк |
+|---|---:|---:|
+| `is_day_off` | 82 / 19 680 | 16 / 3 840 |
+| `is_official_holiday` | 13 / 3 120 | 0 / 0 |
+| `is_transferred_day_off` | 3 / 720 | 0 / 0 |
+| `is_transferred_workday` | 0 / 0 | 0 / 0 |
+| `is_shortened_workday` | 3 / 720 | 0 / 0 |
+
+Покрытие всех пяти флагов — 58 320/58 320 train и 14 640/14 640 validation строк. В validation меняется только `is_day_off`; остальные четыре признака константны.
+
+**Семантика выходного.** `is_day_off` и `weekday >= 5` совпадают на всех 14 640 validation строках. В train есть 2 880 несовпадений на 12 датах: `is_day_off=1`, `weekday>=5=0`; обратных несовпадений нет. Старый H6 добавлял `is_weekend` как числовой `int8`, новый `is_day_off` также числовой `int8`. Оба отсутствуют в `categorical_feature`; категориальные accepted поля обрабатываются одинаково.
+
+| Вариант | Overall WAPE | WAPE-score | Δ WAPE к accepted |
+|---|---:|---:|---:|
+| Accepted | 0.123580 | 0.876420 | +0.000000 |
+| + `is_day_off` | 0.120678 | 0.879322 | −0.002902 |
+| + остальные 4 official flags | 0.119889 | 0.880111 | −0.003691 |
+| + все 5 official flags | 0.120922 | 0.879078 | −0.002658 |
+
+| Route | Accepted | + `is_day_off` | + остальные 4 | + все 5 |
+|---:|---:|---:|---:|---:|
+| 1 | 0.109409 | 0.103023 | 0.105769 | 0.104101 |
+| 5 | N/A | N/A | N/A | N/A |
+| 7 | 0.157333 | 0.149868 | 0.147827 | 0.152735 |
+| 11 | 0.105455 | 0.104538 | 0.105367 | 0.104823 |
+| 12 | 0.088066 | 0.087598 | 0.086505 | 0.085928 |
+| 17 | 0.085894 | 0.085431 | 0.082384 | 0.084201 |
+| 25 | 0.199599 | 0.189100 | 0.189798 | 0.189324 |
+| 26 | 0.125388 | 0.120008 | 0.116272 | 0.120151 |
+| 28 | 0.153739 | 0.148031 | 0.146726 | 0.149810 |
+| 50 | 0.240656 | 0.239451 | 0.242929 | 0.242223 |
+
+**Сверка с H6.** H6 запускался до принятия `is_night`: его контроль включал пять признаков, текущий — шесть. В H6 `is_weekend` совпадал с `weekday>=5` и был числовым `int8`; здесь `is_day_off` отличается от него на 12 train датах. Поэтому прежний H6 не является контролем для календарной группы. В актуальном notebook H6 указан WAPE `0.124202 → 0.124220`; в старом разделе `data/Features.md` сохранены немного другие числа `0.124226 → 0.124246`. Оба результата относятся к прежнему пятиместному набору.
+
+**Классификация — `REPRESENTATION_DIFFERENCE`.** На Sep–Oct нет положительных наблюдений для четырёх official flags, а единственный меняющийся флаг совпадает с обычным weekend. Улучшение от четырёх константных в validation колонок показывает изменение fitted tree structure через train. Разница `is_day_off` в train также может менять обученные разбиения. Отдельный эффект официальных праздничных дат на validation этим экспериментом не установлен. Оснований для `PIPELINE_INCONSISTENCY` нет: split, параметры и baseline/полная группа воспроизведены. Accepted set не меняется.

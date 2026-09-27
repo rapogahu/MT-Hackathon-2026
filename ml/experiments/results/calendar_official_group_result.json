@@ -1,0 +1,137 @@
+{
+  "experiment": "CALENDAR_OFFICIAL_GROUP",
+  "created_at_utc": "2026-09-27T06:36:01.850672+00:00",
+  "data_sources": [
+    "data/raw/labels/labels_day_train.csv",
+    "data/raw/labels/labels_day_test.csv",
+    "dataset/meta features/calendar_2025_ml.csv"
+  ],
+  "periods": {
+    "train": [
+      "2025-01-01",
+      "2025-08-31"
+    ],
+    "validation": [
+      "2025-09-01",
+      "2025-10-31"
+    ]
+  },
+  "validation_origins": {
+    "validation": {
+      "origin": "2025-08-31",
+      "annual_decree_rows": 5,
+      "all_known_by_origin": true,
+      "latest_known_from": "2024-10-04"
+    },
+    "nov_dec_inference": {
+      "origin": "2025-10-31",
+      "annual_decree_rows": 5,
+      "all_known_by_origin": true,
+      "latest_known_from": "2024-10-04"
+    }
+  },
+  "feature_group": [
+    "is_day_off",
+    "is_official_holiday",
+    "is_transferred_day_off",
+    "is_transferred_workday",
+    "is_shortened_workday"
+  ],
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "baseline_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_feature_names": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "is_day_off",
+    "is_official_holiday",
+    "is_transferred_day_off",
+    "is_transferred_workday",
+    "is_shortened_workday"
+  ],
+  "metrics": {
+    "baseline_overall_wape": 0.12357994025785918,
+    "baseline_wape_score": 0.8764200597421408,
+    "candidate_overall_wape": 0.12092150201956472,
+    "candidate_wape_score": 0.8790784979804352,
+    "delta_wape": -0.0026584382382944527,
+    "delta_wape_score": 0.0026584382382944527,
+    "baseline_per_route_wape": {
+      "1": 0.10940917688956801,
+      "5": null,
+      "7": 0.15733322078850975,
+      "11": 0.10545493825315498,
+      "12": 0.08806596477926038,
+      "17": 0.08589449971841562,
+      "25": 0.19959874025104565,
+      "26": 0.1253876274812746,
+      "28": 0.15373884855288591,
+      "50": 0.2406562645793375
+    },
+    "candidate_per_route_wape": {
+      "1": 0.10410063260666161,
+      "5": null,
+      "7": 0.1527351724046016,
+      "11": 0.10482307592677947,
+      "12": 0.08592793722940667,
+      "17": 0.08420107573395581,
+      "25": 0.189323993567789,
+      "26": 0.12015075727271726,
+      "28": 0.14980968639772554,
+      "50": 0.24222348936464327
+    },
+    "flag_days": {
+      "is_day_off": {
+        "active_days_2025": 118,
+        "validation_active_days": 16,
+        "nov_dec_inference_active_days": 20,
+        "validation_coverage_rows": 14640
+      },
+      "is_official_holiday": {
+        "active_days_2025": 14,
+        "validation_active_days": 0,
+        "nov_dec_inference_active_days": 1,
+        "validation_coverage_rows": 14640
+      },
+      "is_transferred_day_off": {
+        "active_days_2025": 5,
+        "validation_active_days": 0,
+        "nov_dec_inference_active_days": 2,
+        "validation_coverage_rows": 14640
+      },
+      "is_transferred_workday": {
+        "active_days_2025": 1,
+        "validation_active_days": 0,
+        "nov_dec_inference_active_days": 1,
+        "validation_coverage_rows": 14640
+      },
+      "is_shortened_workday": {
+        "active_days_2025": 4,
+        "validation_active_days": 0,
+        "nov_dec_inference_active_days": 1,
+        "validation_coverage_rows": 14640
+      }
+    }
+  },
+  "decision": "INCONCLUSIVE",
+  "decision_note": "Single temporal holdout; classify KEEP only for lower WAPE without severe route regressions, REJECT for clear overall regression, otherwise INCONCLUSIVE."
+}

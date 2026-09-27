@@ -266,10 +266,177 @@ def run_experiment(experiment: str = "SMOKE", candidate_builder=None, candidate_
     return result
 
 
+
+def run_calendar_group(decompose: bool = False) -> dict:
+    """Controlled A/B for the official leakage-safe calendar feature group."""
+    calendar_path = ROOT / "dataset/meta features/calendar_2025_ml.csv"
+    flags = (
+        "is_day_off", "is_official_holiday", "is_transferred_day_off",
+        "is_transferred_workday", "is_shortened_workday",
+    )
+    calendar = pd.read_csv(calendar_path, parse_dates=["date", "known_from"])
+    if calendar["date"].duplicated().any():
+        raise ValueError("Calendar must contain one row per date")
+    required = {"date", "availability_type", "known_from", *flags}
+    if not required.issubset(calendar.columns):
+        raise ValueError("Calendar is missing required columns")
+    if calendar[list(flags)].isna().any().any():
+        raise ValueError("Calendar flags must be fully populated")
+
+    # Validation origin is Aug 31; future-inference origin is Oct 31. Any
+    # annual-decree row must have been published by the relevant origin.
+    annual = calendar[calendar["availability_type"].eq("annual_decree")]
+    origins = {"validation": pd.Timestamp("2025-08-31"),
+               "nov_dec_inference": pd.Timestamp("2025-10-31")}
+    availability = {name: {
+        "origin": origin.date().isoformat(),
+        "annual_decree_rows": int(len(annual)),
+        "all_known_by_origin": bool(annual["known_from"].notna().all() and annual["known_from"].le(origin).all()),
+        "latest_known_from": annual["known_from"].max().date().isoformat() if len(annual) else None,
+    } for name, origin in origins.items()}
+    if not all(v["all_known_by_origin"] for v in availability.values()):
+        raise ValueError("An annual_decree calendar event was not known at forecast origin")
+
+    train = _label_grid(TRAIN_LABELS, TRAIN_START, TRAIN_END)
+    valid = _label_grid(VALID_LABELS, VALID_START, VALID_END)
+    train = train.merge(calendar[["date", *flags]], on="date", how="left", validate="many_to_one")
+    valid = valid.merge(calendar[["date", *flags]], on="date", how="left", validate="many_to_one")
+    if train[list(flags)].isna().any().any() or valid[list(flags)].isna().any().any():
+        raise ValueError("Calendar does not cover the complete train/validation periods")
+
+    base_x_train, base_x_valid = calendar_features(train), calendar_features(valid)
+    group_x_train = pd.concat([base_x_train, train[list(flags)].astype("int8")], axis=1)
+    group_x_valid = pd.concat([base_x_valid, valid[list(flags)].astype("int8")], axis=1)
+    y_train = train["boardings"]
+    model_base = LGBMRegressor(**MODEL_PARAMETERS)
+    model_base.fit(base_x_train, y_train, categorical_feature=list(BASE_FEATURES[:-1]))
+    base_pred = np.floor(np.maximum(model_base.predict(base_x_valid), 0) + 0.5)
+    model_group = LGBMRegressor(**MODEL_PARAMETERS)
+    model_group.fit(group_x_train, y_train, categorical_feature=list(BASE_FEATURES[:-1]))
+    group_pred = np.floor(np.maximum(model_group.predict(group_x_valid), 0) + 0.5)
+    base_pred[valid["route"].to_numpy() == 5] = 0
+    group_pred[valid["route"].to_numpy() == 5] = 0
+    actual = valid["boardings"].to_numpy(dtype=float)
+
+    def route_wapes(pred):
+        return {str(int(r)): (wape(g["boardings"].to_numpy(dtype=float), pred[g.index.to_numpy()])
+                            if r != 5 else None)
+                for r, g in valid.groupby("route", sort=True)}
+
+    base_wape, group_wape = wape(actual, base_pred), wape(actual, group_pred)
+    flag_days = {flag: {
+        "active_days_2025": int(calendar.loc[calendar[flag].eq(1), "date"].nunique()),
+        "validation_active_days": int(valid.loc[valid[flag].eq(1), "date"].nunique()),
+        "nov_dec_inference_active_days": int(calendar.loc[calendar["date"].between("2025-11-01", "2025-12-31") & calendar[flag].eq(1), "date"].nunique()),
+        "validation_coverage_rows": int(valid[flag].notna().sum()),
+    } for flag in flags}
+    result = {
+        "experiment": "CALENDAR_OFFICIAL_GROUP",
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "data_sources": ["data/raw/labels/labels_day_train.csv", "data/raw/labels/labels_day_test.csv",
+                         "dataset/meta features/calendar_2025_ml.csv"],
+        "periods": {"train": [TRAIN_START, TRAIN_END], "validation": [VALID_START, VALID_END]},
+        "validation_origins": availability,
+        "feature_group": list(flags),
+        "model_parameters": MODEL_PARAMETERS,
+        "baseline_feature_names": list(BASE_FEATURES),
+        "candidate_feature_names": list(BASE_FEATURES) + list(flags),
+        "metrics": {
+            "baseline_overall_wape": base_wape, "baseline_wape_score": 1-base_wape,
+            "candidate_overall_wape": group_wape, "candidate_wape_score": 1-group_wape,
+            "delta_wape": group_wape-base_wape, "delta_wape_score": base_wape-group_wape,
+            "baseline_per_route_wape": route_wapes(base_pred),
+            "candidate_per_route_wape": route_wapes(group_pred),
+            "flag_days": flag_days,
+        },
+        "decision": "INCONCLUSIVE",
+        "decision_note": "Single temporal holdout; classify KEEP only for lower WAPE without severe route regressions, REJECT for clear overall regression, otherwise INCONCLUSIVE.",
+    }
+    if decompose:
+        weekend_train = train["date"].dt.weekday.ge(5).astype("int8")
+        weekend_valid = valid["date"].dt.weekday.ge(5).astype("int8")
+        day_off_train = train["is_day_off"].astype("int8")
+        day_off_valid = valid["is_day_off"].astype("int8")
+
+        def flag_counts(frame):
+            return {flag: {
+                "active_dates": int(frame.loc[frame[flag].eq(1), "date"].nunique()),
+                "active_rows": int(frame[flag].eq(1).sum()),
+                "non_null_rows": int(frame[flag].notna().sum()),
+            } for flag in flags}
+
+        def fit_subset(subset):
+            x_train = pd.concat([base_x_train, train[list(subset)].astype("int8")], axis=1)
+            x_valid = pd.concat([base_x_valid, valid[list(subset)].astype("int8")], axis=1)
+            model = LGBMRegressor(**MODEL_PARAMETERS)
+            model.fit(x_train, y_train, categorical_feature=list(BASE_FEATURES[:-1]))
+            pred = np.floor(np.maximum(model.predict(x_valid), 0) + 0.5)
+            pred[valid["route"].to_numpy() == 5] = 0
+            return pred
+
+        day_off_pred = fit_subset(("is_day_off",))
+        other_pred = fit_subset(flags[1:])
+
+        def variant_metrics(pred):
+            value = wape(actual, pred)
+            return {"overall_wape": value, "wape_score": 1 - value,
+                    "delta_wape_vs_accepted": value - base_wape,
+                    "per_route_wape": route_wapes(pred)}
+
+        result["decomposition"] = {
+            "flag_counts": {"train": flag_counts(train), "validation": flag_counts(valid)},
+            "weekend_semantics": {
+                "definition": "date.weekday >= 5",
+                "h6_added_feature_dtype": "int8",
+                "day_off_feature_dtype": str(day_off_train.dtype),
+                "preprocessing": "Numeric flag; not in categorical_feature. Accepted categorical fields unchanged.",
+                "train_mismatch_rows": int(day_off_train.ne(weekend_train).sum()),
+                "train_mismatch_dates": int(train.loc[day_off_train.ne(weekend_train), "date"].nunique()),
+                "train_day_off_1_weekend_0_rows": int(day_off_train.gt(weekend_train).sum()),
+                "train_day_off_0_weekend_1_rows": int(day_off_train.lt(weekend_train).sum()),
+                "validation_mismatch_rows": int(day_off_valid.ne(weekend_valid).sum()),
+                "validation_mismatch_dates": int(valid.loc[day_off_valid.ne(weekend_valid), "date"].nunique()),
+                "train_weekend_active_rows": int(weekend_train.sum()),
+                "validation_weekend_active_rows": int(weekend_valid.sum()),
+            },
+            "variants": {
+                "accepted": variant_metrics(base_pred),
+                "accepted_plus_is_day_off": variant_metrics(day_off_pred),
+                "accepted_plus_other_four": variant_metrics(other_pred),
+                "accepted_plus_official_group": variant_metrics(group_pred),
+            },
+        }
+        result["classification"] = "REPRESENTATION_DIFFERENCE"
+        result["classification_note"] = (
+            "The only nonconstant validation flag equals weekend exactly. Four other flags "
+            "are zero throughout validation but change the fitted tree structure through training. "
+            "No holiday-specific validation effect is identified."
+        )
+        prior = RESULTS / "calendar_official_group_result.json"
+        if prior.exists():
+            previous = json.loads(prior.read_text(encoding="utf-8"))
+            for name in ("baseline_overall_wape", "candidate_overall_wape"):
+                if abs(result["metrics"][name] - previous["metrics"][name]) > 1e-12:
+                    raise ValueError(f"Calendar decomposition failed to reproduce {name}")
+
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    destination = RESULTS / ("calendar_official_group_decomposition.json" if decompose
+                             else "calendar_official_group_result.json")
+    destination.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    result["artifact"] = destination.relative_to(ROOT).as_posix()
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment", default="SMOKE", help="Experiment ID; SMOKE runs accepted features only")
+    parser.add_argument("--calendar-official-group", action="store_true", help="Run controlled official calendar A/B")
+    parser.add_argument("--calendar-decomposition", action="store_true", help="Decompose the official calendar A/B")
     args = parser.parse_args()
+    if args.calendar_official_group or args.calendar_decomposition:
+        result = run_calendar_group(decompose=args.calendar_decomposition)
+        print(json.dumps(result, indent=2, allow_nan=False))
+        return
     experiment = args.experiment.upper()
     if experiment == "SMOKE":
         result = run_experiment(experiment)
