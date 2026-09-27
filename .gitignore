@@ -20,6 +20,8 @@ data/interim/*
 # ML models
 ml/models/*
 !ml/models/.gitkeep
+!ml/models/pilot_model_v5_xgboost.json
+!ml/models/pilot_model_v5_metadata.json
 
 # IDE
 .idea/
