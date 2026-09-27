@@ -53,9 +53,4 @@ data/end_submissions/pilot_model_v5_reproduced_submission.csv
 ## Формат файла внутри
 route;date;hour;prediction
 
-## Проверка воспроизводимости
-predict.py создает
-data\end_submissions\pilot_model_v5_reproduced_submission.csv и сравнивает полученный результат с
-data/end_submissions/pilot_model_v5_weighted_xgboost_submission.csv
-
 ## Подробное описание эволюции архитектуры ml части
