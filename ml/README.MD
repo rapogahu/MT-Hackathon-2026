@@ -47,9 +47,6 @@ python -m ml.src.predict
 
 Backend использует `dataset/forecast.csv` как источник прогнозных данных.
 
-## Выходной файл:
-data/end_submissions/pilot_model_v5_reproduced_submission.csv
-
 ## Формат файла внутри
 route;date;hour;prediction
 
