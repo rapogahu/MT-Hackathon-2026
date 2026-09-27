@@ -1,0 +1,411 @@
+{
+  "experiment": "WEATHER_TEMPERATURE_BUCKET_FINAL",
+  "created_at_utc": "2026-09-27T08:38:11.818172+00:00",
+  "source_files_sha256": {
+    "dataset/meta features/moscow_weather_2020_2024_era5.csv": "bb0d60388569dd78b1fd4df2cca46162a894ee8fabfbf92a4b5ef80a4f5ad544",
+    "dataset/meta features/moscow_weather_climatology_month_hour_2020_2024.csv": "f5c70069fe1b748947342c22af3a5cf4de94539a8c318c55682f30933f38fe7f",
+    "data/processed/model_ready_train_2025_jan_oct.csv": "b096e2234d4ee87e3b0ae83f84f6e15598fad33a639646ae61c8301a13d0f04a",
+    "data/processed/model_ready_forecast_2025_nov_dec.csv": "c02399bc02581ff13fa3a68697f937855949056001c523ea56abf40f42c8f957"
+  },
+  "source_checks": {
+    "archive_rows": 43848,
+    "archive_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "climatology_rows": 288,
+    "missing_cells": 0,
+    "n_obs_temperature_range": [
+      142,
+      155
+    ],
+    "n_obs_precipitation_range": [
+      142,
+      155
+    ],
+    "recomputed_max_absolute_difference": {
+      "climatological_temperature": 3.552713678800501e-15,
+      "climatological_precipitation": 9.71445146547012e-17,
+      "climatological_rain_probability": 8.326672684688674e-17,
+      "n_obs_temperature": 0.0,
+      "n_obs_precipitation": 0.0
+    }
+  },
+  "bucket_source": "frozen 2020-2024 month-hour climatological_temperature",
+  "bucket_labels": [
+    "<0",
+    "[0,10)",
+    "[10,20)",
+    ">=20"
+  ],
+  "bucket_intervals": [
+    "(-inf, 0)",
+    "[0, 10)",
+    "[10, 20)",
+    "[20, inf)"
+  ],
+  "bucket_boundary_selection": "predefined; no validation-based selection",
+  "core_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "temperature_bucket"
+  ],
+  "categorical_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "temperature_bucket"
+  ],
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5); route 5 = 0",
+  "classification_rule": "3/3 fold improvements: KEEP; 0/3: REJECT; otherwise: CANDIDATE_ONLY",
+  "classification": "WEATHER_CANDIDATE_ONLY",
+  "weather_branch_closed": true,
+  "observed_weather_2025_used": false,
+  "forecast_coverage": 14640,
+  "forecast_category_counts": {
+    "<0": 7440,
+    "[0,10)": 7200,
+    "[10,20)": 0,
+    ">=20": 0
+  },
+  "environment": {
+    "python": "3.12.6",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3",
+    "lightgbm": "4.7.0"
+  },
+  "folds": [
+    {
+      "fold": "jan_apr_to_may_jun",
+      "train_period": [
+        "2025-01-01",
+        "2025-04-30"
+      ],
+      "validation_period": [
+        "2025-05-01",
+        "2025-06-30"
+      ],
+      "forecast_origin": "2025-04-30",
+      "rows": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "coverage": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "pre_fit_bucket_diagnostics": {
+        "train_category_counts": {
+          "<0": 18190,
+          "[0,10)": 8510,
+          "[10,20)": 2100,
+          ">=20": 0
+        },
+        "validation_category_counts": {
+          "<0": 0,
+          "[0,10)": 2790,
+          "[10,20)": 9150,
+          ">=20": 2700
+        },
+        "train_categories_present": [
+          "<0",
+          "[0,10)",
+          "[10,20)"
+        ],
+        "validation_categories_present": [
+          "[0,10)",
+          "[10,20)",
+          ">=20"
+        ],
+        "validation_unseen_categories": [
+          ">=20"
+        ],
+        "validation_unseen_category_fraction": 0.18442622950819673
+      },
+      "core_wape": 0.18387295918243723,
+      "bucket_wape": 0.19975998424355748,
+      "delta_wape_vs_core": 0.015887025061120247,
+      "per_route": {
+        "1": {
+          "core_wape": 0.19519741384979614,
+          "bucket_wape": 0.21176981947915297,
+          "delta_wape": 0.01657240562935683
+        },
+        "5": {
+          "core_wape": null,
+          "bucket_wape": null,
+          "delta_wape": null
+        },
+        "7": {
+          "core_wape": 0.19304938910617597,
+          "bucket_wape": 0.20952989935222438,
+          "delta_wape": 0.016480510246048408
+        },
+        "11": {
+          "core_wape": 0.16906884998932598,
+          "bucket_wape": 0.16915852327195247,
+          "delta_wape": 8.96732826264901e-05
+        },
+        "12": {
+          "core_wape": 0.1834951246261714,
+          "bucket_wape": 0.17726478685876365,
+          "delta_wape": -0.006230337767407751
+        },
+        "17": {
+          "core_wape": 0.13736931053457635,
+          "bucket_wape": 0.15891265493625417,
+          "delta_wape": 0.021543344401677822
+        },
+        "25": {
+          "core_wape": 0.21253308754624553,
+          "bucket_wape": 0.23227393279023972,
+          "delta_wape": 0.019740845243994193
+        },
+        "26": {
+          "core_wape": 0.22977018100159988,
+          "bucket_wape": 0.2803006264159819,
+          "delta_wape": 0.050530445414382036
+        },
+        "28": {
+          "core_wape": 0.23274236912562332,
+          "bucket_wape": 0.24987715492678808,
+          "delta_wape": 0.01713478580116476
+        },
+        "50": {
+          "core_wape": 0.2306841912413559,
+          "bucket_wape": 0.26155705445954797,
+          "delta_wape": 0.030872863218192076
+        }
+      }
+    },
+    {
+      "fold": "jan_jun_to_jul_aug",
+      "train_period": [
+        "2025-01-01",
+        "2025-06-30"
+      ],
+      "validation_period": [
+        "2025-07-01",
+        "2025-08-31"
+      ],
+      "forecast_origin": "2025-06-30",
+      "rows": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "coverage": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "pre_fit_bucket_diagnostics": {
+        "train_category_counts": {
+          "<0": 18190,
+          "[0,10)": 11300,
+          "[10,20)": 11250,
+          ">=20": 2700
+        },
+        "validation_category_counts": {
+          "<0": 0,
+          "[0,10)": 0,
+          "[10,20)": 8370,
+          ">=20": 6510
+        },
+        "train_categories_present": [
+          "<0",
+          "[0,10)",
+          "[10,20)",
+          ">=20"
+        ],
+        "validation_categories_present": [
+          "[10,20)",
+          ">=20"
+        ],
+        "validation_unseen_categories": [],
+        "validation_unseen_category_fraction": 0.0
+      },
+      "core_wape": 0.24878646472320012,
+      "bucket_wape": 0.19175765440437378,
+      "delta_wape_vs_core": -0.05702881031882634,
+      "per_route": {
+        "1": {
+          "core_wape": 0.21843733778740093,
+          "bucket_wape": 0.14370952572739834,
+          "delta_wape": -0.07472781206000259
+        },
+        "5": {
+          "core_wape": null,
+          "bucket_wape": null,
+          "delta_wape": null
+        },
+        "7": {
+          "core_wape": 0.6988668914816174,
+          "bucket_wape": 0.5744399351855981,
+          "delta_wape": -0.1244269562960193
+        },
+        "11": {
+          "core_wape": 0.18389145894773334,
+          "bucket_wape": 0.14389270649088304,
+          "delta_wape": -0.039998752456850306
+        },
+        "12": {
+          "core_wape": 0.1922038040419956,
+          "bucket_wape": 0.1355491422415872,
+          "delta_wape": -0.0566546618004084
+        },
+        "17": {
+          "core_wape": 0.14667349407425548,
+          "bucket_wape": 0.11623550103524279,
+          "delta_wape": -0.030437993039012692
+        },
+        "25": {
+          "core_wape": 0.29494497317313,
+          "bucket_wape": 0.24217118997912318,
+          "delta_wape": -0.05277378319400683
+        },
+        "26": {
+          "core_wape": 0.3166141895210245,
+          "bucket_wape": 0.20502608899425867,
+          "delta_wape": -0.11158810052676582
+        },
+        "28": {
+          "core_wape": 0.320558976788252,
+          "bucket_wape": 0.22251410361310883,
+          "delta_wape": -0.09804487317514318
+        },
+        "50": {
+          "core_wape": 0.25910357387905847,
+          "bucket_wape": 0.23130073953887384,
+          "delta_wape": -0.02780283434018463
+        }
+      }
+    },
+    {
+      "fold": "jan_aug_to_sep_oct",
+      "train_period": [
+        "2025-01-01",
+        "2025-08-31"
+      ],
+      "validation_period": [
+        "2025-09-01",
+        "2025-10-31"
+      ],
+      "forecast_origin": "2025-08-31",
+      "rows": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "coverage": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "pre_fit_bucket_diagnostics": {
+        "train_category_counts": {
+          "<0": 18190,
+          "[0,10)": 11300,
+          "[10,20)": 19620,
+          ">=20": 9210
+        },
+        "validation_category_counts": {
+          "<0": 0,
+          "[0,10)": 9540,
+          "[10,20)": 5100,
+          ">=20": 0
+        },
+        "train_categories_present": [
+          "<0",
+          "[0,10)",
+          "[10,20)",
+          ">=20"
+        ],
+        "validation_categories_present": [
+          "[0,10)",
+          "[10,20)"
+        ],
+        "validation_unseen_categories": [],
+        "validation_unseen_category_fraction": 0.0
+      },
+      "core_wape": 0.12357994025785918,
+      "bucket_wape": 0.11390945660587835,
+      "delta_wape_vs_core": -0.009670483651980824,
+      "per_route": {
+        "1": {
+          "core_wape": 0.10940917688956801,
+          "bucket_wape": 0.08387341529258609,
+          "delta_wape": -0.025535761596981926
+        },
+        "5": {
+          "core_wape": null,
+          "bucket_wape": null,
+          "delta_wape": null
+        },
+        "7": {
+          "core_wape": 0.15733322078850975,
+          "bucket_wape": 0.16816195792452537,
+          "delta_wape": 0.01082873713601562
+        },
+        "11": {
+          "core_wape": 0.10545493825315498,
+          "bucket_wape": 0.10631280278921335,
+          "delta_wape": 0.0008578645360583642
+        },
+        "12": {
+          "core_wape": 0.08806596477926038,
+          "bucket_wape": 0.09309469027084034,
+          "delta_wape": 0.005028725491579969
+        },
+        "17": {
+          "core_wape": 0.08589449971841562,
+          "bucket_wape": 0.06979636144007965,
+          "delta_wape": -0.016098138278335963
+        },
+        "25": {
+          "core_wape": 0.19959874025104565,
+          "bucket_wape": 0.14643182351459624,
+          "delta_wape": -0.05316691673644941
+        },
+        "26": {
+          "core_wape": 0.1253876274812746,
+          "bucket_wape": 0.09502699171715763,
+          "delta_wape": -0.030360635764116975
+        },
+        "28": {
+          "core_wape": 0.15373884855288591,
+          "bucket_wape": 0.13143429364757775,
+          "delta_wape": -0.022304554905308166
+        },
+        "50": {
+          "core_wape": 0.2406562645793375,
+          "bucket_wape": 0.24062429803189744,
+          "delta_wape": -3.196654744005989e-05
+        }
+      }
+    }
+  ]
+}

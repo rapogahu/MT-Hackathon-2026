@@ -1,0 +1,1205 @@
+{
+  "experiment": "PILOT_MODEL_V3_CONTROLLED",
+  "created_at_utc": "2026-09-27T08:51:20.632905+00:00",
+  "data_sources_sha256": {
+    "data/processed/model_ready_train_2025_jan_oct.csv": "b096e2234d4ee87e3b0ae83f84f6e15598fad33a639646ae61c8301a13d0f04a",
+    "data/processed/model_ready_forecast_2025_nov_dec.csv": "c02399bc02581ff13fa3a68697f937855949056001c523ea56abf40f42c8f957",
+    "dataset/meta features/calendar_2025_ml.csv": "2175f6cc60e5b7121da839c1e3e17d32ea2f098f21190aed75ac0b5e71f74c37",
+    "dataset/meta features/moscow_weather_2020_2024_era5.csv": "bb0d60388569dd78b1fd4df2cca46162a894ee8fabfbf92a4b5ef80a4f5ad544",
+    "dataset/meta features/moscow_weather_climatology_month_hour_2020_2024.csv": "f5c70069fe1b748947342c22af3a5cf4de94539a8c318c55682f30933f38fe7f"
+  },
+  "climatology_checks": {
+    "archive_rows": 43848,
+    "archive_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "climatology_rows": 288,
+    "missing_cells": 0,
+    "n_obs_temperature_range": [
+      142,
+      155
+    ],
+    "n_obs_precipitation_range": [
+      142,
+      155
+    ],
+    "recomputed_max_absolute_difference": {
+      "climatological_temperature": 3.552713678800501e-15,
+      "climatological_precipitation": 9.71445146547012e-17,
+      "climatological_rain_probability": 8.326672684688674e-17,
+      "n_obs_temperature": 0.0,
+      "n_obs_precipitation": 0.0
+    }
+  },
+  "climatology_source_years": [
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "observed_weather_2025_used": false,
+  "temperature_bucket_boundaries": [
+    "<0",
+    "[0,10)",
+    "[10,20)",
+    ">=20"
+  ],
+  "core_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "calendar_candidates": [
+    "is_day_off",
+    "is_official_holiday",
+    "is_transferred_day_off",
+    "is_transferred_workday",
+    "is_shortened_workday"
+  ],
+  "variant_features": {
+    "core": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night"
+    ],
+    "pilot_v2": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night",
+      "is_day_off",
+      "is_official_holiday",
+      "is_transferred_day_off",
+      "is_transferred_workday",
+      "is_shortened_workday"
+    ],
+    "pilot_v3": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "is_night",
+      "is_day_off",
+      "is_official_holiday",
+      "is_transferred_day_off",
+      "is_transferred_workday",
+      "is_shortened_workday",
+      "temperature_bucket"
+    ]
+  },
+  "categorical_features": {
+    "core_and_v2": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend"
+    ],
+    "pilot_v3": [
+      "route",
+      "weekday",
+      "hour",
+      "route_hour",
+      "hour_weekend",
+      "temperature_bucket"
+    ]
+  },
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5); route 5 = 0",
+  "prior_core_v2_wape_reproduced": true,
+  "classification_rule": "PROMISING: v3 improves both core and v2 in all folds and pooled absolute error; NO_GAIN: v3 never improves v2; otherwise UNSTABLE",
+  "classification": "V3_UNSTABLE",
+  "accepted_feature_registry_changed": false,
+  "pooled_absolute_error": {
+    "core": {
+      "actual_sum": 35028042,
+      "absolute_error": 6367424,
+      "wape": 0.18178075725728546
+    },
+    "pilot_v2": {
+      "actual_sum": 35028042,
+      "absolute_error": 5836134,
+      "wape": 0.16661319522227364
+    },
+    "pilot_v3": {
+      "actual_sum": 35028042,
+      "absolute_error": 5454275,
+      "wape": 0.1557116723795181
+    }
+  },
+  "folds": [
+    {
+      "fold": "jan_apr_to_may_jun",
+      "train_period": [
+        "2025-01-01",
+        "2025-04-30"
+      ],
+      "validation_period": [
+        "2025-05-01",
+        "2025-06-30"
+      ],
+      "forecast_origin": "2025-04-30",
+      "rows": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "weather_coverage": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "temperature_bucket_train_categories": {
+        "<0": 18190,
+        "[0,10)": 8510,
+        "[10,20)": 2100,
+        ">=20": 0
+      },
+      "temperature_bucket_validation_categories": {
+        "<0": 0,
+        "[0,10)": 2790,
+        "[10,20)": 9150,
+        ">=20": 2700
+      },
+      "variants": {
+        "core": {
+          "wape": 0.18387295918243723,
+          "actual_sum": 11555908,
+          "absolute_error": 2124819,
+          "per_route": {
+            "1": {
+              "actual_sum": 973184,
+              "absolute_error": 189963,
+              "wape": 0.19519741384979614
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 1354327,
+              "absolute_error": 261452,
+              "wape": 0.19304938910617597
+            },
+            "11": {
+              "actual_sum": 1728497,
+              "absolute_error": 292235,
+              "wape": 0.16906884998932598
+            },
+            "12": {
+              "actual_sum": 1802631,
+              "absolute_error": 330774,
+              "wape": 0.1834951246261714
+            },
+            "17": {
+              "actual_sum": 2755004,
+              "absolute_error": 378453,
+              "wape": 0.13736931053457635
+            },
+            "25": {
+              "actual_sum": 389497,
+              "absolute_error": 82781,
+              "wape": 0.21253308754624553
+            },
+            "26": {
+              "actual_sum": 901318,
+              "absolute_error": 207096,
+              "wape": 0.22977018100159988
+            },
+            "28": {
+              "actual_sum": 535227,
+              "absolute_error": 124570,
+              "wape": 0.23274236912562332
+            },
+            "50": {
+              "actual_sum": 1116223,
+              "absolute_error": 257495,
+              "wape": 0.2306841912413559
+            }
+          }
+        },
+        "pilot_v2": {
+          "wape": 0.13174905857679034,
+          "actual_sum": 11555908,
+          "absolute_error": 1522480,
+          "per_route": {
+            "1": {
+              "actual_sum": 973184,
+              "absolute_error": 124896,
+              "wape": 0.12833749835591213
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 1354327,
+              "absolute_error": 192622,
+              "wape": 0.14222709877304374
+            },
+            "11": {
+              "actual_sum": 1728497,
+              "absolute_error": 218086,
+              "wape": 0.12617088719274608
+            },
+            "12": {
+              "actual_sum": 1802631,
+              "absolute_error": 221437,
+              "wape": 0.12284100295623453
+            },
+            "17": {
+              "actual_sum": 2755004,
+              "absolute_error": 279213,
+              "wape": 0.1013475842503314
+            },
+            "25": {
+              "actual_sum": 389497,
+              "absolute_error": 70837,
+              "wape": 0.18186789628674932
+            },
+            "26": {
+              "actual_sum": 901318,
+              "absolute_error": 151894,
+              "wape": 0.16852431661189501
+            },
+            "28": {
+              "actual_sum": 535227,
+              "absolute_error": 93872,
+              "wape": 0.1753872655901141
+            },
+            "50": {
+              "actual_sum": 1116223,
+              "absolute_error": 169623,
+              "wape": 0.1519615704030467
+            }
+          }
+        },
+        "pilot_v3": {
+          "wape": 0.15692743486708272,
+          "actual_sum": 11555908,
+          "absolute_error": 1813439,
+          "per_route": {
+            "1": {
+              "actual_sum": 973184,
+              "absolute_error": 140045,
+              "wape": 0.14390392772589766
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 1354327,
+              "absolute_error": 207129,
+              "wape": 0.15293869205886024
+            },
+            "11": {
+              "actual_sum": 1728497,
+              "absolute_error": 217526,
+              "wape": 0.12584690630067624
+            },
+            "12": {
+              "actual_sum": 1802631,
+              "absolute_error": 213342,
+              "wape": 0.11835034457967271
+            },
+            "17": {
+              "actual_sum": 2755004,
+              "absolute_error": 469842,
+              "wape": 0.17054131318865598
+            },
+            "25": {
+              "actual_sum": 389497,
+              "absolute_error": 81264,
+              "wape": 0.20863832070593613
+            },
+            "26": {
+              "actual_sum": 901318,
+              "absolute_error": 190924,
+              "wape": 0.21182756807253378
+            },
+            "28": {
+              "actual_sum": 535227,
+              "absolute_error": 106694,
+              "wape": 0.1993434561410392
+            },
+            "50": {
+              "actual_sum": 1116223,
+              "absolute_error": 186673,
+              "wape": 0.16723629597311648
+            }
+          }
+        }
+      },
+      "delta_wape_vs_core": {
+        "core": 0.0,
+        "pilot_v2": -0.052123900605646895,
+        "pilot_v3": -0.02694552431535452
+      },
+      "delta_wape_v3_vs_v2": 0.025178376290292376
+    },
+    {
+      "fold": "jan_jun_to_jul_aug",
+      "train_period": [
+        "2025-01-01",
+        "2025-06-30"
+      ],
+      "validation_period": [
+        "2025-07-01",
+        "2025-08-31"
+      ],
+      "forecast_origin": "2025-06-30",
+      "rows": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "weather_coverage": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "temperature_bucket_train_categories": {
+        "<0": 18190,
+        "[0,10)": 11300,
+        "[10,20)": 11250,
+        ">=20": 2700
+      },
+      "temperature_bucket_validation_categories": {
+        "<0": 0,
+        "[0,10)": 0,
+        "[10,20)": 8370,
+        ">=20": 6510
+      },
+      "variants": {
+        "core": {
+          "wape": 0.24878646472320012,
+          "actual_sum": 10717653,
+          "absolute_error": 2666407,
+          "per_route": {
+            "1": {
+              "actual_sum": 911227,
+              "absolute_error": 199046,
+              "wape": 0.21843733778740093
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 874497,
+              "absolute_error": 611157,
+              "wape": 0.6988668914816174
+            },
+            "11": {
+              "actual_sum": 1667277,
+              "absolute_error": 306598,
+              "wape": 0.18389145894773334
+            },
+            "12": {
+              "actual_sum": 1741516,
+              "absolute_error": 334726,
+              "wape": 0.1922038040419956
+            },
+            "17": {
+              "actual_sum": 2695020,
+              "absolute_error": 395288,
+              "wape": 0.14667349407425548
+            },
+            "25": {
+              "actual_sum": 338653,
+              "absolute_error": 99884,
+              "wape": 0.29494497317313
+            },
+            "26": {
+              "actual_sum": 802254,
+              "absolute_error": 254005,
+              "wape": 0.3166141895210245
+            },
+            "28": {
+              "actual_sum": 464420,
+              "absolute_error": 148874,
+              "wape": 0.320558976788252
+            },
+            "50": {
+              "actual_sum": 1222789,
+              "absolute_error": 316829,
+              "wape": 0.25910357387905847
+            }
+          }
+        },
+        "pilot_v2": {
+          "wape": 0.2585792803704319,
+          "actual_sum": 10717653,
+          "absolute_error": 2771363,
+          "per_route": {
+            "1": {
+              "actual_sum": 911227,
+              "absolute_error": 210267,
+              "wape": 0.23075150319294754
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 874497,
+              "absolute_error": 631778,
+              "wape": 0.7224473039930382
+            },
+            "11": {
+              "actual_sum": 1667277,
+              "absolute_error": 319536,
+              "wape": 0.19165141725100268
+            },
+            "12": {
+              "actual_sum": 1741516,
+              "absolute_error": 350568,
+              "wape": 0.20130047613688304
+            },
+            "17": {
+              "actual_sum": 2695020,
+              "absolute_error": 409106,
+              "wape": 0.15180072875154915
+            },
+            "25": {
+              "actual_sum": 338653,
+              "absolute_error": 104803,
+              "wape": 0.3094701656267625
+            },
+            "26": {
+              "actual_sum": 802254,
+              "absolute_error": 265119,
+              "wape": 0.33046765737534495
+            },
+            "28": {
+              "actual_sum": 464420,
+              "absolute_error": 156421,
+              "wape": 0.3368093536023427
+            },
+            "50": {
+              "actual_sum": 1222789,
+              "absolute_error": 323765,
+              "wape": 0.2647758525796356
+            }
+          }
+        },
+        "pilot_v3": {
+          "wape": 0.20194953130130264,
+          "actual_sum": 10717653,
+          "absolute_error": 2164425,
+          "per_route": {
+            "1": {
+              "actual_sum": 911227,
+              "absolute_error": 145085,
+              "wape": 0.1592193822176033
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 874497,
+              "absolute_error": 536752,
+              "wape": 0.6137836950841455
+            },
+            "11": {
+              "actual_sum": 1667277,
+              "absolute_error": 256281,
+              "wape": 0.1537123105518759
+            },
+            "12": {
+              "actual_sum": 1741516,
+              "absolute_error": 260995,
+              "wape": 0.14986655304918245
+            },
+            "17": {
+              "actual_sum": 2695020,
+              "absolute_error": 325335,
+              "wape": 0.12071710042968141
+            },
+            "25": {
+              "actual_sum": 338653,
+              "absolute_error": 83251,
+              "wape": 0.2458298021868993
+            },
+            "26": {
+              "actual_sum": 802254,
+              "absolute_error": 165548,
+              "wape": 0.20635359873556255
+            },
+            "28": {
+              "actual_sum": 464420,
+              "absolute_error": 108797,
+              "wape": 0.23426424357262823
+            },
+            "50": {
+              "actual_sum": 1222789,
+              "absolute_error": 282381,
+              "wape": 0.2309319105749234
+            }
+          }
+        }
+      },
+      "delta_wape_vs_core": {
+        "core": 0.0,
+        "pilot_v2": 0.00979281564723175,
+        "pilot_v3": -0.046836933421897486
+      },
+      "delta_wape_v3_vs_v2": -0.05662974906912924
+    },
+    {
+      "fold": "jan_aug_to_sep_oct",
+      "train_period": [
+        "2025-01-01",
+        "2025-08-31"
+      ],
+      "validation_period": [
+        "2025-09-01",
+        "2025-10-31"
+      ],
+      "forecast_origin": "2025-08-31",
+      "rows": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "weather_coverage": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "temperature_bucket_train_categories": {
+        "<0": 18190,
+        "[0,10)": 11300,
+        "[10,20)": 19620,
+        ">=20": 9210
+      },
+      "temperature_bucket_validation_categories": {
+        "<0": 0,
+        "[0,10)": 9540,
+        "[10,20)": 5100,
+        ">=20": 0
+      },
+      "variants": {
+        "core": {
+          "wape": 0.12357994025785918,
+          "actual_sum": 12754481,
+          "absolute_error": 1576198,
+          "per_route": {
+            "1": {
+              "actual_sum": 1136093,
+              "absolute_error": 124299,
+              "wape": 0.10940917688956801
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 1350573,
+              "absolute_error": 212490,
+              "wape": 0.15733322078850975
+            },
+            "11": {
+              "actual_sum": 1907061,
+              "absolute_error": 201109,
+              "wape": 0.10545493825315498
+            },
+            "12": {
+              "actual_sum": 1983604,
+              "absolute_error": 174688,
+              "wape": 0.08806596477926038
+            },
+            "17": {
+              "actual_sum": 3063025,
+              "absolute_error": 263097,
+              "wape": 0.08589449971841562
+            },
+            "25": {
+              "actual_sum": 464537,
+              "absolute_error": 92721,
+              "wape": 0.19959874025104565
+            },
+            "26": {
+              "actual_sum": 1089964,
+              "absolute_error": 136668,
+              "wape": 0.1253876274812746
+            },
+            "28": {
+              "actual_sum": 602164,
+              "absolute_error": 92576,
+              "wape": 0.15373884855288591
+            },
+            "50": {
+              "actual_sum": 1157460,
+              "absolute_error": 278550,
+              "wape": 0.2406562645793375
+            }
+          }
+        },
+        "pilot_v2": {
+          "wape": 0.12092150201956472,
+          "actual_sum": 12754481,
+          "absolute_error": 1542291,
+          "per_route": {
+            "1": {
+              "actual_sum": 1136093,
+              "absolute_error": 118268,
+              "wape": 0.10410063260666161
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 1350573,
+              "absolute_error": 206280,
+              "wape": 0.1527351724046016
+            },
+            "11": {
+              "actual_sum": 1907061,
+              "absolute_error": 199904,
+              "wape": 0.10482307592677947
+            },
+            "12": {
+              "actual_sum": 1983604,
+              "absolute_error": 170447,
+              "wape": 0.08592793722940667
+            },
+            "17": {
+              "actual_sum": 3063025,
+              "absolute_error": 257910,
+              "wape": 0.08420107573395581
+            },
+            "25": {
+              "actual_sum": 464537,
+              "absolute_error": 87948,
+              "wape": 0.189323993567789
+            },
+            "26": {
+              "actual_sum": 1089964,
+              "absolute_error": 130960,
+              "wape": 0.12015075727271726
+            },
+            "28": {
+              "actual_sum": 602164,
+              "absolute_error": 90210,
+              "wape": 0.14980968639772554
+            },
+            "50": {
+              "actual_sum": 1157460,
+              "absolute_error": 280364,
+              "wape": 0.24222348936464327
+            }
+          }
+        },
+        "pilot_v3": {
+          "wape": 0.11575625852592512,
+          "actual_sum": 12754481,
+          "absolute_error": 1476411,
+          "per_route": {
+            "1": {
+              "actual_sum": 1136093,
+              "absolute_error": 95853,
+              "wape": 0.08437073373394607
+            },
+            "5": {
+              "actual_sum": 0,
+              "absolute_error": 0,
+              "wape": null
+            },
+            "7": {
+              "actual_sum": 1350573,
+              "absolute_error": 221027,
+              "wape": 0.16365424157005953
+            },
+            "11": {
+              "actual_sum": 1907061,
+              "absolute_error": 206868,
+              "wape": 0.10847476824286166
+            },
+            "12": {
+              "actual_sum": 1983604,
+              "absolute_error": 191407,
+              "wape": 0.09649456242274164
+            },
+            "17": {
+              "actual_sum": 3063025,
+              "absolute_error": 226552,
+              "wape": 0.07396348381093854
+            },
+            "25": {
+              "actual_sum": 464537,
+              "absolute_error": 68834,
+              "wape": 0.14817764785151666
+            },
+            "26": {
+              "actual_sum": 1089964,
+              "absolute_error": 104752,
+              "wape": 0.09610592643426756
+            },
+            "28": {
+              "actual_sum": 602164,
+              "absolute_error": 79167,
+              "wape": 0.13147082854504752
+            },
+            "50": {
+              "actual_sum": 1157460,
+              "absolute_error": 281951,
+              "wape": 0.2435945950616004
+            }
+          }
+        }
+      },
+      "delta_wape_vs_core": {
+        "core": 0.0,
+        "pilot_v2": -0.0026584382382944527,
+        "pilot_v3": -0.007823681731934054
+      },
+      "delta_wape_v3_vs_v2": -0.005165243493639601
+    }
+  ],
+  "nov_dec_diagnostic_only": {
+    "rows": 14640,
+    "total_predictions": {
+      "core": 12271572,
+      "pilot_v2": 12088093,
+      "pilot_v3": 12628894
+    },
+    "totals_by_route": [
+      {
+        "route": 1,
+        "rows": 1464,
+        "core_total": 1053670,
+        "pilot_v2_total": 1033154,
+        "pilot_v3_total": 1079779
+      },
+      {
+        "route": 5,
+        "rows": 1464,
+        "core_total": 0,
+        "pilot_v2_total": 0,
+        "pilot_v3_total": 0
+      },
+      {
+        "route": 7,
+        "rows": 1464,
+        "core_total": 1358788,
+        "pilot_v2_total": 1347606,
+        "pilot_v3_total": 1422661
+      },
+      {
+        "route": 11,
+        "rows": 1464,
+        "core_total": 1828809,
+        "pilot_v2_total": 1803844,
+        "pilot_v3_total": 1872079
+      },
+      {
+        "route": 12,
+        "rows": 1464,
+        "core_total": 1915717,
+        "pilot_v2_total": 1883783,
+        "pilot_v3_total": 1954145
+      },
+      {
+        "route": 17,
+        "rows": 1464,
+        "core_total": 2904531,
+        "pilot_v2_total": 2864379,
+        "pilot_v3_total": 2973207
+      },
+      {
+        "route": 25,
+        "rows": 1464,
+        "core_total": 400781,
+        "pilot_v2_total": 397697,
+        "pilot_v3_total": 415714
+      },
+      {
+        "route": 26,
+        "rows": 1464,
+        "core_total": 996401,
+        "pilot_v2_total": 978730,
+        "pilot_v3_total": 1044079
+      },
+      {
+        "route": 28,
+        "rows": 1464,
+        "core_total": 568451,
+        "pilot_v2_total": 560406,
+        "pilot_v3_total": 594833
+      },
+      {
+        "route": 50,
+        "rows": 1464,
+        "core_total": 1244424,
+        "pilot_v2_total": 1218494,
+        "pilot_v3_total": 1272397
+      }
+    ],
+    "totals_by_month": [
+      {
+        "month": 11,
+        "rows": 7200,
+        "core_total": 5917131,
+        "pilot_v2_total": 5803754,
+        "pilot_v3_total": 6143712
+      },
+      {
+        "month": 12,
+        "rows": 7440,
+        "core_total": 6354441,
+        "pilot_v2_total": 6284339,
+        "pilot_v3_total": 6485182
+      }
+    ],
+    "totals_by_weekend": [
+      {
+        "weekend": 0,
+        "rows": 10320,
+        "core_total": 9942309,
+        "pilot_v2_total": 9671641,
+        "pilot_v3_total": 10078530
+      },
+      {
+        "weekend": 1,
+        "rows": 4320,
+        "core_total": 2329263,
+        "pilot_v2_total": 2416452,
+        "pilot_v3_total": 2550364
+      }
+    ],
+    "totals_by_calendar_flag": {
+      "is_day_off": [
+        {
+          "is_day_off": 0,
+          "rows": 9840,
+          "core_total": 9384078,
+          "pilot_v2_total": 9533098,
+          "pilot_v3_total": 9929296
+        },
+        {
+          "is_day_off": 1,
+          "rows": 4800,
+          "core_total": 2887494,
+          "pilot_v2_total": 2554995,
+          "pilot_v3_total": 2699598
+        }
+      ],
+      "is_official_holiday": [
+        {
+          "is_official_holiday": 0,
+          "rows": 14400,
+          "core_total": 12037595,
+          "pilot_v2_total": 11977485,
+          "pilot_v3_total": 12508694
+        },
+        {
+          "is_official_holiday": 1,
+          "rows": 240,
+          "core_total": 233977,
+          "pilot_v2_total": 110608,
+          "pilot_v3_total": 120200
+        }
+      ],
+      "is_transferred_day_off": [
+        {
+          "is_transferred_day_off": 0,
+          "rows": 14160,
+          "core_total": 11809432,
+          "pilot_v2_total": 11840252,
+          "pilot_v3_total": 12367609
+        },
+        {
+          "is_transferred_day_off": 1,
+          "rows": 480,
+          "core_total": 462140,
+          "pilot_v2_total": 247841,
+          "pilot_v3_total": 261285
+        }
+      ],
+      "is_transferred_workday": [
+        {
+          "is_transferred_workday": 0,
+          "rows": 14400,
+          "core_total": 12133686,
+          "pilot_v2_total": 11868187,
+          "pilot_v3_total": 12396643
+        },
+        {
+          "is_transferred_workday": 1,
+          "rows": 240,
+          "core_total": 137886,
+          "pilot_v2_total": 219906,
+          "pilot_v3_total": 232251
+        }
+      ],
+      "is_shortened_workday": [
+        {
+          "is_shortened_workday": 0,
+          "rows": 14400,
+          "core_total": 12133686,
+          "pilot_v2_total": 11868187,
+          "pilot_v3_total": 12396643
+        },
+        {
+          "is_shortened_workday": 1,
+          "rows": 240,
+          "core_total": 137886,
+          "pilot_v2_total": 219906,
+          "pilot_v3_total": 232251
+        }
+      ]
+    },
+    "distribution": {
+      "core": {
+        "count": 14640,
+        "zero_count": 2997,
+        "min": 0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "median": 495.0,
+        "p95": 2829.0,
+        "p99": 3815.0,
+        "max": 5139,
+        "mean": 838.222131147541,
+        "std": 958.5399898068156
+      },
+      "pilot_v2": {
+        "count": 14640,
+        "zero_count": 3047,
+        "min": 0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "median": 488.5,
+        "p95": 2817.0,
+        "p99": 3831.420000000013,
+        "max": 5067,
+        "mean": 825.689412568306,
+        "std": 949.3825350253994
+      },
+      "pilot_v3": {
+        "count": 14640,
+        "zero_count": 2989,
+        "min": 0,
+        "p01": 0.0,
+        "p05": 0.0,
+        "median": 508.0,
+        "p95": 2944.0,
+        "p99": 3845.6100000000006,
+        "max": 5238,
+        "mean": 862.6293715846995,
+        "std": 992.3387582606396
+      }
+    },
+    "extreme_top_v3": [
+      {
+        "route": 17,
+        "date": "2025-11-11",
+        "hour": 8,
+        "core_prediction": 5139,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5238
+      },
+      {
+        "route": 17,
+        "date": "2025-11-18",
+        "hour": 8,
+        "core_prediction": 5139,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5238
+      },
+      {
+        "route": 17,
+        "date": "2025-11-25",
+        "hour": 8,
+        "core_prediction": 5139,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5238
+      },
+      {
+        "route": 17,
+        "date": "2025-11-06",
+        "hour": 8,
+        "core_prediction": 5069,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5216
+      },
+      {
+        "route": 17,
+        "date": "2025-11-13",
+        "hour": 8,
+        "core_prediction": 5069,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5216
+      },
+      {
+        "route": 17,
+        "date": "2025-11-20",
+        "hour": 8,
+        "core_prediction": 5069,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5216
+      },
+      {
+        "route": 17,
+        "date": "2025-11-27",
+        "hour": 8,
+        "core_prediction": 5069,
+        "pilot_v2_prediction": 5067,
+        "pilot_v3_prediction": 5216
+      },
+      {
+        "route": 17,
+        "date": "2025-11-10",
+        "hour": 8,
+        "core_prediction": 5113,
+        "pilot_v2_prediction": 5060,
+        "pilot_v3_prediction": 5211
+      },
+      {
+        "route": 17,
+        "date": "2025-11-17",
+        "hour": 8,
+        "core_prediction": 5113,
+        "pilot_v2_prediction": 5060,
+        "pilot_v3_prediction": 5211
+      },
+      {
+        "route": 17,
+        "date": "2025-11-24",
+        "hour": 8,
+        "core_prediction": 5113,
+        "pilot_v2_prediction": 5060,
+        "pilot_v3_prediction": 5211
+      }
+    ],
+    "extreme_v3_vs_v2_change": [
+      {
+        "route": 17,
+        "date": "2025-11-01",
+        "hour": 15,
+        "core_prediction": 2905,
+        "pilot_v2_prediction": 3343,
+        "pilot_v3_prediction": 3904,
+        "v3_minus_v2": 561
+      },
+      {
+        "route": 17,
+        "date": "2025-11-01",
+        "hour": 14,
+        "core_prediction": 2829,
+        "pilot_v2_prediction": 3240,
+        "pilot_v3_prediction": 3715,
+        "v3_minus_v2": 475
+      },
+      {
+        "route": 17,
+        "date": "2025-11-08",
+        "hour": 14,
+        "core_prediction": 2829,
+        "pilot_v2_prediction": 2869,
+        "pilot_v3_prediction": 3341,
+        "v3_minus_v2": 472
+      },
+      {
+        "route": 17,
+        "date": "2025-11-15",
+        "hour": 14,
+        "core_prediction": 2829,
+        "pilot_v2_prediction": 2869,
+        "pilot_v3_prediction": 3341,
+        "v3_minus_v2": 472
+      },
+      {
+        "route": 17,
+        "date": "2025-11-22",
+        "hour": 14,
+        "core_prediction": 2829,
+        "pilot_v2_prediction": 2869,
+        "pilot_v3_prediction": 3341,
+        "v3_minus_v2": 472
+      },
+      {
+        "route": 17,
+        "date": "2025-11-29",
+        "hour": 14,
+        "core_prediction": 2829,
+        "pilot_v2_prediction": 2869,
+        "pilot_v3_prediction": 3341,
+        "v3_minus_v2": 472
+      },
+      {
+        "route": 17,
+        "date": "2025-11-03",
+        "hour": 18,
+        "core_prediction": 4719,
+        "pilot_v2_prediction": 2623,
+        "pilot_v3_prediction": 3092,
+        "v3_minus_v2": 469
+      },
+      {
+        "route": 17,
+        "date": "2025-12-31",
+        "hour": 18,
+        "core_prediction": 4730,
+        "pilot_v2_prediction": 2628,
+        "pilot_v3_prediction": 3093,
+        "v3_minus_v2": 465
+      },
+      {
+        "route": 17,
+        "date": "2025-11-02",
+        "hour": 14,
+        "core_prediction": 2758,
+        "pilot_v2_prediction": 2762,
+        "pilot_v3_prediction": 3210,
+        "v3_minus_v2": 448
+      },
+      {
+        "route": 17,
+        "date": "2025-11-09",
+        "hour": 14,
+        "core_prediction": 2758,
+        "pilot_v2_prediction": 2762,
+        "pilot_v3_prediction": 3210,
+        "v3_minus_v2": 448
+      }
+    ],
+    "diagnostic_predictions_artifact": "ml/experiments/results/pilot_model_v3_nov_dec_diagnostic_predictions.csv.gz"
+  },
+  "nov_dec_ground_truth_available": false,
+  "environment": {
+    "python": "3.12.6",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3",
+    "lightgbm": "4.7.0"
+  }
+}

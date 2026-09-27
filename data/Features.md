@@ -1244,3 +1244,89 @@ Recent block выше previous у восьми маршрутов; route 50 им
 **Ответ на два вопроса.** `is_day_off` нестабилен: улучшает 2/3 folds, но ухудшает Jul–Aug на всех девяти оцениваемых маршрутах. `special_calendar` улучшает May–Jun, где три вида special flags активны, однако добавление special к `is_day_off` на этом fold ухудшает overall WAPE `0.129697 → 0.131749` (`+0.002052`). В Jul–Aug и Sep–Oct special flags неактивны, но их добавление всё равно меняет WAPE; это эффект представления в train. Отдельная полезность special flags поверх `is_day_off` не установлена. Для `is_transferred_workday` нет активных validation дней ни в одном fold.
 
 **Финальное решение — `CALENDAR_CANDIDATE_ONLY`.** Каждый calendar вариант выигрывает 2/3 folds и проигрывает Jul–Aug; устойчивого набора для accepted feature registry нет. Calendar features не входят в accepted feature set текущей Global LightGBM из-за отсутствия стабильного improvement across temporal folds, но они **не являются `REJECT` features**. Пять calendar columns остаются optional/candidate features в model-ready данных: `is_day_off`, `is_official_holiday`, `is_transferred_day_off`, `is_transferred_workday`, `is_shortened_workday`. Их разрешено повторно тестировать при переходе к существенно другой model architecture/model family, например CatBoost, другим boosting configurations, neural/time-series models или ensemble components. Те же calendar experiments на текущей frozen Global LightGBM без новой информации не повторять. Calendar branch закрыта; следующий research direction — leakage-safe Weather.
+
+## Weather climatology 2020–2024 — separate controlled experiments
+
+**Источник и доступность.** `dataset/meta features/moscow_weather_2020_2024_era5.csv` содержит 43 848 почасовых ERA5 reanalysis records за 2020–2024, `Europe/Moscow`, без дубликатов `(date, hour)` и пропусков `temperature_2m`/`precipitation`. Готовая `moscow_weather_climatology_month_hour_2020_2024.csv` имеет ровно 288 уникальных `(month, hour)`, без NaN; агрегаты построчно воспроизведены из архива с максимальным абсолютным расхождением `< 1e−12`. `climatological_temperature = mean(temperature_2m)`, `climatological_precipitation = mean(precipitation)`, `climatological_rain_probability = mean(precipitation > 0)` в соответствующей группе `month × hour` по 2020–2024. Число архивных часов в каждой группе: 142–155. Одна и та же замороженная таблица использована во всех folds; observed weather 2025 не является model input. Архивные записи датированы до всех трёх origins и помечены источником как `safe_for_2025_backtest=1` и `safe_for_2025_forecast=1`; отдельной записи о дате публикации конкретного ERA5 snapshot в CSV нет.
+
+**Контракт.** `python ml/src/weather_climatology_experiment.py`; результат с хешами входов, параметрами и полными метриками — `ml/experiments/results/weather_climatology_single_feature.json`. Тот же model-ready Jan–Oct target/grid, три fixed expanding-window folds, frozen Global LightGBM и шесть accepted core fields, что в calendar temporal experiments. Каждый погодный кандидат добавлялся **отдельно** как числовой `float64`; calendar candidates не входили в модель. Пять core fields оставались категориальными; параметры `regression_l1`, 300 trees, `max_depth=6`, `num_leaves=31`, `learning_rate=0.1`, seed 42, postprocessing `floor(max(raw,0)+0.5)`, route 5 → 0. Core WAPE каждого fold воспроизвёл сохранённый `calendar_final_ablation.json` с допуском `1e−12`. Validation `boardings` использовались только после prediction. Join по `month + hour` дал покрытие 100%: train folds 28 800/43 440/58 320 строк, validation 14 640/14 880/14 640; Nov–Dec inference grid 14 640/14 640. Пропусков нет.
+
+**Overall WAPE.** Δ = кандидат − core; отрицательное значение означает улучшение.
+
+| Fold | Core | + rain probability | Δ | + temperature | Δ | + precipitation | Δ |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Jan–Apr → May–Jun | 0.183873 | 0.186962 | +0.003089 | 0.214927 | +0.031054 | 0.201829 | +0.017956 |
+| Jan–Jun → Jul–Aug | 0.248786 | 0.231949 | −0.016837 | 0.183006 | −0.065780 | 0.223537 | −0.025250 |
+| Jan–Aug → Sep–Oct | 0.123580 | 0.149042 | +0.025462 | 0.116164 | −0.007416 | 0.129669 | +0.006089 |
+
+**Feature distribution train → validation.** Интервалы — наблюдаемые min…max значения признака в каждой части fold; `outside` — доля validation rows за пределами train min…max. Поскольку погода одинакова для всех маршрутов в данном часе, строки здесь не независимые weather observations.
+
+| Feature | Fold | Mean train → validation | Range train → validation | Outside |
+|---|---|---:|---|---:|
+| Rain probability | May–Jun | 0.1915 → 0.1619 | 0.0903…0.2710 → 0.0733…0.2774 | 10.3% |
+| Rain probability | Jul–Aug | 0.1815 → 0.1456 | 0.0733…0.2774 → 0.0452…0.2710 | 25.0% |
+| Rain probability | Sep–Oct | 0.1724 → 0.1742 | 0.0452…0.2774 → 0.0800…0.2774 | 0.0% |
+| Temperature, °C | May–Jun | −0.6991 → 15.1880 | −6.3761…11.1820 → 7.3606…22.9447 | 80.9% |
+| Temperature, °C | Jul–Aug | 4.6552 → 19.5046 | −6.3761…22.9447 → 14.1213…24.4677 | 31.2% |
+| Temperature, °C | Sep–Oct | 8.4439 → 9.6879 | −6.3761…24.4677 → 4.6477…17.2513 | 0.0% |
+| Precipitation | May–Jun | 0.0585 → 0.0922 | 0.0213…0.1160 → 0.0387…0.1747 | 22.9% |
+| Precipitation | Jul–Aug | 0.0699 → 0.0864 | 0.0213…0.1747 → 0.0219…0.2490 | 4.2% |
+| Precipitation | Sep–Oct | 0.0741 → 0.0789 | 0.0213…0.2490 → 0.0373…0.1284 | 0.0% |
+
+**Per-route Δ WAPE.** Порядок столбцов: May–Jun / Jul–Aug / Sep–Oct. Route 5 имеет нулевой denominator, WAPE для него не определён.
+
+| Route | Rain probability Δ (3 folds) | Temperature Δ (3 folds) | Precipitation Δ (3 folds) |
+|---:|---|---|---|
+| 1 | +0.009736 / −0.018640 / +0.030325 | +0.039017 / −0.089462 / −0.011273 | +0.024983 / −0.032407 / +0.001946 |
+| 5 | N/A / N/A / N/A | N/A / N/A / N/A | N/A / N/A / N/A |
+| 7 | +0.007347 / −0.021604 / +0.042351 | +0.021040 / −0.135455 / +0.014589 | +0.011330 / −0.043663 / +0.021349 |
+| 11 | −0.001533 / −0.010247 / +0.013431 | +0.004266 / −0.045376 / −0.002683 | +0.006723 / −0.022522 / +0.003985 |
+| 12 | −0.004244 / −0.015485 / +0.024528 | −0.010211 / −0.060899 / +0.000277 | −0.001154 / −0.027342 / +0.008923 |
+| 17 | −0.002706 / −0.015254 / +0.018896 | +0.049955 / −0.036964 / −0.013950 | +0.025281 / −0.021479 / +0.003279 |
+| 25 | +0.003312 / −0.015376 / +0.028956 | +0.073931 / −0.060431 / −0.044782 | +0.028134 / +0.003230 / −0.011947 |
+| 26 | +0.020989 / −0.027642 / +0.030604 | +0.081628 / −0.136019 / −0.024727 | +0.045235 / −0.044928 / +0.002568 |
+| 28 | +0.009736 / −0.032234 / +0.043246 | +0.054153 / −0.128892 / −0.016412 | +0.017196 / −0.025109 / −0.003536 |
+| 50 | +0.007708 / −0.013953 / +0.024287 | +0.030860 / −0.028012 / +0.002983 | +0.024829 / −0.010830 / +0.013960 |
+
+**Extrapolation и интерпретация.** Month-hour climatology однозначно задаётся месяцем и часом, поэтому она также кодирует сезон. Все значения temperature на validation отсутствовали в train как точные числа; доля вне train range достигает 80.9% на May–Jun. LightGBM не экстраполирует за обученные пороги, что согласуется с большим ухудшением temperature на этом fold. Однако rain probability и precipitation ухудшают Sep–Oct даже при 0% вне train range: проблема не сводится к одной экстраполяции. Это не повторное включение raw `month`, который ранее получил `REJECT`, но близкий риск переноса сезонного представления сохраняется. Корреляция climatology и target сама по себе не подтверждает переносимость.
+
+**Классификация:** `climatological_rain_probability` — `MIXED` (выигрыш 1/3 folds); `climatological_temperature` — `MIXED` (выигрыш 2/3, большой проигрыш на May–Jun); `climatological_precipitation` — `MIXED` (выигрыш 1/3). Ни один кандидат не улучшил все три folds; ни один не добавлен в accepted set. На этом single-feature этапе combined configuration не проверялась.
+
+## Финальный Weather experiment — `temperature_bucket`
+
+**Предзаданное представление.** `temperature_bucket` вычисляется только из `climatological_temperature` в замороженной `moscow_weather_climatology_month_hour_2020_2024.csv` после join по `month + hour`: `<0`, `[0,10)`, `[10,20)`, `>=20` °C. Границы фиксированы до просмотра validation. Признак передаётся LightGBM как categorical с одинаковым набором четырёх категорий во всех folds. Rain probability и climatological precipitation повторно не тестировались; в этом Weather experiment combined configuration не проверялась.
+
+**Контракт и воспроизведение.** `python ml/src/weather_climatology_experiment.py --temperature-bucket`; точный результат: `ml/experiments/results/weather_temperature_bucket_final.json`. Использованы прежние model-ready Jan–Oct target/grid, та же frozen climatology 2020–2024, те же три folds, Global LightGBM, шесть core features, параметры, core categorical preprocessing, округление и route 5 → 0. Два варианта: `core` и `core + temperature_bucket`. Core WAPE каждого fold воспроизвёл прежний artifact с допуском `1e−12`. Validation target открывался только после prediction. Покрытие join: 28 800/43 440/58 320 train, 14 640/14 880/14 640 validation и 14 640/14 640 Nov–Dec forecast rows; NaN нет. Observed weather 2025 не использовался.
+
+**Диагностика категорий до fit.** Числа — строки полной route-grid; порядок категорий `<0`, `[0,10)`, `[10,20)`, `>=20`.
+
+| Fold | Train category counts | Validation category counts | Validation в unseen category |
+|---|---|---|---:|
+| Jan–Apr → May–Jun | 18 190 / 8 510 / 2 100 / 0 | 0 / 2 790 / 9 150 / 2 700 | 18.44% (`>=20`) |
+| Jan–Jun → Jul–Aug | 18 190 / 11 300 / 11 250 / 2 700 | 0 / 0 / 8 370 / 6 510 | 0% |
+| Jan–Aug → Sep–Oct | 18 190 / 11 300 / 19 620 / 9 210 | 0 / 9 540 / 5 100 / 0 | 0% |
+
+**Overall WAPE.** Δ = bucket − core; отрицательное значение означает улучшение.
+
+| Fold | Core | + `temperature_bucket` | Δ WAPE | Continuous temperature Δ из предыдущего опыта |
+|---|---:|---:|---:|---:|
+| Jan–Apr → May–Jun | 0.183873 | 0.199760 | +0.015887 | +0.031054 |
+| Jan–Jun → Jul–Aug | 0.248786 | 0.191758 | −0.057029 | −0.065780 |
+| Jan–Aug → Sep–Oct | 0.123580 | 0.113909 | −0.009670 | −0.007416 |
+
+**Per-route Δ WAPE** в порядке May–Jun / Jul–Aug / Sep–Oct. Route 5 WAPE не определён из-за нулевого target denominator.
+
+| Route | Δ May–Jun | Δ Jul–Aug | Δ Sep–Oct |
+|---:|---:|---:|---:|
+| 1 | +0.016572 | −0.074728 | −0.025536 |
+| 5 | N/A | N/A | N/A |
+| 7 | +0.016481 | −0.124427 | +0.010829 |
+| 11 | +0.000090 | −0.039999 | +0.000858 |
+| 12 | −0.006230 | −0.056655 | +0.005029 |
+| 17 | +0.021543 | −0.030438 | −0.016098 |
+| 25 | +0.019741 | −0.052774 | −0.053167 |
+| 26 | +0.050530 | −0.111588 | −0.030361 |
+| 28 | +0.017135 | −0.098045 | −0.022305 |
+| 50 | +0.030873 | −0.027803 | −0.000032 |
+
+**Вывод — `WEATHER_CANDIDATE_ONLY`.** Bucketing уменьшил May–Jun проигрыш continuous temperature (`+0.031054 → +0.015887`) и улучшил Sep–Oct gain (`−0.007416 → −0.009670`), но не устранил смену знака между folds. На первом fold `>=20` вообще отсутствует в train и занимает 18.44% validation; это оставшийся category shift. Поэтому нельзя утверждать, что mixed continuous-temperature result был **в основном** только проблемой числовой экстраполяции. Bucket выигрывает 2/3 folds, но один fold проигрывает core; route effects также неоднородны. `temperature_bucket` сохраняется как candidate, не входит в accepted set и не добавляется в текущие model-ready input columns. Observed weather 2025 остаётся EDA-only и запрещённым model input из-за leakage. Позднее bucket использовался в отдельном combined pilot v3 candidate experiment; это не меняет решение Weather branch. Ветка закрыта до появления новой информации.

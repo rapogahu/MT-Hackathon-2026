@@ -1,0 +1,972 @@
+{
+  "experiment": "WEATHER_CLIMATOLOGY_SINGLE_FEATURE",
+  "created_at_utc": "2026-09-27T08:30:40.291583+00:00",
+  "source_files_sha256": {
+    "dataset/meta features/moscow_weather_2020_2024_era5.csv": "bb0d60388569dd78b1fd4df2cca46162a894ee8fabfbf92a4b5ef80a4f5ad544",
+    "dataset/meta features/moscow_weather_climatology_month_hour_2020_2024.csv": "f5c70069fe1b748947342c22af3a5cf4de94539a8c318c55682f30933f38fe7f",
+    "data/processed/model_ready_train_2025_jan_oct.csv": "b096e2234d4ee87e3b0ae83f84f6e15598fad33a639646ae61c8301a13d0f04a",
+    "data/processed/model_ready_forecast_2025_nov_dec.csv": "c02399bc02581ff13fa3a68697f937855949056001c523ea56abf40f42c8f957"
+  },
+  "source_checks": {
+    "archive_rows": 43848,
+    "archive_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "climatology_rows": 288,
+    "missing_cells": 0,
+    "n_obs_temperature_range": [
+      142,
+      155
+    ],
+    "n_obs_precipitation_range": [
+      142,
+      155
+    ],
+    "recomputed_max_absolute_difference": {
+      "climatological_temperature": 3.552713678800501e-15,
+      "climatological_precipitation": 9.71445146547012e-17,
+      "climatological_rain_probability": 8.326672684688674e-17,
+      "n_obs_temperature": 0.0,
+      "n_obs_precipitation": 0.0
+    }
+  },
+  "climatology_formula": {
+    "group_by": [
+      "month",
+      "hour"
+    ],
+    "source_years": [
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "temperature": "mean(temperature_2m)",
+    "precipitation": "mean(precipitation)",
+    "rain_probability": "mean(precipitation > 0)",
+    "frozen_across_folds": true,
+    "observed_2025_weather_used": false
+  },
+  "core_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night"
+  ],
+  "candidate_features": [
+    "climatological_rain_probability",
+    "climatological_temperature",
+    "climatological_precipitation"
+  ],
+  "categorical_features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend"
+  ],
+  "model_parameters": {
+    "objective": "regression_l1",
+    "n_estimators": 300,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "learning_rate": 0.1,
+    "random_state": 42,
+    "n_jobs": 4,
+    "verbosity": -1
+  },
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5); route 5 = 0",
+  "classification_rule": "3/3 folds improved: KEEP_CANDIDATE; 0/3: REJECT; otherwise: MIXED",
+  "environment": {
+    "python": "3.12.6",
+    "pandas": "2.2.3",
+    "numpy": "2.1.3",
+    "lightgbm": "4.7.0"
+  },
+  "forecast_coverage": {
+    "climatological_rain_probability": 14640,
+    "climatological_temperature": 14640,
+    "climatological_precipitation": 14640
+  },
+  "folds": [
+    {
+      "fold": "jan_apr_to_may_jun",
+      "train_period": [
+        "2025-01-01",
+        "2025-04-30"
+      ],
+      "validation_period": [
+        "2025-05-01",
+        "2025-06-30"
+      ],
+      "forecast_origin": "2025-04-30",
+      "rows": {
+        "train": 28800,
+        "validation": 14640
+      },
+      "core_wape": 0.18387295918243723,
+      "candidates": {
+        "climatological_rain_probability": {
+          "wape": 0.18696176881989715,
+          "delta_wape_vs_core": 0.003088809637459916,
+          "per_route": {
+            "1": {
+              "core_wape": 0.19519741384979614,
+              "candidate_wape": 0.20493349664606075,
+              "delta_wape": 0.009736082796264617
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.19304938910617597,
+              "candidate_wape": 0.20039621155009094,
+              "delta_wape": 0.007346822443914963
+            },
+            "11": {
+              "core_wape": 0.16906884998932598,
+              "candidate_wape": 0.16753630466237432,
+              "delta_wape": -0.0015325453269516565
+            },
+            "12": {
+              "core_wape": 0.1834951246261714,
+              "candidate_wape": 0.17925077289805844,
+              "delta_wape": -0.004244351728112966
+            },
+            "17": {
+              "core_wape": 0.13736931053457635,
+              "candidate_wape": 0.1346636883285832,
+              "delta_wape": -0.002705622205993158
+            },
+            "25": {
+              "core_wape": 0.21253308754624553,
+              "candidate_wape": 0.21584505143813687,
+              "delta_wape": 0.0033119638918913397
+            },
+            "26": {
+              "core_wape": 0.22977018100159988,
+              "candidate_wape": 0.25075944339289796,
+              "delta_wape": 0.020989262391298086
+            },
+            "28": {
+              "core_wape": 0.23274236912562332,
+              "candidate_wape": 0.24247842504208494,
+              "delta_wape": 0.009736055916461622
+            },
+            "50": {
+              "core_wape": 0.2306841912413559,
+              "candidate_wape": 0.23839232841466265,
+              "delta_wape": 0.007708137173306762
+            }
+          },
+          "coverage": {
+            "train": 28800,
+            "validation": 14640
+          },
+          "distribution": {
+            "train": {
+              "count": 28800,
+              "unique_values": 48,
+              "min": 0.0903225806451612,
+              "p10": 0.1290322580645161,
+              "median": 0.2,
+              "p90": 0.2394366197183098,
+              "max": 0.2709677419354839,
+              "mean": 0.19151408450704221,
+              "std": 0.043986396494852954
+            },
+            "validation": {
+              "count": 14640,
+              "unique_values": 33,
+              "min": 0.0733333333333333,
+              "p10": 0.0933333333333333,
+              "median": 0.1466666666666666,
+              "p90": 0.2516129032258064,
+              "max": 0.2774193548387096,
+              "mean": 0.16188524590163936,
+              "std": 0.06189415939326065
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.10314207650273224,
+            "validation_below_train_min_fraction": 0.08196721311475409,
+            "validation_above_train_max_fraction": 0.02117486338797814,
+            "validation_unseen_exact_value_fraction": 0.4542349726775956
+          }
+        },
+        "climatological_temperature": {
+          "wape": 0.21492703126400797,
+          "delta_wape_vs_core": 0.03105407208157074,
+          "per_route": {
+            "1": {
+              "core_wape": 0.19519741384979614,
+              "candidate_wape": 0.23421470143364462,
+              "delta_wape": 0.03901728758384848
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.19304938910617597,
+              "candidate_wape": 0.21408935951214145,
+              "delta_wape": 0.021039970405965475
+            },
+            "11": {
+              "core_wape": 0.16906884998932598,
+              "candidate_wape": 0.17333440555580948,
+              "delta_wape": 0.004265555566483503
+            },
+            "12": {
+              "core_wape": 0.1834951246261714,
+              "candidate_wape": 0.1732844936096184,
+              "delta_wape": -0.010210631016553007
+            },
+            "17": {
+              "core_wape": 0.13736931053457635,
+              "candidate_wape": 0.1873238659544596,
+              "delta_wape": 0.04995455541988325
+            },
+            "25": {
+              "core_wape": 0.21253308754624553,
+              "candidate_wape": 0.28646433733764315,
+              "delta_wape": 0.07393124979139762
+            },
+            "26": {
+              "core_wape": 0.22977018100159988,
+              "candidate_wape": 0.31139841876008245,
+              "delta_wape": 0.08162823775848257
+            },
+            "28": {
+              "core_wape": 0.23274236912562332,
+              "candidate_wape": 0.2868950931100262,
+              "delta_wape": 0.05415272398440288
+            },
+            "50": {
+              "core_wape": 0.2306841912413559,
+              "candidate_wape": 0.2615445121628922,
+              "delta_wape": 0.030860320921536316
+            }
+          },
+          "coverage": {
+            "train": 28800,
+            "validation": 14640
+          },
+          "distribution": {
+            "train": {
+              "count": 28800,
+              "unique_values": 95,
+              "min": -6.376129032258064,
+              "p10": -5.974193548387097,
+              "median": -2.5767605633802817,
+              "p90": 7.299333333333334,
+              "max": 11.182,
+              "mean": -0.6990576095461661,
+              "std": 5.4604000154855
+            },
+            "validation": {
+              "count": 14640,
+              "unique_values": 48,
+              "min": 7.360645161290323,
+              "p10": 7.862580645161291,
+              "median": 15.13741935483871,
+              "p90": 22.382,
+              "max": 22.944666666666667,
+              "mean": 15.188032786885245,
+              "std": 4.795903347093039
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.8094262295081968,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.8094262295081968,
+            "validation_unseen_exact_value_fraction": 1.0
+          }
+        },
+        "climatological_precipitation": {
+          "wape": 0.2018287096089723,
+          "delta_wape_vs_core": 0.017955750426535078,
+          "per_route": {
+            "1": {
+              "core_wape": 0.19519741384979614,
+              "candidate_wape": 0.22018035643824807,
+              "delta_wape": 0.024982942588451934
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.19304938910617597,
+              "candidate_wape": 0.20437973990033426,
+              "delta_wape": 0.011330350794158284
+            },
+            "11": {
+              "core_wape": 0.16906884998932598,
+              "candidate_wape": 0.17579145349977465,
+              "delta_wape": 0.006722603510448677
+            },
+            "12": {
+              "core_wape": 0.1834951246261714,
+              "candidate_wape": 0.18234070089774335,
+              "delta_wape": -0.0011544237284280556
+            },
+            "17": {
+              "core_wape": 0.13736931053457635,
+              "candidate_wape": 0.16265058054362172,
+              "delta_wape": 0.02528127000904537
+            },
+            "25": {
+              "core_wape": 0.21253308754624553,
+              "candidate_wape": 0.24066680873023413,
+              "delta_wape": 0.028133721183988603
+            },
+            "26": {
+              "core_wape": 0.22977018100159988,
+              "candidate_wape": 0.2750050481628016,
+              "delta_wape": 0.0452348671612017
+            },
+            "28": {
+              "core_wape": 0.23274236912562332,
+              "candidate_wape": 0.2499388110091606,
+              "delta_wape": 0.017196441883537278
+            },
+            "50": {
+              "core_wape": 0.2306841912413559,
+              "candidate_wape": 0.2555134592281291,
+              "delta_wape": 0.024829267986773235
+            }
+          },
+          "coverage": {
+            "train": 28800,
+            "validation": 14640
+          },
+          "distribution": {
+            "train": {
+              "count": 28800,
+              "unique_values": 75,
+              "min": 0.0212903225806451,
+              "p10": 0.0374193548387096,
+              "median": 0.056338028169014,
+              "p90": 0.078,
+              "max": 0.1159999999999999,
+              "mean": 0.05849237089201874,
+              "std": 0.017088052826812535
+            },
+            "validation": {
+              "count": 14640,
+              "unique_values": 46,
+              "min": 0.0386666666666666,
+              "p10": 0.0579999999999999,
+              "median": 0.0853333333333333,
+              "p90": 0.1496774193548387,
+              "max": 0.1746666666666666,
+              "mean": 0.0922267759562841,
+              "std": 0.03260064328898059
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.22882513661202186,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.22882513661202186,
+            "validation_unseen_exact_value_fraction": 0.8756830601092896
+          }
+        }
+      }
+    },
+    {
+      "fold": "jan_jun_to_jul_aug",
+      "train_period": [
+        "2025-01-01",
+        "2025-06-30"
+      ],
+      "validation_period": [
+        "2025-07-01",
+        "2025-08-31"
+      ],
+      "forecast_origin": "2025-06-30",
+      "rows": {
+        "train": 43440,
+        "validation": 14880
+      },
+      "core_wape": 0.24878646472320012,
+      "candidates": {
+        "climatological_rain_probability": {
+          "wape": 0.23194928964391737,
+          "delta_wape_vs_core": -0.016837175079282757,
+          "per_route": {
+            "1": {
+              "core_wape": 0.21843733778740093,
+              "candidate_wape": 0.19979763549587534,
+              "delta_wape": -0.01863970229152559
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.6988668914816174,
+              "candidate_wape": 0.6772624720267766,
+              "delta_wape": -0.021604419454840817
+            },
+            "11": {
+              "core_wape": 0.18389145894773334,
+              "candidate_wape": 0.1736448112701129,
+              "delta_wape": -0.010246647677620457
+            },
+            "12": {
+              "core_wape": 0.1922038040419956,
+              "candidate_wape": 0.17671844530857023,
+              "delta_wape": -0.01548535873342538
+            },
+            "17": {
+              "core_wape": 0.14667349407425548,
+              "candidate_wape": 0.13141943287990443,
+              "delta_wape": -0.015254061194351048
+            },
+            "25": {
+              "core_wape": 0.29494497317313,
+              "candidate_wape": 0.2795693527002566,
+              "delta_wape": -0.015375620472873386
+            },
+            "26": {
+              "core_wape": 0.3166141895210245,
+              "candidate_wape": 0.2889720711894238,
+              "delta_wape": -0.027642118331600685
+            },
+            "28": {
+              "core_wape": 0.320558976788252,
+              "candidate_wape": 0.28832522285861933,
+              "delta_wape": -0.03223375392963268
+            },
+            "50": {
+              "core_wape": 0.25910357387905847,
+              "candidate_wape": 0.24515022624508398,
+              "delta_wape": -0.013953347633974489
+            }
+          },
+          "coverage": {
+            "train": 43440,
+            "validation": 14880
+          },
+          "distribution": {
+            "train": {
+              "count": 43440,
+              "unique_values": 61,
+              "min": 0.0733333333333333,
+              "p10": 0.1032258064516129,
+              "median": 0.1901408450704225,
+              "p90": 0.2451612903225806,
+              "max": 0.2774193548387096,
+              "mean": 0.1815286748112987,
+              "std": 0.052629777654421984
+            },
+            "validation": {
+              "count": 14880,
+              "unique_values": 28,
+              "min": 0.0451612903225806,
+              "p10": 0.0580645161290322,
+              "median": 0.1225806451612903,
+              "p90": 0.2451612903225806,
+              "max": 0.2709677419354839,
+              "mean": 0.1455645161290322,
+              "std": 0.07270730997872486
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.25,
+            "validation_below_train_min_fraction": 0.25,
+            "validation_above_train_max_fraction": 0.0,
+            "validation_unseen_exact_value_fraction": 0.3125
+          }
+        },
+        "climatological_temperature": {
+          "wape": 0.18300648472198158,
+          "delta_wape_vs_core": -0.06577998000121854,
+          "per_route": {
+            "1": {
+              "core_wape": 0.21843733778740093,
+              "candidate_wape": 0.12897554615918974,
+              "delta_wape": -0.08946179162821119
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.6988668914816174,
+              "candidate_wape": 0.5634118813443614,
+              "delta_wape": -0.13545501013725603
+            },
+            "11": {
+              "core_wape": 0.18389145894773334,
+              "candidate_wape": 0.13851507577924965,
+              "delta_wape": -0.04537638316848369
+            },
+            "12": {
+              "core_wape": 0.1922038040419956,
+              "candidate_wape": 0.1313045645288358,
+              "delta_wape": -0.060899239513159814
+            },
+            "17": {
+              "core_wape": 0.14667349407425548,
+              "candidate_wape": 0.10970901885700292,
+              "delta_wape": -0.03696447521725256
+            },
+            "25": {
+              "core_wape": 0.29494497317313,
+              "candidate_wape": 0.23451438493088797,
+              "delta_wape": -0.06043058824224204
+            },
+            "26": {
+              "core_wape": 0.3166141895210245,
+              "candidate_wape": 0.18059492380218733,
+              "delta_wape": -0.13601926571883716
+            },
+            "28": {
+              "core_wape": 0.320558976788252,
+              "candidate_wape": 0.19166702553722922,
+              "delta_wape": -0.1288919512510228
+            },
+            "50": {
+              "core_wape": 0.25910357387905847,
+              "candidate_wape": 0.23109138207818355,
+              "delta_wape": -0.028012191800874914
+            }
+          },
+          "coverage": {
+            "train": 43440,
+            "validation": 14880
+          },
+          "distribution": {
+            "train": {
+              "count": 43440,
+              "unique_values": 143,
+              "min": -6.376129032258064,
+              "p10": -5.803521126760564,
+              "median": 3.5896774193548384,
+              "p90": 18.112666666666662,
+              "max": 22.944666666666667,
+              "mean": 4.655155175991491,
+              "std": 9.160518002422274
+            },
+            "validation": {
+              "count": 14880,
+              "unique_values": 47,
+              "min": 14.121290322580649,
+              "p10": 14.560645161290322,
+              "median": 19.50935483870968,
+              "p90": 23.914838709677426,
+              "max": 24.467741935483872,
+              "mean": 19.504637096774193,
+              "std": 3.6689682185577097
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.3125,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.3125,
+            "validation_unseen_exact_value_fraction": 1.0
+          }
+        },
+        "climatological_precipitation": {
+          "wape": 0.22353662690889506,
+          "delta_wape_vs_core": -0.025249837814305065,
+          "per_route": {
+            "1": {
+              "core_wape": 0.21843733778740093,
+              "candidate_wape": 0.1860304841713426,
+              "delta_wape": -0.03240685361605833
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.6988668914816174,
+              "candidate_wape": 0.6552040773153024,
+              "delta_wape": -0.04366281416631501
+            },
+            "11": {
+              "core_wape": 0.18389145894773334,
+              "candidate_wape": 0.16136970641351137,
+              "delta_wape": -0.022521752534221978
+            },
+            "12": {
+              "core_wape": 0.1922038040419956,
+              "candidate_wape": 0.16486210864557088,
+              "delta_wape": -0.027341695396424726
+            },
+            "17": {
+              "core_wape": 0.14667349407425548,
+              "candidate_wape": 0.12519461822175718,
+              "delta_wape": -0.021478875852498303
+            },
+            "25": {
+              "core_wape": 0.29494497317313,
+              "candidate_wape": 0.29817541849621887,
+              "delta_wape": 0.0032304453230888597
+            },
+            "26": {
+              "core_wape": 0.3166141895210245,
+              "candidate_wape": 0.2716857753280133,
+              "delta_wape": -0.04492841419301119
+            },
+            "28": {
+              "core_wape": 0.320558976788252,
+              "candidate_wape": 0.29545023900779466,
+              "delta_wape": -0.025108737780457357
+            },
+            "50": {
+              "core_wape": 0.25910357387905847,
+              "candidate_wape": 0.24827341430124086,
+              "delta_wape": -0.010830159577817605
+            }
+          },
+          "coverage": {
+            "train": 43440,
+            "validation": 14880
+          },
+          "distribution": {
+            "train": {
+              "count": 43440,
+              "unique_values": 115,
+              "min": 0.0212903225806451,
+              "p10": 0.0419354838709677,
+              "median": 0.0640845070422535,
+              "p90": 0.1090322580645161,
+              "max": 0.1746666666666666,
+              "mean": 0.06986142453246176,
+              "std": 0.028390743296294867
+            },
+            "validation": {
+              "count": 14880,
+              "unique_values": 44,
+              "min": 0.0219354838709677,
+              "p10": 0.0303225806451612,
+              "median": 0.07064516129032256,
+              "p90": 0.1516129032258064,
+              "max": 0.2490322580645161,
+              "mean": 0.0863575268817204,
+              "std": 0.048969484766784574
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.041666666666666664,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.041666666666666664,
+            "validation_unseen_exact_value_fraction": 0.5833333333333334
+          }
+        }
+      }
+    },
+    {
+      "fold": "jan_aug_to_sep_oct",
+      "train_period": [
+        "2025-01-01",
+        "2025-08-31"
+      ],
+      "validation_period": [
+        "2025-09-01",
+        "2025-10-31"
+      ],
+      "forecast_origin": "2025-08-31",
+      "rows": {
+        "train": 58320,
+        "validation": 14640
+      },
+      "core_wape": 0.12357994025785918,
+      "candidates": {
+        "climatological_rain_probability": {
+          "wape": 0.1490419719939996,
+          "delta_wape_vs_core": 0.025462031736140422,
+          "per_route": {
+            "1": {
+              "core_wape": 0.10940917688956801,
+              "candidate_wape": 0.13973415908732822,
+              "delta_wape": 0.03032498219776021
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.15733322078850975,
+              "candidate_wape": 0.1996841340675402,
+              "delta_wape": 0.042350913279030455
+            },
+            "11": {
+              "core_wape": 0.10545493825315498,
+              "candidate_wape": 0.11888555216639636,
+              "delta_wape": 0.01343061391324138
+            },
+            "12": {
+              "core_wape": 0.08806596477926038,
+              "candidate_wape": 0.11259354185613661,
+              "delta_wape": 0.024527577076876236
+            },
+            "17": {
+              "core_wape": 0.08589449971841562,
+              "candidate_wape": 0.10479052570579737,
+              "delta_wape": 0.018896025987381757
+            },
+            "25": {
+              "core_wape": 0.19959874025104565,
+              "candidate_wape": 0.2285544531436678,
+              "delta_wape": 0.028955712892622137
+            },
+            "26": {
+              "core_wape": 0.1253876274812746,
+              "candidate_wape": 0.15599139054133898,
+              "delta_wape": 0.030603763060064376
+            },
+            "28": {
+              "core_wape": 0.15373884855288591,
+              "candidate_wape": 0.19698454241701596,
+              "delta_wape": 0.04324569386413005
+            },
+            "50": {
+              "core_wape": 0.2406562645793375,
+              "candidate_wape": 0.264943064987127,
+              "delta_wape": 0.024286800407789494
+            }
+          },
+          "coverage": {
+            "train": 58320,
+            "validation": 14640
+          },
+          "distribution": {
+            "train": {
+              "count": 58320,
+              "unique_values": 68,
+              "min": 0.0451612903225806,
+              "p10": 0.0903225806451612,
+              "median": 0.1806451612903225,
+              "p90": 0.2451612903225806,
+              "max": 0.2774193548387096,
+              "mean": 0.1723526343244653,
+              "std": 0.060478810662922544
+            },
+            "validation": {
+              "count": 14640,
+              "unique_values": 26,
+              "min": 0.08,
+              "p10": 0.1066666666666666,
+              "median": 0.1741935483870967,
+              "p90": 0.2645161290322581,
+              "max": 0.2774193548387096,
+              "mean": 0.17418032786885243,
+              "std": 0.051053718794940244
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.0,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.0,
+            "validation_unseen_exact_value_fraction": 0.10245901639344263
+          }
+        },
+        "climatological_temperature": {
+          "wape": 0.11616435039575503,
+          "delta_wape_vs_core": -0.007415589862104152,
+          "per_route": {
+            "1": {
+              "core_wape": 0.10940917688956801,
+              "candidate_wape": 0.09813633214886458,
+              "delta_wape": -0.011272844740703433
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.15733322078850975,
+              "candidate_wape": 0.171922583969915,
+              "delta_wape": 0.014589363181405246
+            },
+            "11": {
+              "core_wape": 0.10545493825315498,
+              "candidate_wape": 0.10277175192613136,
+              "delta_wape": -0.0026831863270236206
+            },
+            "12": {
+              "core_wape": 0.08806596477926038,
+              "candidate_wape": 0.08834323786400915,
+              "delta_wape": 0.000277273084748772
+            },
+            "17": {
+              "core_wape": 0.08589449971841562,
+              "candidate_wape": 0.0719448910798965,
+              "delta_wape": -0.013949608638519115
+            },
+            "25": {
+              "core_wape": 0.19959874025104565,
+              "candidate_wape": 0.15481651623013884,
+              "delta_wape": -0.04478222402090681
+            },
+            "26": {
+              "core_wape": 0.1253876274812746,
+              "candidate_wape": 0.10066112275267806,
+              "delta_wape": -0.02472650472859654
+            },
+            "28": {
+              "core_wape": 0.15373884855288591,
+              "candidate_wape": 0.1373263762031606,
+              "delta_wape": -0.016412472349725316
+            },
+            "50": {
+              "core_wape": 0.2406562645793375,
+              "candidate_wape": 0.24363952102016484,
+              "delta_wape": 0.0029832564408273365
+            }
+          },
+          "coverage": {
+            "train": 58320,
+            "validation": 14640
+          },
+          "distribution": {
+            "train": {
+              "count": 58320,
+              "unique_values": 190,
+              "min": -6.376129032258064,
+              "p10": -5.622580645161291,
+              "median": 9.811333333333334,
+              "p90": 22.863333333333333,
+              "max": 24.467741935483872,
+              "mean": 8.443911880059508,
+              "std": 10.384883695163213
+            },
+            "validation": {
+              "count": 14640,
+              "unique_values": 48,
+              "min": 4.647741935483871,
+              "p10": 5.203870967741936,
+              "median": 9.412,
+              "p90": 16.106,
+              "max": 17.25133333333333,
+              "mean": 9.687855191256832,
+              "std": 3.8639918999830645
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.0,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.0,
+            "validation_unseen_exact_value_fraction": 1.0
+          }
+        },
+        "climatological_precipitation": {
+          "wape": 0.1296692511439705,
+          "delta_wape_vs_core": 0.00608931088611131,
+          "per_route": {
+            "1": {
+              "core_wape": 0.10940917688956801,
+              "candidate_wape": 0.11135532038310245,
+              "delta_wape": 0.001946143493534433
+            },
+            "5": {
+              "core_wape": null,
+              "candidate_wape": null,
+              "delta_wape": null
+            },
+            "7": {
+              "core_wape": 0.15733322078850975,
+              "candidate_wape": 0.17868267764867207,
+              "delta_wape": 0.02134945686016232
+            },
+            "11": {
+              "core_wape": 0.10545493825315498,
+              "candidate_wape": 0.10944012802946523,
+              "delta_wape": 0.003985189776310252
+            },
+            "12": {
+              "core_wape": 0.08806596477926038,
+              "candidate_wape": 0.09698911677935718,
+              "delta_wape": 0.008923152000096801
+            },
+            "17": {
+              "core_wape": 0.08589449971841562,
+              "candidate_wape": 0.08917328457978632,
+              "delta_wape": 0.003278784861370704
+            },
+            "25": {
+              "core_wape": 0.19959874025104565,
+              "candidate_wape": 0.18765136038679373,
+              "delta_wape": -0.011947379864251928
+            },
+            "26": {
+              "core_wape": 0.1253876274812746,
+              "candidate_wape": 0.1279556022033755,
+              "delta_wape": 0.0025679747221009075
+            },
+            "28": {
+              "core_wape": 0.15373884855288591,
+              "candidate_wape": 0.15020326688410465,
+              "delta_wape": -0.0035355816687812625
+            },
+            "50": {
+              "core_wape": 0.2406562645793375,
+              "candidate_wape": 0.2546161422424965,
+              "delta_wape": 0.01395987766315901
+            }
+          },
+          "coverage": {
+            "train": 58320,
+            "validation": 14640
+          },
+          "distribution": {
+            "train": {
+              "count": 58320,
+              "unique_values": 142,
+              "min": 0.0212903225806451,
+              "p10": 0.036774193548387,
+              "median": 0.0646666666666666,
+              "p90": 0.1283870967741935,
+              "max": 0.2490322580645161,
+              "mean": 0.07407030661334259,
+              "std": 0.035551367201381835
+            },
+            "validation": {
+              "count": 14640,
+              "unique_values": 42,
+              "min": 0.0373333333333333,
+              "p10": 0.0426666666666666,
+              "median": 0.0833333333333333,
+              "p90": 0.1066666666666666,
+              "max": 0.1283870967741935,
+              "mean": 0.07893442622950816,
+              "std": 0.024122105564782354
+            }
+          },
+          "shift": {
+            "validation_outside_train_minmax_fraction": 0.0,
+            "validation_below_train_min_fraction": 0.0,
+            "validation_above_train_max_fraction": 0.0,
+            "validation_unseen_exact_value_fraction": 0.6857923497267759
+          }
+        }
+      }
+    }
+  ],
+  "classifications": {
+    "climatological_rain_probability": "MIXED",
+    "climatological_temperature": "MIXED",
+    "climatological_precipitation": "MIXED"
+  }
+}
