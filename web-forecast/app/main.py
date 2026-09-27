@@ -56,6 +56,8 @@ DEFAULT_FORECAST_FILE = (
 )
 
 
+# Переменные окружения остаются как override для разработки.
+# Для обычного запуска жюри они не нужны.
 GTFS_FILE = Path(
     os.getenv(
         "GTFS_EXCEL_PATH",
@@ -73,6 +75,30 @@ FORECAST_FILE = Path(
 
 
 # =========================================================
+# REQUIRED FILES
+# =========================================================
+
+if not GTFS_FILE.exists():
+    raise FileNotFoundError(
+        "GTFS справочник не найден.\n"
+        f"Ожидаемый путь: {GTFS_FILE}\n"
+        "Проверьте структуру репозитория "
+        "и наличие файла "
+        "'dataset/spravochniki/"
+        "Хакатон_справочники_трамвай_10_маршрутов.xlsx'."
+    )
+
+
+if not FORECAST_FILE.exists():
+    raise FileNotFoundError(
+        "Файл прогноза не найден.\n"
+        f"Ожидаемый путь: {FORECAST_FILE}\n"
+        "Проверьте наличие файла "
+        "'dataset/test_submission.csv'."
+    )
+
+
+# =========================================================
 # REPOSITORIES
 # =========================================================
 
@@ -81,14 +107,9 @@ gtfs_repository = GTFSRepository(
 )
 
 
-forecast_repository = None
-
-if FORECAST_FILE.exists():
-    forecast_repository = (
-        ForecastRepository(
-            FORECAST_FILE
-        )
-    )
+forecast_repository = ForecastRepository(
+    FORECAST_FILE
+)
 
 
 # =========================================================
@@ -117,9 +138,11 @@ default_origins = [
     "http://127.0.0.1:3000",
 ]
 
+
 cors_origins_env = os.getenv(
     "CORS_ORIGINS"
 )
+
 
 if cors_origins_env:
     cors_origins = [
@@ -151,12 +174,14 @@ app.include_router(
     prefix="/api",
 )
 
+
 app.include_router(
     create_stops_router(
         gtfs_repository
     ),
     prefix="/api",
 )
+
 
 app.include_router(
     create_assignments_router(
@@ -170,23 +195,22 @@ app.include_router(
 # FORECAST API
 # =========================================================
 
-if forecast_repository is not None:
+app.include_router(
+    create_forecast_router(
+        forecast_repository,
+        gtfs_repository,
+    ),
+    prefix="/api",
+)
 
-    app.include_router(
-        create_forecast_router(
-            forecast_repository,
-            gtfs_repository,
-        ),
-        prefix="/api",
-    )
 
-    app.include_router(
-        create_map_router(
-            forecast_repository,
-            gtfs_repository,
-        ),
-        prefix="/api",
-    )
+app.include_router(
+    create_map_router(
+        forecast_repository,
+        gtfs_repository,
+    ),
+    prefix="/api",
+)
 
 
 # =========================================================
@@ -199,9 +223,7 @@ def root():
         "service": "tram-forecast-backend",
         "status": "ok",
         "version": "0.2.0",
-        "forecast_loaded": (
-            forecast_repository is not None
-        ),
+        "forecast_loaded": True,
         "docs": "/docs",
         "health": "/health",
     }
@@ -213,15 +235,7 @@ def root():
 
 @app.get("/health")
 def health():
-    loaded = (
-        forecast_repository is not None
-    )
-
     return {
-        "status": (
-            "ok"
-            if loaded
-            else "degraded"
-        ),
-        "forecast_loaded": loaded,
+        "status": "ok",
+        "forecast_loaded": True,
     }

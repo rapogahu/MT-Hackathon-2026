@@ -1,0 +1,12 @@
+.git/
+.gitignore
+
+**/node_modules/
+**/.vite/
+**/dist/
+**/__pycache__/
+**/*.pyc
+
+dataset/train.csv
+dataset/test.csv
+dataset/test_submission.csv
