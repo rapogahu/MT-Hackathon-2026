@@ -118,19 +118,20 @@ def make_features(rows: pd.DataFrame, configuration: str, family: str) -> pd.Dat
 
 
 def fit_predict(train: pd.DataFrame, valid: pd.DataFrame,
-                configuration: str, family: str) -> tuple[np.ndarray, float, float]:
+                configuration: str, family: str,
+                parameters: dict | None = None) -> tuple[np.ndarray, float, float]:
     x_train = make_features(train, configuration, family)
     x_valid = make_features(valid, configuration, family)
     if list(x_train.columns) != list(FEATURE_CONFIGURATIONS[configuration]):
         raise ValueError("Feature set order changed")
     if family == "LightGBM":
-        model = LGBMRegressor(**MODEL_PARAMETERS)
+        model = LGBMRegressor(**(MODEL_PARAMETERS if parameters is None else parameters))
         fit_options = {"categorical_feature": list(CATEGORICAL)}
     elif family == "CatBoostRegressor":
-        model = CatBoostRegressor(**CATBOOST_PARAMETERS)
+        model = CatBoostRegressor(**(CATBOOST_PARAMETERS if parameters is None else parameters))
         fit_options = {"cat_features": list(CATEGORICAL)}
     elif family == "XGBRegressor":
-        model = XGBRegressor(**XGBOOST_PARAMETERS)
+        model = XGBRegressor(**(XGBOOST_PARAMETERS if parameters is None else parameters))
         fit_options = {}
     else:
         raise ValueError(f"Unknown model family: {family}")
@@ -167,8 +168,10 @@ def measure(actual: np.ndarray, predicted: np.ndarray, routes: np.ndarray) -> di
 
 
 def evaluate_fold(train: pd.DataFrame, valid: pd.DataFrame,
-                  configuration: str, family: str) -> dict:
-    prediction, train_seconds, inference_seconds = fit_predict(train, valid, configuration, family)
+                  configuration: str, family: str,
+                  parameters: dict | None = None) -> dict:
+    prediction, train_seconds, inference_seconds = fit_predict(
+        train, valid, configuration, family, parameters)
     if not (prediction[valid.route.to_numpy() == 5] == 0).all():
         raise ValueError("Route 5 prediction policy failed")
     result = measure(valid.boardings.to_numpy(dtype="int64"), prediction,

@@ -9,3 +9,4 @@ pandas==2.2.3
 catboost==1.2.10
 lightgbm==4.7.0
 xgboost==3.0.5
+optuna==5.0.0
