@@ -1,0 +1,40 @@
+{
+  "solution_name": "Pilot Model v5",
+  "model_type": "XGBRegressor",
+  "configuration": "calendar_weather",
+  "train_period": [
+    "2025-01-01",
+    "2025-10-31"
+  ],
+  "forecast_period": [
+    "2025-11-01",
+    "2025-12-31"
+  ],
+  "train_rows": 72960,
+  "forecast_rows": 14640,
+  "features_count": 12,
+  "features": [
+    "route",
+    "weekday",
+    "hour",
+    "route_hour",
+    "hour_weekend",
+    "is_night",
+    "is_day_off",
+    "is_official_holiday",
+    "is_transferred_day_off",
+    "is_transferred_workday",
+    "is_shortened_workday",
+    "temperature_bucket"
+  ],
+  "half_life_days": 180,
+  "weighting_formula": "exp(-ln(2) * age_days / 180)",
+  "postprocessing": "floor(max(raw_prediction, 0) + 0.5)",
+  "route_5_override": 0,
+  "model_artifact": "ml/models/pilot_model_v5_xgboost.json",
+  "train_entrypoint": "python -m ml.src.train",
+  "predict_entrypoint": "python -m ml.src.predict",
+  "forecast_input": "data/processed/model_ready_forecast_2025_nov_dec.csv",
+  "train_input": "data/processed/model_ready_train_2025_jan_oct.csv",
+  "submission_format": "route;date;hour;prediction"
+}

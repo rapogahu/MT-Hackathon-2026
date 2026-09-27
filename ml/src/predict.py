@@ -20,8 +20,8 @@ import final_model_config as config
 
 
 MODEL_PATH = config.ROOT / "ml/models/pilot_model_v5_xgboost.json"
-SUBMISSION_PATH = config.ROOT / "data/submissions/pilot_model_v5_reproduced_submission.csv"
-REFERENCE_PATH = config.ROOT / "data/submissions/pilot_model_v5_weighted_xgboost_submission.csv"
+SUBMISSION_PATH = config.ROOT / "data/end_submissions/pilot_model_v5_reproduced_submission.csv"
+REFERENCE_PATH = config.ROOT / "data/end_submissions/pilot_model_v5_weighted_xgboost_submission.csv"
 
 
 def main() -> None:
